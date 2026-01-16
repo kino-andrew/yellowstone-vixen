@@ -14119,6 +14119,8 @@ version = "0.0.0"
 dependencies = [
  "borsh 1.6.0",
  "clap 4.5.53",
+ "prost 0.13.5",
+ "prost-types 0.13.5",
  "rustls 0.23.35",
  "toml 0.8.23",
  "tracing",
@@ -14255,6 +14257,8 @@ dependencies = [
  "hex",
  "prettyplease 0.2.37",
  "proc-macro2",
+ "prost 0.13.5",
+ "prost-types 0.13.5",
  "quote",
  "serde",
  "serde_json",
