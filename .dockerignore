@@ -1,0 +1,7 @@
+target/
+*.md
+.gitignore
+.env*
+Dockerfile*
+docker-compose*
+**/*.log

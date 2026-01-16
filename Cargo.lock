@@ -4141,6 +4141,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15d118bbf3771060e7311cc7bb0545b01d08a8b4a7de949198dec1fa0ca1c0f7"
 dependencies = [
  "cc",
+ "libc",
  "pkg-config",
  "vcpkg",
 ]
@@ -5735,6 +5736,37 @@ checksum = "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
+]
+
+[[package]]
+name = "rdkafka"
+version = "0.36.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1beea247b9a7600a81d4cc33f659ce1a77e1988323d7d2809c7ed1c21f4c316d"
+dependencies = [
+ "futures-channel",
+ "futures-util",
+ "libc",
+ "log",
+ "rdkafka-sys",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "slab",
+ "tokio",
+]
+
+[[package]]
+name = "rdkafka-sys"
+version = "4.9.0+2.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5230dca48bc354d718269f3e4353280e188b610f7af7e2fcf54b7a79d5802872"
+dependencies = [
+ "cmake",
+ "libc",
+ "libz-sys",
+ "num_enum",
+ "pkg-config",
 ]
 
 [[package]]
@@ -14095,7 +14127,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "yellowstone-vixen-example-idl-decoder"
+name = "yellowstone-vixen-example-idl-parser"
 version = "0.0.0"
 dependencies = [
  "borsh 1.6.0",
@@ -14167,6 +14199,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "yellowstone-vixen-janus"
+version = "0.0.0"
+dependencies = [
+ "clap 4.5.53",
+ "rustls 0.23.35",
+ "serde_json",
+ "tokio",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+ "yellowstone-grpc-proto",
+ "yellowstone-vixen",
+ "yellowstone-vixen-core",
+ "yellowstone-vixen-kafka-sink",
+ "yellowstone-vixen-spl-token-parser",
+ "yellowstone-vixen-yellowstone-grpc-source",
+]
+
+[[package]]
 name = "yellowstone-vixen-jetstream-source"
 version = "0.6.0-alpha.0"
 dependencies = [
@@ -14191,6 +14242,21 @@ dependencies = [
  "tokio-util 0.7.17",
  "tracing",
  "yellowstone-grpc-client",
+ "yellowstone-grpc-proto",
+ "yellowstone-vixen",
+ "yellowstone-vixen-core",
+]
+
+[[package]]
+name = "yellowstone-vixen-kafka-sink"
+version = "0.6.0-alpha.0"
+dependencies = [
+ "futures 0.3.31",
+ "rdkafka",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
  "yellowstone-grpc-proto",
  "yellowstone-vixen",
  "yellowstone-vixen-core",
