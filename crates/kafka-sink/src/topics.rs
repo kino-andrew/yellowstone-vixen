@@ -62,10 +62,17 @@ pub fn ensure_topics_exist_with_log_compaction(
     });
 }
 
-/// Read the latest committed slot from the slots topic.
-/// Used for resumption and deduplication.
+/// Last committed block info from the slots topic.
+#[derive(Debug, Clone, Copy)]
+pub struct LastCommitted {
+    pub slot: u64,
+    pub block_height: u64,
+}
+
+/// Read the latest committed block from the slots topic.
+/// Used for resumption (slot for from_slot) and deduplication (block_height for ordering).
 /// Returns None if the topic is empty or doesn't exist.
-pub fn read_latest_committed_slot(config: &KafkaSinkConfig) -> Option<u64> {
+pub fn read_last_committed_block(config: &KafkaSinkConfig) -> Option<LastCommitted> {
     let consumer: BaseConsumer = ClientConfig::new()
         .set("bootstrap.servers", &config.brokers)
         .set("group.id", "vixen-startup-reader")
@@ -95,7 +102,7 @@ pub fn read_latest_committed_slot(config: &KafkaSinkConfig) -> Option<u64> {
         return None;
     }
 
-    let mut latest_slot: Option<u64> = None;
+    let mut latest: Option<LastCommitted> = None;
 
     for partition in topic_metadata.partitions() {
         let partition_id = partition.id();
@@ -120,13 +127,18 @@ pub fn read_latest_committed_slot(config: &KafkaSinkConfig) -> Option<u64> {
         if let Some(Ok(msg)) = consumer.poll(Duration::from_secs(5)) {
             if let Some(payload) = msg.payload() {
                 if let Ok(event) = serde_json::from_slice::<SlotCommitEvent>(payload) {
-                    if latest_slot.map_or(true, |s| event.slot > s) {
-                        latest_slot = Some(event.slot);
+                    if let Some(height) = event.block_height {
+                        if latest.map_or(true, |l| height > l.block_height) {
+                            latest = Some(LastCommitted {
+                                slot: event.slot,
+                                block_height: height,
+                            });
+                        }
                     }
                 }
             }
         }
     }
 
-    latest_slot
+    latest
 }

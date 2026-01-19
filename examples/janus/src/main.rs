@@ -12,7 +12,7 @@ use tracing_subscriber::EnvFilter;
 use yellowstone_vixen::{self as vixen, config::VixenConfig, Pipeline};
 use yellowstone_vixen_core::{BlockUpdate, CommitmentLevel, ParseResult, Parser, Prefilter};
 use yellowstone_vixen_kafka_sink::{
-    create_producer, ensure_topics_exist_with_log_compaction, read_latest_committed_slot,
+    create_producer, ensure_topics_exist_with_log_compaction, read_last_committed_block,
     BlockBufferHandler, BlockProcessor, FutureProducer, KafkaSinkBuilder, KafkaSinkConfig,
 };
 use yellowstone_vixen_spl_token_parser::InstructionParser;
@@ -91,11 +91,15 @@ fn main() {
 
     ensure_topics_exist_with_log_compaction(&kafka_config, &sink.topics());
 
-    let last_committed_slot = read_latest_committed_slot(&kafka_config);
-    if let Some(slot) = last_committed_slot {
-        tracing::info!(slot, "Last committed slot from Kafka");
+    let last_committed = read_last_committed_block(&kafka_config);
+    if let Some(ref committed) = last_committed {
+        tracing::info!(
+            slot = committed.slot,
+            block_height = committed.block_height,
+            "Last committed block from Kafka"
+        );
     } else {
-        tracing::info!("No committed slots found - starting fresh");
+        tracing::info!("No committed blocks found - starting fresh");
     }
 
     tracing::info!(kafka_brokers, "Starting Janus - Vixen Kafka Sink");
@@ -105,25 +109,24 @@ fn main() {
 
     let producer = Arc::new(create_producer(&kafka_config));
 
-    // try with from_slot if we have a last committed slot
-    if let Some(slot) = last_committed_slot {
+    // Try to resume from last committed slot
+    if let Some(committed) = last_committed {
         let mut config_with_slot = vixen_config;
-        config_with_slot.source.from_slot = Some(slot);
-        tracing::info!(slot, "Attempting to resume from slot");
+        config_with_slot.source.from_slot = Some(committed.slot);
+        tracing::info!(slot = committed.slot, "Attempting to resume from slot");
 
         match run_pipeline(
             config_with_slot,
             kafka_config.clone(),
             &producer,
             &sink,
-            last_committed_slot,
+            Some(committed.block_height),
         ) {
             Ok(()) => return,
             Err(e) => {
                 tracing::warn!(
-                    slot,
+                    slot = committed.slot,
                     error = %e,
-                    error_debug = ?e,
                     "Resume from slot failed - retrying without from_slot"
                 );
                 let config_str =
@@ -135,13 +138,7 @@ fn main() {
     }
 
     tracing::info!("Starting from live stream");
-    if let Err(e) = run_pipeline(
-        vixen_config,
-        kafka_config,
-        &producer,
-        &sink,
-        last_committed_slot,
-    ) {
+    if let Err(e) = run_pipeline(vixen_config, kafka_config, &producer, &sink, None) {
         panic!("Fatal error: {}", e);
     }
 }
@@ -151,7 +148,7 @@ fn run_pipeline(
     kafka_config: KafkaSinkConfig,
     producer: &Arc<FutureProducer>,
     sink: &yellowstone_vixen_kafka_sink::ConfiguredParsers,
-    last_committed_slot: Option<u64>,
+    last_committed_block_height: Option<u64>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let (block_handler, rx) = BlockBufferHandler::create(&kafka_config);
 
@@ -159,7 +156,7 @@ fn run_pipeline(
         kafka_config,
         Arc::clone(producer),
         sink.clone(), // ConfiguredParsers contains Arc<dyn ...> so cloning is cheap
-        last_committed_slot,
+        last_committed_block_height,
     );
 
     std::thread::spawn(move || {

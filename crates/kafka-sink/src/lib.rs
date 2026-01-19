@@ -14,7 +14,7 @@ pub use handler::BlockBufferHandler;
 pub use processor::{BlockProcessor, BlockRecordPreparer};
 pub use producer::create_producer;
 pub use sink::{ConfiguredParsers, KafkaSinkBuilder, ParsedInstruction};
-pub use topics::{ensure_topics_exist_with_log_compaction, read_latest_committed_slot};
+pub use topics::{ensure_topics_exist_with_log_compaction, read_last_committed_block, LastCommitted};
 pub use utils::{format_path, get_all_ix_with_index, make_record_key};
 
 // Re-export rdkafka types for convenience
