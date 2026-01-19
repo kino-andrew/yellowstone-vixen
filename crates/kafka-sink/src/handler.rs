@@ -19,7 +19,6 @@ impl std::fmt::Debug for BlockBufferHandler {
 }
 
 impl BlockBufferHandler {
-    /// Create a new handler with the given channel sender.
     pub fn new(tx: mpsc::Sender<BlockUpdate>, config: &KafkaSinkConfig) -> Self {
         Self {
             tx,
@@ -27,7 +26,6 @@ impl BlockBufferHandler {
         }
     }
 
-    /// Create a channel and handler pair.
     pub fn create(config: &KafkaSinkConfig) -> (Self, mpsc::Receiver<BlockUpdate>) {
         let (tx, rx) = mpsc::channel(config.buffer_size);
         (Self::new(tx, config), rx)

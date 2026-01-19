@@ -32,10 +32,6 @@ pub struct Opts {
     kafka_brokers: String,
 }
 
-// ============================================================================
-// Block Parser - subscribes to blocks at confirmed commitment level
-// ============================================================================
-
 #[derive(Debug, Clone, Copy)]
 pub struct BlockParser;
 
@@ -130,7 +126,6 @@ fn main() {
                     error_debug = ?e,
                     "Resume from slot failed - retrying without from_slot"
                 );
-                // Re-read config for second attempt
                 let config_str =
                     std::fs::read_to_string(&config_path).expect("Error reading config file");
                 vixen_config = toml::from_str(&config_str).expect("Error parsing config");
@@ -139,7 +134,6 @@ fn main() {
         }
     }
 
-    // If error: start from live
     tracing::info!("Starting from live stream");
     if let Err(e) = run_pipeline(
         vixen_config,

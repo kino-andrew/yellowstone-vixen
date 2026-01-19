@@ -1,18 +1,18 @@
 use yellowstone_vixen_core::instruction::InstructionUpdate;
 
-/// Iterate through an instruction and all its inner instructions (CPIs),
-/// yielding each instruction along with its path (e.g., [0], [0, 1], [0, 1, 2]).
-pub fn visit_instructions_with_path(
+/// Get all instructions (main + inner CPIs) with their index path.
+/// Index path example: [0], [0, 1], [0, 1, 2] for nested CPIs.
+pub fn get_all_ix_with_index(
     ix: &InstructionUpdate,
     base_index: usize,
 ) -> Vec<(Vec<usize>, &InstructionUpdate)> {
     let mut result = Vec::new();
     let path = vec![base_index];
-    visit_recursive(ix, path, &mut result);
+    collect_recursive(ix, path, &mut result);
     result
 }
 
-fn visit_recursive<'a>(
+fn collect_recursive<'a>(
     ix: &'a InstructionUpdate,
     path: Vec<usize>,
     result: &mut Vec<(Vec<usize>, &'a InstructionUpdate)>,
@@ -21,7 +21,7 @@ fn visit_recursive<'a>(
     for (i, inner) in ix.inner.iter().enumerate() {
         let mut inner_path = path.clone();
         inner_path.push(i);
-        visit_recursive(inner, inner_path, result);
+        collect_recursive(inner, inner_path, result);
     }
 }
 

@@ -8,7 +8,7 @@ use rdkafka::{
 
 use crate::{config::KafkaSinkConfig, events::SlotCommitEvent};
 
-/// Ensure all required topics exist with log compaction enabled.
+// TODO: maybe there is way to configure redpanda to do it automatically then can let him handle topic creation natively
 /// Creates topics if they don't exist, skips if they already exist.
 pub fn ensure_topics_exist_with_log_compaction(
     config: &KafkaSinkConfig,

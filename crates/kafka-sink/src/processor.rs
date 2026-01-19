@@ -44,7 +44,6 @@ pub struct BlockProcessor<P: BlockRecordPreparer> {
 }
 
 impl<P: BlockRecordPreparer> BlockProcessor<P> {
-    /// Create a new block processor.
     pub fn new(
         config: KafkaSinkConfig,
         producer: Arc<FutureProducer>,
@@ -62,7 +61,7 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
         }
     }
 
-    /// Run the block processor, consuming blocks from the channel.
+    /// Run the block processor, consuming blocks from the mpsc channel
     pub async fn run(mut self, mut rx: mpsc::Receiver<BlockUpdate>) {
         tracing::info!(
             last_committed = ?self.last_committed_slot,
@@ -212,7 +211,7 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
                     if record.is_decoded {
                         tracing::debug!(slot, label = %record.label, topic = %record.topic, "Published");
                     }
-                }
+                },
                 Err((e, _)) => {
                     failure_count += 1;
                     tracing::error!(
@@ -222,7 +221,7 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
                         topic = %record.topic,
                         "Kafka publish failed"
                     );
-                }
+                },
             }
         }
 
@@ -283,7 +282,7 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
                     topic = %self.config.slots_topic,
                     "Kafka: failed to commit slot"
                 )
-            }
+            },
         }
 
         Ok(())

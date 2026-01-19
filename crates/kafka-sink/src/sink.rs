@@ -13,7 +13,7 @@ use yellowstone_vixen_core::{
 use crate::{
     events::{DecodedInstructionEvent, PreparedRecord, RawInstructionEvent},
     processor::BlockRecordPreparer,
-    utils::{format_path, make_record_key, visit_instructions_with_path},
+    utils::{format_path, get_all_ix_with_index, make_record_key},
 };
 
 /// Parsed instruction data (type-erased).
@@ -28,7 +28,6 @@ pub struct ParsedInstruction {
 }
 
 impl ParsedInstruction {
-    /// Create from any Debug-implementing output.
     pub fn from_debug<T: std::fmt::Debug>(output: &T) -> Self {
         let debug_str = format!("{:?}", output);
         let instruction_name = debug_str
@@ -98,19 +97,6 @@ where
     }
 }
 
-/// Builder for configuring kafka-sink with Vixen parsers.
-///
-/// # Example
-///
-/// ```ignore
-/// use yellowstone_vixen_kafka_sink::KafkaSinkBuilder;
-/// use yellowstone_vixen_spl_token_parser::InstructionParser;
-///
-/// let sink = KafkaSinkBuilder::new()
-///     .parser(InstructionParser, "spl-token", "spl-token.instructions")
-///     .fallback_topic("unknown.instructions")
-///     .build();
-/// ```
 pub struct KafkaSinkBuilder {
     parsers: Vec<Arc<dyn DynInstructionParser>>,
     fallback_topic: String,
@@ -123,7 +109,6 @@ impl Default for KafkaSinkBuilder {
 }
 
 impl KafkaSinkBuilder {
-    /// Create a new builder.
     pub fn new() -> Self {
         Self {
             parsers: Vec::new(),
@@ -156,7 +141,6 @@ impl KafkaSinkBuilder {
         self
     }
 
-    /// Build the configured sink.
     pub fn build(self) -> ConfiguredParsers {
         ConfiguredParsers {
             parsers: self.parsers,
@@ -164,7 +148,6 @@ impl KafkaSinkBuilder {
         }
     }
 
-    /// Get the list of topics that will be used (for ensuring they exist).
     pub fn topics(&self) -> Vec<&str> {
         let mut topics: Vec<&str> = self.parsers.iter().map(|p| p.topic()).collect();
         topics.push(&self.fallback_topic);
@@ -189,7 +172,6 @@ impl Default for ConfiguredParsers {
 }
 
 impl ConfiguredParsers {
-    /// Get the list of topics (for ensuring they exist).
     pub fn topics(&self) -> Vec<&str> {
         let mut topics: Vec<&str> = self.parsers.iter().map(|p| p.topic()).collect();
         topics.push(&self.fallback_topic);
@@ -197,13 +179,10 @@ impl ConfiguredParsers {
         topics
     }
 
-    /// Get the fallback topic.
     pub fn fallback_topic(&self) -> &str {
         &self.fallback_topic
     }
 
-    /// Try to parse an instruction with all configured parsers.
-    /// Returns the first successful parse, or None if no parser handles it.
     pub async fn try_parse(
         &self,
         ix: &InstructionUpdate,
@@ -216,7 +195,6 @@ impl ConfiguredParsers {
         None
     }
 
-    /// Prepare a Kafka record from a parsed instruction.
     fn prepare_decoded_record(
         &self,
         slot: u64,
@@ -298,7 +276,7 @@ impl BlockRecordPreparer for ConfiguredParsers {
             };
 
             for (ix_index, ix_update) in instructions.iter().enumerate() {
-                for (path, ix) in visit_instructions_with_path(ix_update, ix_index) {
+                for (path, ix) in get_all_ix_with_index(ix_update, ix_index) {
                     let record = match self.try_parse(ix).await {
                         Some((parsed, program_name, topic)) => {
                             decoded_count += 1;
