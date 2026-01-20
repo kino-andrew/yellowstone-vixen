@@ -21,7 +21,7 @@ pub fn defined_types(defined_types: &[codama_nodes::DefinedTypeNode]) -> TokenSt
 /**
  * Generates code looking like:
  *
- * #[derive(Clone, PartialEq, ::prost::Message)]
+ * #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
  * pub struct TypeName {
  *     #[prost(..., tag = N)]
  *     pub field_name: field_type,
@@ -39,7 +39,7 @@ fn render_defined_struct(
 
     quote! {
         #extra_defs
-        #[derive(Clone, PartialEq, ::prost::Message)]
+        #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
         pub struct #ident {
             #(#fields),*
         }
@@ -49,7 +49,7 @@ fn render_defined_struct(
 /**
  * Generates code looking like:
  *
- * #[derive(Clone, PartialEq, ::prost::Message)]
+ * #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
  * pub struct EnumName {
  *     #[prost(oneof = "enum_name::Kind", tags = "1, 2, 3")]
  *     pub kind: ::core::option::Option<enum_name::Kind>,
@@ -69,16 +69,16 @@ fn render_defined_struct(
  *     }
  * }
  *
- * #[derive(Clone, PartialEq, ::prost::Message)]
+ * #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
  * pub struct VariantA {}
  *
- * #[derive(Clone, PartialEq, ::prost::Message)]
+ * #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
  * pub struct VariantB {
  *     #[prost(uint64, tag = 1)]
  *     pub amount: u64,
  * }
  *
- * #[derive(Clone, PartialEq, ::prost::Message)]
+ * #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
  * pub struct VariantC {
  *     #[prost(string, tag = 1)]
  *     pub name: ::prost::alloc::string::String,
@@ -111,7 +111,7 @@ fn render_defined_enum(
             EnumVariantTypeNode::Empty(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
                 empty_variant_msgs.extend(quote! {
-                    #[derive(Clone, PartialEq, ::prost::Message)]
+                    #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
                     pub struct #v_ident {}
                 });
             },
@@ -138,7 +138,7 @@ fn render_defined_enum(
 
                 payload_defs.extend(quote! {
                     #extra_defs
-                    #[derive(Clone, PartialEq, ::prost::Message)]
+                    #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
                     pub struct #v_ident {
                         #(#fields),*
                     }
@@ -159,7 +159,7 @@ fn render_defined_enum(
 
                 payload_defs.extend(quote! {
                     #extra_defs
-                    #[derive(Clone, PartialEq, ::prost::Message)]
+                    #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
                     pub struct #v_ident {
                         #(#fields),*
                     }
@@ -237,7 +237,7 @@ fn render_defined_tuple(ident: &syn::Ident, tuple: &codama_nodes::TupleTypeNode)
 
     quote! {
         #extra_defs
-        #[derive(Clone, PartialEq, ::prost::Message)]
+        #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
         pub struct #ident {
             #(#tuple_fields),*
         }
@@ -371,7 +371,7 @@ pub fn render_field_with_helpers(
 
             let extra_defs = quote! {
                 #nested_extra
-                #[derive(Clone, PartialEq, ::prost::Message)]
+                #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
                 pub struct #tuple_ident {
                     #(#tuple_fields),*
                 }

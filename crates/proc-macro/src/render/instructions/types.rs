@@ -11,24 +11,21 @@ use quote::{format_ident, quote};
  *   pub struct CreateIx {
  *       #[prost(message, optional, tag = "1")]
  *       pub accounts: Option<CreateAccounts>,
- *       #[prost(bytes = "vec", optional, tag = "2")]
- *       pub args: Option<Vec<u8>>,
+ *       #[prost(message, optional, tag = "2")]
+ *       pub args: Option<CreateArgs>,
  *   }
  *
  *   #[derive(Clone, PartialEq, ::prost::Message)]
  *   pub struct SellIx {
  *       #[prost(message, optional, tag = "1")]
  *       pub accounts: Option<SellAccounts>,
- *       #[prost(bytes = "vec", optional, tag = "2")]
- *       pub args: Option<Vec<u8>>,
+ *       #[prost(message, optional, tag = "2")]
+ *       pub args: Option<SellArgs>,
  *   }
  *
  *   #[derive(Clone, PartialEq, ::prost::Message)]
  *   pub struct ProgramInstruction {
- *       #[prost(
- *           oneof = "program_instruction_oneof::Ix",
- *           tags = "1, 2"
- *       )]
+ *       #[prost(oneof = "program_instruction_oneof::Ix", tags = "1, 2")]
  *       pub ix: Option<program_instruction_oneof::Ix>,
  *   }
  *
@@ -37,17 +34,14 @@ use quote::{format_ident, quote};
  *       pub enum Ix {
  *           #[prost(message, tag = "1")]
  *           CreateIx(super::CreateIx),
- *
  *           #[prost(message, tag = "2")]
  *           SellIx(super::SellIx),
  *       }
  *   }
  */
-pub fn instruction_envelope_type(instructions: &[codama_nodes::InstructionNode]) -> TokenStream {
+pub fn instruction_envelope_type(instructions: &[InstructionNode]) -> TokenStream {
     let program_instruction_ident = format_ident!("ProgramInstruction");
-
     let oneof_mod_ident = format_ident!("program_instruction_oneof");
-
     let oneof_ident = format_ident!("Ix");
 
     // Generate tags list: "1, 2, 3, ..."
@@ -56,15 +50,11 @@ pub fn instruction_envelope_type(instructions: &[codama_nodes::InstructionNode])
             .map(|t| t.to_string())
             .collect::<Vec<_>>()
             .join(", ");
-
-        // string literal (known at compile time for code generation)
         syn::LitStr::new(&tags_list, proc_macro2::Span::call_site())
     };
 
     let oneof_path = {
         let oneof_path = format!("{}::{}", oneof_mod_ident, oneof_ident);
-
-        // string literal (known at compile time for code generation)
         syn::LitStr::new(&oneof_path, proc_macro2::Span::call_site())
     };
 
@@ -73,6 +63,7 @@ pub fn instruction_envelope_type(instructions: &[codama_nodes::InstructionNode])
 
         let payload_ident = format_ident!("{}Ix", ix_name);
         let accounts_ident = format_ident!("{}Accounts", ix_name);
+        let args_ident = format_ident!("{}Args", ix_name);
 
         quote! {
             #[derive(Clone, PartialEq, ::prost::Message)]
@@ -80,8 +71,8 @@ pub fn instruction_envelope_type(instructions: &[codama_nodes::InstructionNode])
                 #[prost(message, optional, tag="1")]
                 pub accounts: ::core::option::Option<#accounts_ident>,
 
-                #[prost(bytes = "vec", optional, tag="2")]
-                pub args: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+                #[prost(message, optional, tag="2")]
+                pub args: ::core::option::Option<#args_ident>,
             }
         }
     });
@@ -89,7 +80,6 @@ pub fn instruction_envelope_type(instructions: &[codama_nodes::InstructionNode])
     let oneof_variants = instructions.iter().enumerate().map(|(i, ix)| {
         let tag = (i + 1) as u32;
         let ix_name = crate::utils::to_pascal_case(&ix.name);
-
         let payload_ident = format_ident!("{}Ix", ix_name);
 
         quote! { #[prost(message, tag = #tag)] #payload_ident(super::#payload_ident) }
@@ -126,7 +116,7 @@ pub fn instruction_envelope_type(instructions: &[codama_nodes::InstructionNode])
  *       pub mint: PubkeyBytes,
  *   }
  *
- *   #[derive(Clone, PartialEq, ::prost::Message)]
+ *   #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
  *   pub struct CreateArgs {
  *       #[prost(uint64, tag = "1")]
  *       pub supply: u64,
@@ -151,7 +141,6 @@ fn single_instruction_type(instruction: &InstructionNode) -> TokenStream {
         }
     });
 
-    /* Args: any Codama types */
     let mut args_extra_defs = TokenStream::new();
     let mut args_fields = Vec::new();
 
@@ -182,7 +171,7 @@ fn single_instruction_type(instruction: &InstructionNode) -> TokenStream {
 
         #args_extra_defs
 
-        #[derive(Clone, PartialEq, ::prost::Message)]
+        #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
         pub struct #args_ident {
             #(#args_fields),*
         }
@@ -192,11 +181,8 @@ fn single_instruction_type(instruction: &InstructionNode) -> TokenStream {
 /**
  * Generate protobuf compatible types for instructions
  */
-pub fn types(instructions: &[codama_nodes::InstructionNode]) -> TokenStream {
-    let sections = instructions
-        .iter()
-        .map(|instruction| single_instruction_type(instruction));
-
+pub fn types(instructions: &[InstructionNode]) -> TokenStream {
+    let sections = instructions.iter().map(single_instruction_type);
     let instruction_envelope_type = instruction_envelope_type(instructions);
 
     quote! {
