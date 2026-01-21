@@ -5,7 +5,7 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Error, Result};
 use super::extension::decode_extension_ix_type;
 use crate::PubkeyBytes;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExtensionWithCommonInstruction {
     CpiGuard,
     DefaultAccountState,
@@ -17,7 +17,7 @@ pub enum ExtensionWithCommonInstruction {
     TransferHook,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InstructionSupported {
     InitAndUpdate,
     EnableAndDisable,
