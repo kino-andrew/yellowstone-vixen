@@ -6,13 +6,11 @@
 use std::{future::Future, pin::Pin, sync::Arc};
 
 use yellowstone_grpc_proto::geyser::SubscribeUpdateTransaction;
-use yellowstone_vixen_core::{
-    bs58, instruction::InstructionUpdate, BlockUpdate, ParseError, Parser,
-};
+use yellowstone_vixen_core::{bs58, instruction::InstructionUpdate, ParseError, Parser};
 
 use crate::{
     events::{DecodedInstructionEvent, PreparedRecord, RawInstructionEvent},
-    processor::BlockRecordPreparer,
+    processor::{BlockRecordPreparer, ProcessableBlock},
     utils::{format_path, get_all_ix_with_index, make_record_key},
 };
 
@@ -255,13 +253,13 @@ impl ConfiguredParsers {
     }
 }
 
-impl BlockRecordPreparer for ConfiguredParsers {
-    async fn prepare_records(&self, block: &BlockUpdate) -> (Vec<PreparedRecord>, u64) {
-        let slot = block.slot;
+impl<B: ProcessableBlock> BlockRecordPreparer<B> for ConfiguredParsers {
+    async fn prepare_records(&self, block: &B) -> (Vec<PreparedRecord>, u64) {
+        let slot = block.slot();
         let mut records = Vec::new();
         let mut decoded_count = 0u64;
 
-        for tx_info in &block.transactions {
+        for tx_info in block.transactions() {
             let tx_update = SubscribeUpdateTransaction {
                 slot,
                 transaction: Some(tx_info.clone()),

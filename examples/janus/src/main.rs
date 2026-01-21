@@ -2,18 +2,19 @@
 //!
 //! This example demonstrates using the kafka-sink crate to process Solana blocks
 //! and publish decoded instructions to Kafka with ordering guarantees.
+//! Will be moved to Janus repository later.
 
-// TODO: not sure about kafka-sink for the name of the lib
-
-use std::{borrow::Cow, path::PathBuf, sync::Arc};
+use std::{path::PathBuf, sync::Arc};
 
 use clap::Parser as _;
+use tokio::sync::mpsc;
 use tracing_subscriber::EnvFilter;
-use yellowstone_vixen::{self as vixen, config::VixenConfig, Pipeline};
-use yellowstone_vixen_core::{BlockUpdate, CommitmentLevel, ParseResult, Parser, Prefilter};
+use yellowstone_vixen::{self as vixen, Pipeline};
+use yellowstone_vixen_core::{BlockMetaUpdate, CommitmentLevel, SlotUpdate, TransactionUpdate};
 use yellowstone_vixen_kafka_sink::{
     create_producer, ensure_topics_exist_with_log_compaction, read_last_committed_block,
-    BlockBufferHandler, BlockProcessor, FutureProducer, KafkaSinkBuilder, KafkaSinkConfig,
+    AssembledSlot, AssemblerChannels, BlockMetaParser, BlockProcessor, KafkaSinkBuilder,
+    KafkaSinkConfig, SlotBuffer, SlotParser, TransactionParser,
 };
 use yellowstone_vixen_spl_token_parser::InstructionParser;
 use yellowstone_vixen_yellowstone_grpc_source::{YellowstoneGrpcConfig, YellowstoneGrpcSource};
@@ -30,29 +31,6 @@ pub struct Opts {
 
     #[arg(long, env = "KAFKA_BROKERS", default_value = "localhost:9092")]
     kafka_brokers: String,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct BlockParser;
-
-impl Parser for BlockParser {
-    type Input = BlockUpdate;
-    type Output = BlockUpdate;
-
-    fn id(&self) -> Cow<'static, str> {
-        "janus::BlockParser".into()
-    }
-
-    fn prefilter(&self) -> Prefilter {
-        Prefilter::builder()
-            .block_include_transactions()
-            .build()
-            .unwrap()
-    }
-
-    async fn parse(&self, block: &BlockUpdate) -> ParseResult<Self::Output> {
-        Ok(block.clone())
-    }
 }
 
 fn main() {
@@ -76,11 +54,10 @@ fn main() {
     } = Opts::parse();
 
     let config_str = std::fs::read_to_string(&config_path).expect("Error reading config file");
-    let mut vixen_config: VixenConfig<YellowstoneGrpcConfig> =
+    let mut vixen_config: vixen::config::VixenConfig<YellowstoneGrpcConfig> =
         toml::from_str(&config_str).expect("Error parsing config");
 
-    // TODO: make it configurable for the processed cluster later
-    vixen_config.source.commitment_level = Some(CommitmentLevel::Confirmed);
+    vixen_config.source.commitment_level = Some(CommitmentLevel::Processed);
 
     let sink = KafkaSinkBuilder::new()
         .parser(InstructionParser, "spl-token", "spl-token.instructions")
@@ -104,7 +81,7 @@ fn main() {
 
     tracing::info!(kafka_brokers, "Starting Janus - Vixen Kafka Sink");
     tracing::info!(
-        "Architecture: Richat gRPC (confirmed) -> Buffer -> Ordered Processing -> Kafka"
+        "Architecture: Richat gRPC (processed) -> SlotBuffer (confirm) -> Processor -> Kafka"
     );
 
     let producer = Arc::new(create_producer(&kafka_config));
@@ -132,7 +109,7 @@ fn main() {
                 let config_str =
                     std::fs::read_to_string(&config_path).expect("Error reading config file");
                 vixen_config = toml::from_str(&config_str).expect("Error parsing config");
-                vixen_config.source.commitment_level = Some(CommitmentLevel::Confirmed);
+                vixen_config.source.commitment_level = Some(CommitmentLevel::Processed);
             },
         }
     }
@@ -144,18 +121,30 @@ fn main() {
 }
 
 fn run_pipeline(
-    vixen_config: VixenConfig<YellowstoneGrpcConfig>,
+    vixen_config: vixen::config::VixenConfig<YellowstoneGrpcConfig>,
     kafka_config: KafkaSinkConfig,
-    producer: &Arc<FutureProducer>,
+    producer: &Arc<yellowstone_vixen_kafka_sink::FutureProducer>,
     sink: &yellowstone_vixen_kafka_sink::ConfiguredParsers,
     last_committed_block_height: Option<u64>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let (block_handler, rx) = BlockBufferHandler::create(&kafka_config);
+    let channels = AssemblerChannels::new(kafka_config.buffer_size);
+    let (tx_handler, meta_handler, slot_handler) = channels.handlers();
+
+    let (confirmed_tx, confirmed_rx) = mpsc::channel::<AssembledSlot>(kafka_config.buffer_size);
+
+    let buffer_handle = spawn_slot_buffer(
+        channels.tx_receiver,
+        channels.meta_receiver,
+        channels.slot_receiver,
+        confirmed_tx,
+        last_committed_block_height,
+        kafka_config.buffer_size,
+    );
 
     let processor = BlockProcessor::new(
         kafka_config,
         Arc::clone(producer),
-        sink.clone(), // ConfiguredParsers contains Arc<dyn ...> so cloning is cheap
+        sink.clone(),
         last_committed_block_height,
     );
 
@@ -164,12 +153,56 @@ fn run_pipeline(
             .enable_all()
             .build()
             .expect("Failed to create processor runtime");
-        rt.block_on(processor.run(rx));
+        rt.block_on(processor.run(confirmed_rx));
     });
 
     vixen::Runtime::<YellowstoneGrpcSource>::builder()
-        .block(Pipeline::new(BlockParser, [block_handler]))
+        .transaction(Pipeline::new(TransactionParser, [tx_handler]))
+        .block_meta(Pipeline::new(BlockMetaParser, [meta_handler]))
+        .slot(Pipeline::new(SlotParser, [slot_handler]))
         .build(vixen_config)
         .try_run()
-        .map_err(|e| e.into())
+        .map_err(|e| {
+            drop(buffer_handle);
+            e.into()
+        })
+}
+
+fn spawn_slot_buffer(
+    mut tx_rx: mpsc::Receiver<TransactionUpdate>,
+    mut meta_rx: mpsc::Receiver<BlockMetaUpdate>,
+    mut slot_rx: mpsc::Receiver<SlotUpdate>,
+    confirmed_tx: mpsc::Sender<AssembledSlot>,
+    last_committed_block_height: Option<u64>,
+    max_pending_slots: usize,
+) -> std::thread::JoinHandle<()> {
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to create slot buffer runtime");
+
+        rt.block_on(async move {
+            let mut buffer =
+                SlotBuffer::new(confirmed_tx, last_committed_block_height, max_pending_slots);
+
+            loop {
+                tokio::select! {
+                    Some(tx) = tx_rx.recv() => {
+                        buffer.add_transaction(tx);
+                    }
+                    Some(meta) = meta_rx.recv() => {
+                        buffer.add_block_meta(meta);
+                    }
+                    Some(slot_update) = slot_rx.recv() => {
+                        buffer.process_slot_status(&slot_update).await;
+                    }
+                    else => {
+                        tracing::warn!("SlotBuffer channels closed, shutting down");
+                        break;
+                    }
+                }
+            }
+        });
+    })
 }

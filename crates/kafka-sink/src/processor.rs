@@ -10,33 +10,99 @@ use std::{
 use futures::future::join_all;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use tokio::sync::mpsc;
+use yellowstone_grpc_proto::geyser::SubscribeUpdateTransactionInfo;
 use yellowstone_vixen_core::BlockUpdate;
 
 use crate::{
+    assembler::AssembledSlot,
     config::KafkaSinkConfig,
     events::{PreparedRecord, SlotCommitEvent},
 };
 
+/// Trait for blocks that can be processed by the block processor.
+/// Implemented by both `BlockUpdate` (full blocks) and `AssembledSlot` (assembled from parts).
+pub trait ProcessableBlock: Send + Sync + Clone {
+    fn slot(&self) -> u64;
+    fn block_height(&self) -> Option<u64>;
+    fn blockhash(&self) -> &str;
+    fn block_time(&self) -> Option<i64>;
+    fn executed_transaction_count(&self) -> u64;
+    fn transactions(&self) -> &[SubscribeUpdateTransactionInfo];
+}
+
+// TODO: cleanup if we will never suscribe to blocks
+impl ProcessableBlock for BlockUpdate {
+    fn slot(&self) -> u64 {
+        self.slot
+    }
+
+    fn block_height(&self) -> Option<u64> {
+        self.block_height.as_ref().map(|bh| bh.block_height)
+    }
+
+    fn blockhash(&self) -> &str {
+        &self.blockhash
+    }
+
+    fn block_time(&self) -> Option<i64> {
+        self.block_time.as_ref().map(|bt| bt.timestamp)
+    }
+
+    fn executed_transaction_count(&self) -> u64 {
+        self.executed_transaction_count
+    }
+
+    fn transactions(&self) -> &[SubscribeUpdateTransactionInfo] {
+        &self.transactions
+    }
+}
+
+impl ProcessableBlock for AssembledSlot {
+    fn slot(&self) -> u64 {
+        self.slot
+    }
+
+    fn block_height(&self) -> Option<u64> {
+        self.block_height
+    }
+
+    fn blockhash(&self) -> &str {
+        &self.blockhash
+    }
+
+    fn block_time(&self) -> Option<i64> {
+        self.block_time
+    }
+
+    fn executed_transaction_count(&self) -> u64 {
+        self.executed_transaction_count
+    }
+
+    fn transactions(&self) -> &[SubscribeUpdateTransactionInfo] {
+        &self.transactions
+    }
+}
+
 /// Trait for parsing blocks into Kafka records.
 /// Implement this to customize how blocks are processed.
-pub trait BlockRecordPreparer: Send + Sync {
+pub trait BlockRecordPreparer<B: ProcessableBlock>: Send + Sync {
     /// Prepare Kafka records from a block.
     /// Returns a list of prepared records and the count of decoded instructions.
-    fn prepare_records(
-        &self,
-        block: &BlockUpdate,
-    ) -> impl Future<Output = (Vec<PreparedRecord>, u64)> + Send;
+    fn prepare_records(&self, block: &B)
+        -> impl Future<Output = (Vec<PreparedRecord>, u64)> + Send;
 }
 
 /// Block processor that maintains block_height ordering and handles Kafka publishing.
 /// Uses block_height (not slot) because block heights are strictly sequential,
 /// while slots can have gaps due to Solana leader skips.
-pub struct BlockProcessor<P: BlockRecordPreparer> {
+///
+/// Generic over block type `B` (can be `BlockUpdate` or `AssembledSlot`).
+pub struct BlockProcessor<B: ProcessableBlock, P: BlockRecordPreparer<B>> {
     config: KafkaSinkConfig,
     producer: Arc<FutureProducer>,
     preparer: P,
     /// Pending blocks waiting to be processed in order, keyed by block_height.
-    pending_blocks: BTreeMap<u64, BlockUpdate>,
+    pending_blocks: BTreeMap<u64, B>,
     /// Next block_height we expect to process (for ordering).
     next_block_height: Option<u64>,
     /// Last committed block_height from Kafka - skip this on first receive.
@@ -45,7 +111,7 @@ pub struct BlockProcessor<P: BlockRecordPreparer> {
     processed_block_heights: HashSet<u64>,
 }
 
-impl<P: BlockRecordPreparer> BlockProcessor<P> {
+impl<B: ProcessableBlock, P: BlockRecordPreparer<B>> BlockProcessor<B, P> {
     pub fn new(
         config: KafkaSinkConfig,
         producer: Arc<FutureProducer>,
@@ -64,19 +130,19 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
     }
 
     /// Run the block processor, consuming blocks from the mpsc channel
-    pub async fn run(mut self, mut rx: mpsc::Receiver<BlockUpdate>) {
+    pub async fn run(mut self, mut rx: mpsc::Receiver<B>) {
         tracing::info!(
             last_committed_block_height = ?self.last_committed_block_height,
             "Block processor started, waiting for blocks..."
         );
 
         while let Some(block) = rx.recv().await {
-            let slot = block.slot;
-            let tx_count = block.transactions.len();
+            let slot = block.slot();
+            let tx_count = block.transactions().len();
 
             // Extract block_height - skip blocks without it
-            let block_height = match block.block_height.as_ref() {
-                Some(bh) => bh.block_height,
+            let block_height = match block.block_height() {
+                Some(bh) => bh,
                 None => {
                     tracing::warn!(slot, "Block missing block_height, skipping");
                     continue;
@@ -86,7 +152,12 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
             // Discard blocks that were already committed (resume case)
             if let Some(last_committed) = self.last_committed_block_height {
                 if block_height <= last_committed {
-                    tracing::debug!(slot, block_height, last_committed, "Discarding already-committed block");
+                    tracing::debug!(
+                        slot,
+                        block_height,
+                        last_committed,
+                        "Discarding already-committed block"
+                    );
                     continue;
                 }
                 // block_height > last_committed: clear the check and process normally
@@ -101,7 +172,12 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
                 continue;
             }
 
-            tracing::info!(slot, block_height, tx_count, "Received block, queued for processing");
+            tracing::info!(
+                slot,
+                block_height,
+                tx_count,
+                "Received block, queued for processing"
+            );
 
             // Add block to pending queue, keyed by block_height
             self.pending_blocks.insert(block_height, block);
@@ -109,7 +185,10 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
             // Initialize next_block_height if this is the first block
             if self.next_block_height.is_none() {
                 self.next_block_height = Some(block_height);
-                tracing::info!(block_height, "Initialized ordering starting from block_height");
+                tracing::info!(
+                    block_height,
+                    "Initialized ordering starting from block_height"
+                );
             }
 
             // Process all consecutive blocks we have
@@ -149,7 +228,12 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
         let block = self.pending_blocks.remove(&block_height).unwrap();
 
         if let Err(e) = self.process_block(&block).await {
-            tracing::error!(?e, slot = block.slot, block_height, "Error processing block");
+            tracing::error!(
+                ?e,
+                slot = block.slot(),
+                block_height,
+                "Error processing block"
+            );
         }
 
         // Mark as processed for deduplication
@@ -168,10 +252,10 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
     /// Process a single block: prepare records, publish to Kafka, commit slot.
     async fn process_block(
         &self,
-        block: &BlockUpdate,
+        block: &B,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let slot = block.slot;
-        let tx_count = block.transactions.len();
+        let slot = block.slot();
+        let tx_count = block.transactions().len();
         tracing::info!(slot, tx_count, ">>> Processing block START");
 
         // Phase 1: Prepare Kafka records
@@ -241,33 +325,31 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
     /// Commit the slot to the slots topic after block is fully processed.
     async fn commit_slot(
         &self,
-        block: &BlockUpdate,
+        block: &B,
         decoded_count: u64,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let slot = block.slot();
+        let block_height = block.block_height().unwrap_or(0);
+
         let event = SlotCommitEvent {
-            slot: block.slot,
-            blockhash: block.blockhash.clone(),
-            block_time: block.block_time.as_ref().map(|bt| bt.timestamp),
-            block_height: block.block_height.as_ref().map(|bh| bh.block_height),
-            transaction_count: block.executed_transaction_count,
+            slot,
+            blockhash: block.blockhash().to_string(),
+            block_time: block.block_time(),
+            block_height: block.block_height(),
+            transaction_count: block.executed_transaction_count(),
             decoded_instruction_count: decoded_count,
         };
 
         let payload = serde_json::to_string(&event)?;
-        let block_height = block
-            .block_height
-            .as_ref()
-            .map(|bh| bh.block_height)
-            .unwrap_or(0);
-        let height_key = block_height.to_string();
+        let block_height_key = block_height.to_string();
 
         let record = FutureRecord::to(&self.config.slots_topic)
             .payload(&payload)
-            .key(&height_key);
+            .key(&block_height_key);
 
         match self.producer.send(record, Duration::from_secs(5)).await {
             Ok(_) => tracing::info!(
-                slot = block.slot,
+                slot,
                 block_height,
                 decoded_count,
                 topic = %self.config.slots_topic,
@@ -276,7 +358,7 @@ impl<P: BlockRecordPreparer> BlockProcessor<P> {
             Err((e, _)) => {
                 tracing::error!(
                     ?e,
-                    slot = block.slot,
+                    slot,
                     topic = %self.config.slots_topic,
                     "Kafka: failed to commit slot"
                 )
