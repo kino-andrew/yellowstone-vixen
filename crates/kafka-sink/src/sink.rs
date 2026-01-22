@@ -2,31 +2,36 @@
 //!
 //! This module provides a clean API for configuring kafka-sink with Vixen parsers.
 //! Users pass their Vixen parser implementations, and kafka-sink handles the rest.
+//!
+//! All parsed instructions are serialized using protobuf (prost::Message::encode).
 
 use std::{future::Future, pin::Pin, sync::Arc};
 
+use prost::Message;
 use yellowstone_grpc_proto::geyser::SubscribeUpdateTransaction;
 use yellowstone_vixen_core::{bs58, instruction::InstructionUpdate, ParseError, Parser};
 
 use crate::{
-    events::{DecodedInstructionEvent, PreparedRecord, RawInstructionEvent},
+    events::{PreparedRecord, RecordHeader},
     processor::{BlockRecordPreparer, ProcessableBlock},
     utils::{format_path, get_all_ix_with_index, make_record_key},
 };
 
-/// Parsed instruction data (type-erased).
+/// Parsed instruction result with protobuf-encoded bytes.
 #[derive(Debug, Clone)]
 pub struct ParsedInstruction {
     /// Human-readable instruction name (e.g., "TransferChecked").
     pub instruction_name: String,
     /// Discriminant/variant identifier.
     pub instruction_type: String,
-    /// Full instruction data (debug format).
-    pub data: String,
+    /// Protobuf-encoded bytes (via prost::Message::encode_to_vec).
+    pub data: Vec<u8>,
 }
 
 impl ParsedInstruction {
-    pub fn from_debug<T: std::fmt::Debug>(output: &T) -> Self {
+    /// Create from any prost::Message type.
+    pub fn from_proto<T: Message + std::fmt::Debug>(output: &T) -> Self {
+        // Extract name from Debug representation for logging
         let debug_str = format!("{:?}", output);
         let instruction_name = debug_str
             .split_once('{')
@@ -39,7 +44,7 @@ impl ParsedInstruction {
         Self {
             instruction_name,
             instruction_type,
-            data: debug_str,
+            data: output.encode_to_vec(),
         }
     }
 }
@@ -68,7 +73,7 @@ struct ParserWrapper<P> {
 impl<P, O> DynInstructionParser for ParserWrapper<P>
 where
     P: Parser<Input = InstructionUpdate, Output = O> + Send + Sync,
-    O: std::fmt::Debug + Send + Sync,
+    O: Message + std::fmt::Debug + Send + Sync,
 {
     fn try_parse<'a>(
         &'a self,
@@ -76,7 +81,7 @@ where
     ) -> Pin<Box<dyn Future<Output = Option<ParsedInstruction>> + Send + 'a>> {
         Box::pin(async move {
             match self.parser.parse(ix).await {
-                Ok(output) => Some(ParsedInstruction::from_debug(&output)),
+                Ok(output) => Some(ParsedInstruction::from_proto(&output)),
                 Err(ParseError::Filtered) => None, // Not handled by this parser
                 Err(e) => {
                     tracing::warn!(?e, program = %self.program_name, "Error parsing instruction");
@@ -123,7 +128,7 @@ impl KafkaSinkBuilder {
     pub fn parser<P, O>(mut self, parser: P, program_name: &str, topic: &str) -> Self
     where
         P: Parser<Input = InstructionUpdate, Output = O> + Send + Sync + 'static,
-        O: std::fmt::Debug + Send + Sync + 'static,
+        O: Message + std::fmt::Debug + Send + Sync + 'static,
     {
         self.parsers.push(Arc::new(ParserWrapper {
             parser,
@@ -193,6 +198,8 @@ impl ConfiguredParsers {
         None
     }
 
+    /// Prepare a record for a successfully decoded instruction.
+    /// Payload is protobuf-encoded, metadata goes in Kafka headers.
     fn prepare_decoded_record(
         &self,
         slot: u64,
@@ -205,25 +212,28 @@ impl ConfiguredParsers {
         let sig_str = bs58::encode(signature).into_string();
         let path_str = format_path(path);
 
-        let event = DecodedInstructionEvent {
-            slot,
-            signature: sig_str.clone(),
-            ix_index: path_str.clone(),
-            program: program_name.to_string(),
-            instruction_type: parsed.instruction_type,
-            instruction_name: parsed.instruction_name.clone(),
-            data: parsed.data,
-        };
+        // Metadata as Kafka headers (readable without decoding payload)
+        let headers = vec![
+            RecordHeader { key: "slot".into(), value: slot.to_string() },
+            RecordHeader { key: "signature".into(), value: sig_str.clone() },
+            RecordHeader { key: "ix_index".into(), value: path_str.clone() },
+            RecordHeader { key: "program".into(), value: program_name.to_string() },
+            RecordHeader { key: "instruction_type".into(), value: parsed.instruction_type },
+            RecordHeader { key: "instruction_name".into(), value: parsed.instruction_name.clone() },
+        ];
 
         PreparedRecord {
             topic: topic.to_string(),
-            payload: serde_json::to_string(&event).unwrap_or_default(),
+            payload: parsed.data,
             key: make_record_key(&sig_str, &path_str),
+            headers,
             label: parsed.instruction_name,
             is_decoded: true,
         }
     }
 
+    /// Prepare a fallback record for unrecognized instructions.
+    /// Payload is the raw instruction data, metadata in headers.
     fn prepare_fallback_record(
         &self,
         slot: u64,
@@ -235,18 +245,18 @@ impl ConfiguredParsers {
         let path_str = format_path(path);
         let program_id = bs58::encode(ix.program).into_string();
 
-        let event = RawInstructionEvent {
-            slot,
-            signature: sig_str.clone(),
-            ix_index: path_str.clone(),
-            program_id: program_id.clone(),
-            data: bs58::encode(&ix.data).into_string(),
-        };
+        let headers = vec![
+            RecordHeader { key: "slot".into(), value: slot.to_string() },
+            RecordHeader { key: "signature".into(), value: sig_str.clone() },
+            RecordHeader { key: "ix_index".into(), value: path_str.clone() },
+            RecordHeader { key: "program_id".into(), value: program_id.clone() },
+        ];
 
         PreparedRecord {
             topic: self.fallback_topic.clone(),
-            payload: serde_json::to_string(&event).unwrap_or_default(),
+            payload: ix.data.clone(),  // Raw instruction data as bytes
             key: make_record_key(&sig_str, &path_str),
+            headers,
             label: program_id,
             is_decoded: false,
         }

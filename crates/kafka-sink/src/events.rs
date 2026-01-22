@@ -54,13 +54,22 @@ pub struct SlotCommitEvent {
 pub struct PreparedRecord {
     /// Target Kafka topic.
     pub topic: String,
-    /// JSON payload.
-    pub payload: String,
+    /// Protobuf-encoded payload (via prost::Message::encode).
+    pub payload: Vec<u8>,
     /// Unique key for deduplication: `{signature}:{ix_index}`.
     /// Enables Kafka log compaction to handle reprocessing.
     pub key: String,
+    /// Kafka headers for metadata (readable without decoding payload).
+    pub headers: Vec<RecordHeader>,
     /// Label for logging (instruction name or program id).
     pub label: String,
     /// Whether this is a decoded instruction (true) or sink/unknown (false).
     pub is_decoded: bool,
+}
+
+/// A Kafka record header (key-value pair).
+#[derive(Debug, Clone)]
+pub struct RecordHeader {
+    pub key: String,
+    pub value: String,
 }

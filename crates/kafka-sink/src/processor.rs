@@ -8,7 +8,10 @@ use std::{
 };
 
 use futures::future::join_all;
-use rdkafka::producer::{FutureProducer, FutureRecord};
+use rdkafka::{
+    message::OwnedHeaders,
+    producer::{FutureProducer, FutureRecord},
+};
 use tokio::sync::mpsc;
 use yellowstone_grpc_proto::geyser::SubscribeUpdateTransactionInfo;
 use yellowstone_vixen_core::BlockUpdate;
@@ -16,8 +19,20 @@ use yellowstone_vixen_core::BlockUpdate;
 use crate::{
     assembler::AssembledSlot,
     config::KafkaSinkConfig,
-    events::{PreparedRecord, SlotCommitEvent},
+    events::{PreparedRecord, RecordHeader, SlotCommitEvent},
 };
+
+/// Convert our RecordHeader vec to rdkafka OwnedHeaders.
+fn to_kafka_headers(headers: &[RecordHeader]) -> OwnedHeaders {
+    let mut owned = OwnedHeaders::new();
+    for h in headers {
+        owned = owned.insert(rdkafka::message::Header {
+            key: &h.key,
+            value: Some(h.value.as_bytes()),
+        });
+    }
+    owned
+}
 
 /// Trait for blocks that can be processed by the block processor.
 /// Implemented by both `BlockUpdate` (full blocks) and `AssembledSlot` (assembled from parts).
@@ -268,8 +283,12 @@ impl<B: ProcessableBlock, P: BlockRecordPreparer<B>> BlockProcessor<B, P> {
         let futures: Vec<_> = records
             .iter()
             .map(|r| {
+                let headers = to_kafka_headers(&r.headers);
                 self.producer.send(
-                    FutureRecord::to(&r.topic).payload(&r.payload).key(&r.key),
+                    FutureRecord::to(&r.topic)
+                        .payload(&r.payload)
+                        .key(&r.key)
+                        .headers(headers),
                     Duration::from_secs(5),
                 )
             })

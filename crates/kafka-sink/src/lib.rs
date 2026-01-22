@@ -12,7 +12,9 @@ pub mod utils;
 // Re-export main types
 pub use assembler::{AssembledSlot, SlotAssembler, SlotBuffer};
 pub use config::KafkaSinkConfig;
-pub use events::{DecodedInstructionEvent, PreparedRecord, RawInstructionEvent, SlotCommitEvent};
+pub use events::{
+    DecodedInstructionEvent, PreparedRecord, RawInstructionEvent, RecordHeader, SlotCommitEvent,
+};
 pub use handler::{
     AssemblerChannels, BlockBufferHandler, BlockMetaHandler, SlotHandler, TransactionHandler,
 };
