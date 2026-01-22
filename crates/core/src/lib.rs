@@ -26,15 +26,12 @@ use std::{
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use serde::Deserialize;
-use yellowstone_grpc_proto::{
-    geyser::{
-        self, SubscribeRequest, SubscribeRequestFilterAccounts, SubscribeRequestFilterBlocks,
-        SubscribeRequestFilterBlocksMeta, SubscribeRequestFilterSlots,
-        SubscribeRequestFilterTransactions, SubscribeUpdateAccount, SubscribeUpdateAccountInfo,
-        SubscribeUpdateBlock, SubscribeUpdateBlockMeta, SubscribeUpdateSlot,
-        SubscribeUpdateTransaction,
-    },
-    prost,
+use yellowstone_grpc_proto::geyser::{
+    self, SubscribeRequest, SubscribeRequestFilterAccounts, SubscribeRequestFilterBlocks,
+    SubscribeRequestFilterBlocksMeta, SubscribeRequestFilterSlots,
+    SubscribeRequestFilterTransactions, SubscribeUpdateAccount, SubscribeUpdateAccountInfo,
+    SubscribeUpdateBlock, SubscribeUpdateBlockMeta, SubscribeUpdateSlot,
+    SubscribeUpdateTransaction,
 };
 
 pub extern crate bs58;

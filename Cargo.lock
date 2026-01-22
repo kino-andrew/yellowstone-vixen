@@ -14266,6 +14266,8 @@ dependencies = [
  "protobuf-src",
  "tonic 0.14.2",
  "tonic-build 0.14.2",
+ "tonic-prost",
+ "tonic-prost-build",
  "tonic-reflection",
 ]
 
