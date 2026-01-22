@@ -347,6 +347,7 @@ macro_rules! tx_fixture {
         }
     };
 }
+
 #[macro_export]
 macro_rules! run_account_parse {
     ($parser:expr, $account:expr) => {

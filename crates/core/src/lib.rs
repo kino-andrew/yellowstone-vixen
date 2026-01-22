@@ -26,12 +26,15 @@ use std::{
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use serde::Deserialize;
-use yellowstone_grpc_proto::geyser::{
-    self, SubscribeRequest, SubscribeRequestFilterAccounts, SubscribeRequestFilterBlocks,
-    SubscribeRequestFilterBlocksMeta, SubscribeRequestFilterSlots,
-    SubscribeRequestFilterTransactions, SubscribeUpdateAccount, SubscribeUpdateAccountInfo,
-    SubscribeUpdateBlock, SubscribeUpdateBlockMeta, SubscribeUpdateSlot,
-    SubscribeUpdateTransaction,
+use yellowstone_grpc_proto::{
+    geyser::{
+        self, SubscribeRequest, SubscribeRequestFilterAccounts, SubscribeRequestFilterBlocks,
+        SubscribeRequestFilterBlocksMeta, SubscribeRequestFilterSlots,
+        SubscribeRequestFilterTransactions, SubscribeUpdateAccount, SubscribeUpdateAccountInfo,
+        SubscribeUpdateBlock, SubscribeUpdateBlockMeta, SubscribeUpdateSlot,
+        SubscribeUpdateTransaction,
+    },
+    prost,
 };
 
 pub extern crate bs58;
@@ -98,7 +101,7 @@ pub trait Parser {
     /// The input update type for this parser.
     type Input;
     /// The type of the parsed value produced by this parser.
-    type Output;
+    type Output: ::prost::Message;
 
     /// A unique ID for this parser.  Used to associate the parser with its
     /// requested prefilter data.

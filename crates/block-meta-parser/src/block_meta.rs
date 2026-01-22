@@ -3,31 +3,47 @@ use std::borrow::Cow;
 use yellowstone_grpc_proto::geyser::SubscribeUpdateBlockMeta;
 use yellowstone_vixen_core::{ParseResult, Parser, Prefilter, ProgramParser, Pubkey};
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Reward {
-    pub pubkey: String,
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RewardProto {
+    #[prost(string, tag = "1")]
+    pub pubkey: ::prost::alloc::string::String,
+    #[prost(int64, tag = "2")]
     pub lamports: i64,
+    #[prost(uint64, tag = "3")]
     pub post_balance: u64,
+    #[prost(int32, tag = "4")]
     pub reward_type: i32,
-    pub commission: String,
+    #[prost(string, tag = "5")]
+    pub commission: ::prost::alloc::string::String,
 }
 
-#[derive(Debug, Clone)]
-pub struct Rewards {
-    pub rewards: Vec<Reward>,
-    pub num_partitions: Option<u64>,
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RewardsProto {
+    #[prost(message, repeated, tag = "1")]
+    pub rewards: ::prost::alloc::vec::Vec<RewardProto>,
+    #[prost(uint64, optional, tag = "2")]
+    pub num_partitions: ::core::option::Option<u64>,
 }
 
-#[derive(Debug, Clone)]
-pub struct BlockMetaUpdate {
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BlockMetaUpdateProto {
+    #[prost(uint64, tag = "1")]
     pub slot: u64,
-    pub blockhash: String,
-    pub rewards: Option<Rewards>,
-    pub block_time: Option<i64>,
-    pub block_height: Option<u64>,
+    #[prost(string, tag = "2")]
+    pub blockhash: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub rewards: ::core::option::Option<RewardsProto>,
+    #[prost(int64, optional, tag = "4")]
+    pub block_time: ::core::option::Option<i64>,
+    #[prost(uint64, optional, tag = "5")]
+    pub block_height: ::core::option::Option<u64>,
+    #[prost(uint64, tag = "6")]
     pub parent_slot: u64,
-    pub parent_blockhash: String,
+    #[prost(string, tag = "7")]
+    pub parent_blockhash: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "8")]
     pub executed_transaction_count: u64,
+    #[prost(uint64, tag = "9")]
     pub entries_count: u64,
 }
 
@@ -36,36 +52,34 @@ pub struct BlockMetaParser;
 
 impl Parser for BlockMetaParser {
     type Input = SubscribeUpdateBlockMeta;
-    type Output = BlockMetaUpdate;
+    type Output = BlockMetaUpdateProto;
 
     fn id(&self) -> Cow<'static, str> { "yellowstone::BlockMetaParser".into() }
 
     fn prefilter(&self) -> Prefilter { Prefilter::builder().block_metas().build().unwrap() }
 
     async fn parse(&self, block_meta: &SubscribeUpdateBlockMeta) -> ParseResult<Self::Output> {
-        let rewards = block_meta.rewards.as_ref().map(|reward| Rewards {
-            rewards: reward
+        let rewards = block_meta.rewards.as_ref().map(|r| RewardsProto {
+            rewards: r
                 .rewards
                 .iter()
-                .map(|reward| Reward {
-                    pubkey: reward.pubkey.clone(),
-                    lamports: reward.lamports,
-                    post_balance: reward.post_balance,
-                    reward_type: reward.reward_type,
-                    commission: reward.commission.clone(),
+                .map(|x| RewardProto {
+                    pubkey: x.pubkey.clone(),
+                    lamports: x.lamports,
+                    post_balance: x.post_balance,
+                    reward_type: x.reward_type,
+                    commission: x.commission.clone(),
                 })
                 .collect(),
-            num_partitions: reward.num_partitions.map(|num| num.num_partitions),
+            num_partitions: r.num_partitions.as_ref().map(|n| n.num_partitions),
         });
 
-        Ok(BlockMetaUpdate {
+        Ok(BlockMetaUpdateProto {
             slot: block_meta.slot,
             blockhash: block_meta.blockhash.clone(),
             rewards,
-            block_time: block_meta.block_time.map(|block_time| block_time.timestamp),
-            block_height: block_meta
-                .block_height
-                .map(|block_height| block_height.block_height),
+            block_time: block_meta.block_time.as_ref().map(|t| t.timestamp),
+            block_height: block_meta.block_height.as_ref().map(|h| h.block_height),
             parent_slot: block_meta.parent_slot,
             parent_blockhash: block_meta.parent_blockhash.clone(),
             executed_transaction_count: block_meta.executed_transaction_count,
