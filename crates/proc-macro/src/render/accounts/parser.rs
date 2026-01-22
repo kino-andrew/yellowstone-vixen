@@ -2,11 +2,30 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use codama_nodes::{
     CamelCaseString, DiscriminatorNode, NestedTypeNode, Number, TypeNode, ValueNode,
 };
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
+use syn::LitStr;
 
 /**
  * Build the *account parser* for a program.
+ *
+ * Generates a prost-compatible wrapper struct with a oneof field:
+ *
+ * #[derive(Clone, PartialEq, ::prost::Message)]
+ * pub struct ProgramAccount {
+ *     #[prost(oneof = "program_account::Kind", tags = "1, 2, 3")]
+ *     pub kind: Option<program_account::Kind>,
+ * }
+ *
+ * pub mod program_account {
+ *     #[derive(Clone, PartialEq, ::prost::Oneof)]
+ *     pub enum Kind {
+ *         #[prost(bytes, tag = 1)]
+ *         AccountA(Vec<u8>),
+ *         #[prost(bytes, tag = 2)]
+ *         AccountB(Vec<u8>),
+ *     }
+ * }
  */
 pub fn parser(
     program_name_camel: &CamelCaseString,
@@ -14,17 +33,35 @@ pub fn parser(
 ) -> TokenStream {
     let program_name = crate::utils::to_pascal_case(program_name_camel);
 
-    let account_enum_ident = format_ident!("{}Account", program_name);
+    let account_struct_ident = format_ident!("{}Account", program_name);
+    let account_mod_name = format!(
+        "{}_account",
+        crate::utils::to_snake_case(program_name_camel)
+    );
+    let account_mod_ident = format_ident!("{}", account_mod_name);
+    // prost oneof attribute requires a string literal like "module::Kind"
+    let oneof_path_lit = LitStr::new(&format!("{}::Kind", account_mod_name), Span::call_site());
 
     let parser_id = format!("{}::AccountParser", program_name);
 
     let parser_error_msg = format!("Unknown account for program {}", program_name);
 
-    // List all the accounts as enum variants
-    let account_enum_fields = accounts.iter().map(|account| {
+    // Generate tags list string for prost oneof attribute
+    let tags_list = (1..=accounts.len())
+        .map(|t| t.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+    let tags_lit = LitStr::new(&tags_list, Span::call_site());
+
+    // Generate oneof enum variants
+    let oneof_variants = accounts.iter().enumerate().map(|(i, account)| {
+        let tag = (i + 1) as u32;
         let account_ident = format_ident!("{}", crate::utils::to_pascal_case(&account.name));
 
-        quote! { #account_ident(::prost::alloc::vec::Vec<u8>) }
+        quote! {
+            #[prost(bytes, tag = #tag)]
+            #account_ident(::prost::alloc::vec::Vec<u8>)
+        }
     });
 
     let account_matches = accounts.iter().filter_map(|account| {
@@ -49,7 +86,9 @@ pub fn parser(
                 quote! {
                     if let Some(discriminator) = data.get(#offset) {
                         if discriminator == #value {
-                            return Ok(#account_enum_ident::#account_ident(data.to_vec()));
+                            return Ok(#account_struct_ident {
+                                kind: Some(#account_mod_ident::Kind::#account_ident(data.to_vec()))
+                            });
                         }
                     }
                 }
@@ -101,7 +140,9 @@ pub fn parser(
                 quote! {
                     if let Some(slice) = data.get(#offset..#end) {
                         if slice == &[#(#discriminator),*] {
-                            return Ok(#account_enum_ident::#account_ident(data[#end..].to_vec()));
+                            return Ok(#account_struct_ident {
+                                kind: Some(#account_mod_ident::Kind::#account_ident(data[#end..].to_vec()))
+                            });
                         }
                     }
                 }
@@ -113,7 +154,9 @@ pub fn parser(
 
                 quote! {
                     if data.len() == #size {
-                        return Ok(#account_enum_ident::#account_ident(data.to_vec()));
+                        return Ok(#account_struct_ident {
+                            kind: Some(#account_mod_ident::Kind::#account_ident(data.to_vec()))
+                        });
                     }
                 }
             },
@@ -121,12 +164,22 @@ pub fn parser(
     });
 
     quote! {
-        #[derive(Debug)]
-        pub enum #account_enum_ident {
-            #(#account_enum_fields),*
+        /// Prost-compatible wrapper struct for program accounts.
+        /// Uses the oneof pattern to represent account variants.
+        #[derive(Clone, PartialEq, ::prost::Message)]
+        pub struct #account_struct_ident {
+            #[prost(oneof = #oneof_path_lit, tags = #tags_lit)]
+            pub kind: ::core::option::Option<#account_mod_ident::Kind>,
         }
 
-        impl #account_enum_ident {
+        pub mod #account_mod_ident {
+            #[derive(Clone, PartialEq, ::prost::Oneof)]
+            pub enum Kind {
+                #(#oneof_variants),*
+            }
+        }
+
+        impl #account_struct_ident {
             pub fn try_unpack(data: &[u8]) -> ParseResult<Self> {
                 #(#account_matches)*
                 Err(ParseError::from(#parser_error_msg.to_owned()))
@@ -138,7 +191,7 @@ pub fn parser(
 
         impl Parser for AccountParser {
             type Input = AccountUpdate;
-            type Output = #account_enum_ident;
+            type Output = #account_struct_ident;
 
             fn id(&self) -> std::borrow::Cow<'static, str> {
                 #parser_id.into()
@@ -157,7 +210,7 @@ pub fn parser(
                     .as_ref()
                     .ok_or_else(|| ParseError::from("Unable to unwrap account ref".to_owned()))?;
 
-                #account_enum_ident::try_unpack(&inner.data)
+                #account_struct_ident::try_unpack(&inner.data)
             }
         }
     }
