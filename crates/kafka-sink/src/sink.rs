@@ -155,7 +155,7 @@ impl KafkaSinkBuilder {
     }
 }
 
-use crate::schema_registry::{encode_with_schema_id, RegisteredSchema};
+use crate::schema_registry::{wrap_payload_with_confluent_wire_format, RegisteredSchema};
 
 #[derive(Clone)]
 pub struct ConfiguredParsers {
@@ -188,6 +188,14 @@ impl ConfiguredParsers {
     /// Set schema IDs for encoding messages with Confluent wire format.
     /// The key should be the subject name (e.g., "spl-token.instructions-value").
     pub fn set_schema_ids(&mut self, schemas: HashMap<String, RegisteredSchema>) {
+        for (subject, schema) in &schemas {
+            tracing::info!(
+                subject,
+                schema_id = schema.schema_id,
+                message_index = schema.message_index,
+                "Registered schema for encoding"
+            );
+        }
         self.schema_ids = schemas;
     }
 
@@ -225,8 +233,21 @@ impl ConfiguredParsers {
 
         // Wrap payload with Confluent wire format if schema is registered
         let payload = if let Some(schema) = self.get_schema_for_topic(topic) {
-            encode_with_schema_id(schema.schema_id, &[schema.message_index], &parsed.data)
+            tracing::debug!(
+                topic,
+                schema_id = schema.schema_id,
+                message_index = schema.message_index,
+                "Encoding with Confluent wire format"
+            );
+            // For message_index 0 (first message), use empty array per Confluent spec
+            let indices: &[i32] = if schema.message_index == 0 {
+                &[]
+            } else {
+                &[schema.message_index]
+            };
+            wrap_payload_with_confluent_wire_format(schema.schema_id, indices, &parsed.data)
         } else {
+            tracing::debug!(topic, "No schema found, using raw protobuf");
             parsed.data
         };
 

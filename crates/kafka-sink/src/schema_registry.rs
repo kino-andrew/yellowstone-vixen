@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::KafkaSinkConfig;
 
-/// Schema definition to register.
 pub struct SchemaDefinition {
     /// Subject name (typically "<topic>-value" or "<topic>-key").
     pub subject: String,
@@ -27,43 +26,71 @@ pub struct RegisteredSchema {
     pub message_index: i32,
 }
 
-/// Encodes a payload with the Confluent wire format for protobuf.
-/// Format: [0x00][4-byte schema ID BE][varint message index...][protobuf payload]
-pub fn encode_with_schema_id(schema_id: i32, message_indices: &[i32], payload: &[u8]) -> Vec<u8> {
-    let mut result = Vec::with_capacity(5 + message_indices.len() + payload.len());
+const MAGIC_BYTE: u8 = 0x00;
+const SCHEMA_ID_SIZE: usize = std::mem::size_of::<i32>();
+const MAX_VARINT_SIZE: usize = 10;
 
-    // Magic byte
-    result.push(0x00);
-
-    // Schema ID (big-endian 4 bytes)
-    result.extend_from_slice(&schema_id.to_be_bytes());
-
-    // Message indices as varints (for protobuf)
-    // First, the count of indices
-    encode_varint(&mut result, message_indices.len() as i64);
-    // Then each index
-    for &idx in message_indices {
-        encode_varint(&mut result, idx as i64);
-    }
-
-    // Actual protobuf payload
-    result.extend_from_slice(payload);
-
-    result
+// TODO: maybe can be optimized to not waste bytes
+fn wire_format_max_capacity(indices_count: usize, payload_len: usize) -> usize {
+    let max_indices_bytes = (1 + indices_count) * MAX_VARINT_SIZE;
+    1 + SCHEMA_ID_SIZE + max_indices_bytes + payload_len
 }
 
-/// Encode a varint (used for message indices in protobuf wire format).
-fn encode_varint(buf: &mut Vec<u8>, mut value: i64) {
-    loop {
-        let mut byte = (value & 0x7F) as u8;
-        value >>= 7;
-        if value != 0 {
+/// Format: [0x00][4-byte schema ID BE][zigzag varint message indices...][protobuf payload]
+/// See: https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html
+pub fn wrap_payload_with_confluent_wire_format(
+    schema_id: i32,
+    message_indices: &[i32],
+    payload: &[u8],
+) -> Vec<u8> {
+    let capacity = wire_format_max_capacity(message_indices.len(), payload.len());
+
+    [MAGIC_BYTE]
+        .into_iter()
+        .chain(schema_id.to_be_bytes())
+        .chain(encode_indices(message_indices))
+        .chain(payload.iter().copied())
+        .fold(Vec::with_capacity(capacity), |mut acc, byte| {
+            acc.push(byte);
+            acc
+        })
+}
+
+fn encode_indices(indices: &[i32]) -> impl Iterator<Item = u8> + '_ {
+    encode_zigzag(indices.len() as i64).chain(indices.iter().flat_map(|&i| encode_zigzag(i as i64)))
+}
+
+/// Encode a value as zig-zag varint bytes (lazy iterator, no allocation).
+/// Zig-zag encoding: (n << 1) ^ (n >> 63) maps signed to unsigned for efficient varint.
+fn encode_zigzag(value: i64) -> ZigzagIter {
+    let zigzag = ((value << 1) ^ (value >> 63)) as u64;
+    ZigzagIter {
+        value: zigzag,
+        done: false,
+    }
+}
+
+/// Iterator that yields zig-zag encoded varint bytes lazily.
+struct ZigzagIter {
+    value: u64,
+    done: bool,
+}
+
+impl Iterator for ZigzagIter {
+    type Item = u8;
+
+    fn next(&mut self) -> Option<u8> {
+        if self.done {
+            return None;
+        }
+        let mut byte = (self.value & 0x7f) as u8;
+        self.value >>= 7;
+        if self.value != 0 {
             byte |= 0x80;
+        } else {
+            self.done = true;
         }
-        buf.push(byte);
-        if value == 0 {
-            break;
-        }
+        Some(byte)
     }
 }
 
@@ -140,7 +167,6 @@ fn register_schema(
     }
 }
 
-/// Check if Schema Registry is available.
 fn check_schema_registry(client: &reqwest::blocking::Client, base_url: &str) -> bool {
     client
         .get(format!("{}/subjects", base_url))
@@ -164,7 +190,6 @@ pub fn ensure_schemas_registered(
         .build()
         .expect("Failed to create HTTP client");
 
-    // Check if Schema Registry is available
     if !check_schema_registry(&client, base_url) {
         tracing::warn!(
             url = %base_url,
@@ -183,29 +208,24 @@ pub fn ensure_schemas_registered(
                     schema_id = id,
                     "Schema registered successfully"
                 );
-                registered.insert(
-                    schema_def.subject.clone(),
-                    RegisteredSchema {
-                        schema_id: id,
-                        message_index: schema_def.message_index,
-                    },
-                );
-            }
+                registered.insert(schema_def.subject.clone(), RegisteredSchema {
+                    schema_id: id,
+                    message_index: schema_def.message_index,
+                });
+            },
             Err(e) => {
-                // Try to get existing schema ID
-                if let Some(id) = get_schema_id(&client, base_url, &schema_def.subject) {
+                if let Some(id) =
+                    get_latest_schema_id_for_subject(&client, base_url, &schema_def.subject)
+                {
                     tracing::info!(
                         subject = %schema_def.subject,
                         schema_id = id,
                         "Using existing schema"
                     );
-                    registered.insert(
-                        schema_def.subject.clone(),
-                        RegisteredSchema {
-                            schema_id: id,
-                            message_index: schema_def.message_index,
-                        },
-                    );
+                    registered.insert(schema_def.subject.clone(), RegisteredSchema {
+                        schema_id: id,
+                        message_index: schema_def.message_index,
+                    });
                 } else {
                     tracing::warn!(
                         subject = %schema_def.subject,
@@ -213,15 +233,14 @@ pub fn ensure_schemas_registered(
                         "Failed to register schema"
                     );
                 }
-            }
+            },
         }
     }
 
     registered
 }
 
-/// Get the latest schema ID for a subject.
-fn get_schema_id(
+fn get_latest_schema_id_for_subject(
     client: &reqwest::blocking::Client,
     base_url: &str,
     subject: &str,
