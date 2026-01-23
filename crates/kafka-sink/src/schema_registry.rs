@@ -15,10 +15,18 @@ pub struct SchemaDefinition {
 }
 
 #[derive(Serialize)]
+struct SchemaReference {
+    name: String,
+    subject: String,
+    version: i32,
+}
+
+#[derive(Serialize)]
 struct RegisterSchemaRequest<'a> {
     #[serde(rename = "schemaType")]
     schema_type: &'a str,
     schema: &'a str,
+    references: Vec<SchemaReference>,
 }
 
 #[derive(Deserialize)]
@@ -45,6 +53,7 @@ fn register_schema(
     let request = RegisterSchemaRequest {
         schema_type: "PROTOBUF",
         schema,
+        references: vec![],
     };
 
     let response = client

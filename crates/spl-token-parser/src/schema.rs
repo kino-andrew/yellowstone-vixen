@@ -159,7 +159,7 @@ message TransferCheckedArgs {
 message InitializeMintArgs {
   uint32 decimals = 1;
   bytes mint_authority = 2;
-  optional bytes freeze_authority = 3;
+  bytes freeze_authority = 3;
 }
 
 message InitializeAccount2Args {
@@ -176,7 +176,7 @@ message ApproveArgs {
 
 message SetAuthorityArgs {
   AuthorityTypeProto authority_type = 1;
-  optional bytes new_authority = 2;
+  bytes new_authority = 2;
 }
 
 message MintToArgs {
