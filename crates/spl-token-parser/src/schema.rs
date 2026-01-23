@@ -10,10 +10,10 @@ pub const PROTOBUF_SCHEMA: &str = r#"syntax = "proto3";
 package spl_token;
 
 enum AuthorityTypeProto {
-  MintTokens = 0;
-  FreezeAccount = 1;
-  AccountOwner = 2;
-  CloseAccount = 3;
+  AUTHORITY_MINT_TOKENS = 0;
+  AUTHORITY_FREEZE_ACCOUNT = 1;
+  AUTHORITY_ACCOUNT_OWNER = 2;
+  AUTHORITY_CLOSE_ACCOUNT = 3;
 }
 
 message TransferAccounts {
