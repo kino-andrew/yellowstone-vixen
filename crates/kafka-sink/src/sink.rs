@@ -5,7 +5,7 @@
 //!
 //! All parsed instructions are serialized using protobuf (prost::Message::encode).
 
-use std::{future::Future, pin::Pin, sync::Arc};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 
 use prost::Message;
 use yellowstone_grpc_proto::geyser::SubscribeUpdateTransaction;
@@ -143,6 +143,7 @@ impl KafkaSinkBuilder {
         ConfiguredParsers {
             parsers: self.parsers,
             fallback_topic: self.fallback_topic,
+            schema_ids: HashMap::new(),
         }
     }
 
@@ -154,10 +155,14 @@ impl KafkaSinkBuilder {
     }
 }
 
+use crate::schema_registry::{encode_with_schema_id, RegisteredSchema};
+
 #[derive(Clone)]
 pub struct ConfiguredParsers {
     parsers: Vec<Arc<dyn DynInstructionParser>>,
     fallback_topic: String,
+    /// Map of topic -> schema info for encoding with Confluent wire format.
+    schema_ids: HashMap<String, RegisteredSchema>,
 }
 
 impl Default for ConfiguredParsers {
@@ -165,6 +170,7 @@ impl Default for ConfiguredParsers {
         Self {
             parsers: Vec::new(),
             fallback_topic: "unknown.instructions".to_string(),
+            schema_ids: HashMap::new(),
         }
     }
 }
@@ -179,6 +185,18 @@ impl ConfiguredParsers {
 
     pub fn fallback_topic(&self) -> &str { &self.fallback_topic }
 
+    /// Set schema IDs for encoding messages with Confluent wire format.
+    /// The key should be the subject name (e.g., "spl-token.instructions-value").
+    pub fn set_schema_ids(&mut self, schemas: HashMap<String, RegisteredSchema>) {
+        self.schema_ids = schemas;
+    }
+
+    /// Get schema ID for a topic (looks up "<topic>-value" subject).
+    fn get_schema_for_topic(&self, topic: &str) -> Option<&RegisteredSchema> {
+        let subject = format!("{}-value", topic);
+        self.schema_ids.get(&subject)
+    }
+
     pub async fn try_parse(
         &self,
         ix: &InstructionUpdate,
@@ -192,7 +210,7 @@ impl ConfiguredParsers {
     }
 
     /// Prepare a record for a successfully decoded instruction.
-    /// Payload is protobuf-encoded, metadata goes in Kafka headers.
+    /// Payload is protobuf-encoded with Confluent wire format, metadata goes in Kafka headers.
     fn prepare_decoded_record(
         &self,
         slot: u64,
@@ -204,6 +222,13 @@ impl ConfiguredParsers {
     ) -> PreparedRecord {
         let sig_str = bs58::encode(signature).into_string();
         let path_str = format_path(path);
+
+        // Wrap payload with Confluent wire format if schema is registered
+        let payload = if let Some(schema) = self.get_schema_for_topic(topic) {
+            encode_with_schema_id(schema.schema_id, &[schema.message_index], &parsed.data)
+        } else {
+            parsed.data
+        };
 
         // Metadata as Kafka headers (readable without decoding payload)
         let headers = vec![
@@ -235,7 +260,7 @@ impl ConfiguredParsers {
 
         PreparedRecord {
             topic: topic.to_string(),
-            payload: parsed.data,
+            payload,
             key: make_record_key(&sig_str, &path_str),
             headers,
             label: parsed.instruction_name,
