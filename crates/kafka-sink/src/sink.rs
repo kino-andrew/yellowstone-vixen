@@ -31,6 +31,7 @@ pub struct ParsedInstruction {
 impl ParsedInstruction {
     /// Create from any prost::Message type.
     pub fn from_proto<T: Message + std::fmt::Debug>(output: &T) -> Self {
+        // TODO: change later
         // Extract name from Debug representation for logging
         let debug_str = format!("{:?}", output);
         let instruction_name = debug_str
@@ -91,13 +92,9 @@ where
         })
     }
 
-    fn topic(&self) -> &str {
-        &self.topic
-    }
+    fn topic(&self) -> &str { &self.topic }
 
-    fn program_name(&self) -> &str {
-        &self.program_name
-    }
+    fn program_name(&self) -> &str { &self.program_name }
 }
 
 pub struct KafkaSinkBuilder {
@@ -106,9 +103,7 @@ pub struct KafkaSinkBuilder {
 }
 
 impl Default for KafkaSinkBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl KafkaSinkBuilder {
@@ -182,9 +177,7 @@ impl ConfiguredParsers {
         topics
     }
 
-    pub fn fallback_topic(&self) -> &str {
-        &self.fallback_topic
-    }
+    pub fn fallback_topic(&self) -> &str { &self.fallback_topic }
 
     pub async fn try_parse(
         &self,
@@ -214,12 +207,30 @@ impl ConfiguredParsers {
 
         // Metadata as Kafka headers (readable without decoding payload)
         let headers = vec![
-            RecordHeader { key: "slot".into(), value: slot.to_string() },
-            RecordHeader { key: "signature".into(), value: sig_str.clone() },
-            RecordHeader { key: "ix_index".into(), value: path_str.clone() },
-            RecordHeader { key: "program".into(), value: program_name.to_string() },
-            RecordHeader { key: "instruction_type".into(), value: parsed.instruction_type },
-            RecordHeader { key: "instruction_name".into(), value: parsed.instruction_name.clone() },
+            RecordHeader {
+                key: "slot".into(),
+                value: slot.to_string(),
+            },
+            RecordHeader {
+                key: "signature".into(),
+                value: sig_str.clone(),
+            },
+            RecordHeader {
+                key: "ix_index".into(),
+                value: path_str.clone(),
+            },
+            RecordHeader {
+                key: "program".into(),
+                value: program_name.to_string(),
+            },
+            RecordHeader {
+                key: "instruction_type".into(),
+                value: parsed.instruction_type,
+            },
+            RecordHeader {
+                key: "instruction_name".into(),
+                value: parsed.instruction_name.clone(),
+            },
         ];
 
         PreparedRecord {
@@ -246,15 +257,27 @@ impl ConfiguredParsers {
         let program_id = bs58::encode(ix.program).into_string();
 
         let headers = vec![
-            RecordHeader { key: "slot".into(), value: slot.to_string() },
-            RecordHeader { key: "signature".into(), value: sig_str.clone() },
-            RecordHeader { key: "ix_index".into(), value: path_str.clone() },
-            RecordHeader { key: "program_id".into(), value: program_id.clone() },
+            RecordHeader {
+                key: "slot".into(),
+                value: slot.to_string(),
+            },
+            RecordHeader {
+                key: "signature".into(),
+                value: sig_str.clone(),
+            },
+            RecordHeader {
+                key: "ix_index".into(),
+                value: path_str.clone(),
+            },
+            RecordHeader {
+                key: "program_id".into(),
+                value: program_id.clone(),
+            },
         ];
 
         PreparedRecord {
             topic: self.fallback_topic.clone(),
-            payload: ix.data.clone(),  // Raw instruction data as bytes
+            payload: ix.data.clone(), // Raw instruction data as bytes
             key: make_record_key(&sig_str, &path_str),
             headers,
             label: program_id,

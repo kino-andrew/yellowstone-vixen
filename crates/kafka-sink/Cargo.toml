@@ -27,3 +27,6 @@ yellowstone-grpc-proto = { workspace = true }
 
 # Logging
 tracing = { workspace = true }
+
+# HTTP client for Schema Registry
+reqwest = { version = "0.12", features = ["json", "blocking"] }

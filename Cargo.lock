@@ -14143,25 +14143,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "yellowstone-vixen-janus"
-version = "0.0.0"
-dependencies = [
- "clap 4.5.53",
- "rustls 0.23.35",
- "serde_json",
- "tokio",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
- "yellowstone-grpc-proto",
- "yellowstone-vixen",
- "yellowstone-vixen-core",
- "yellowstone-vixen-kafka-sink",
- "yellowstone-vixen-spl-token-parser",
- "yellowstone-vixen-yellowstone-grpc-source",
-]
-
-[[package]]
 name = "yellowstone-vixen-jetstream-source"
 version = "0.6.0-alpha.0"
 dependencies = [
@@ -14198,6 +14179,7 @@ dependencies = [
  "futures 0.3.31",
  "prost 0.14.1",
  "rdkafka",
+ "reqwest 0.12.24",
  "serde",
  "serde_json",
  "tokio",
