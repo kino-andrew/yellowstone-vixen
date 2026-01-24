@@ -232,7 +232,16 @@ impl ConfiguredParsers {
     /// Get schema ID for a topic (looks up "<topic>-value" subject).
     fn get_schema_for_topic(&self, topic: &str) -> Option<&RegisteredSchema> {
         let subject = format!("{}-value", topic);
-        self.schema_ids.get(&subject)
+        let result = self.schema_ids.get(&subject);
+        if result.is_none() {
+            tracing::warn!(
+                topic,
+                subject,
+                available_subjects = ?self.schema_ids.keys().collect::<Vec<_>>(),
+                "No schema found for topic"
+            );
+        }
+        result
     }
 
     pub async fn try_parse(
