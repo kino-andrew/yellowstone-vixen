@@ -12,6 +12,10 @@ const JUP_MINT: &str = "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN";
 /// SPL Token program ID
 const TOKEN_PROGRAM_ID: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
+/// SPL Token instruction discriminants
+const SPL_TOKEN_TRANSFER: u8 = 3;
+const SPL_TOKEN_TRANSFER_CHECKED: u8 = 12;
+
 /// Filter that routes JUP token transfers to a dedicated topic.
 /// Checks pre_token_balances to identify transfers involving JUP mint.
 pub struct JupTransferFilter {
@@ -42,6 +46,15 @@ impl JupTransferFilter {
         let program_id = yellowstone_vixen_core::bs58::encode(&ix.program).into_string();
         program_id == TOKEN_PROGRAM_ID
     }
+
+    /// Check if instruction is a Transfer or TransferChecked
+    fn is_transfer_instruction(ix: &InstructionUpdate) -> bool {
+        if ix.data.is_empty() {
+            return false;
+        }
+        let discriminant = ix.data[0];
+        discriminant == SPL_TOKEN_TRANSFER || discriminant == SPL_TOKEN_TRANSFER_CHECKED
+    }
 }
 
 impl SecondaryFilter for JupTransferFilter {
@@ -51,16 +64,16 @@ impl SecondaryFilter for JupTransferFilter {
         primary_parsed: Option<&'a ParsedInstruction>,
     ) -> Pin<Box<dyn Future<Output = Option<ParsedInstruction>> + Send + 'a>> {
         Box::pin(async move {
-            // Only process if primary parser decoded it (means it's a valid SPL token instruction)
+            // Only process if primary parser decoded it
             let parsed = primary_parsed?;
-
-            // Only process transfers (TransferChecked has mint info)
-            if !parsed.instruction_name.contains("TransferChecked") {
-                return None;
-            }
 
             // Check if instruction is from Token program
             if !Self::is_token_program(ix) {
+                return None;
+            }
+
+            // Check if it's a transfer instruction (discriminant 3 or 12)
+            if !Self::is_transfer_instruction(ix) {
                 return None;
             }
 
