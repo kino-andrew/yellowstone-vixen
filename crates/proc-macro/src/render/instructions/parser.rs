@@ -235,6 +235,12 @@ pub fn parser(
                 &self,
                 ix_update: &instruction::InstructionUpdate,
             ) -> ParseResult<Self::Output> {
+                // TODO: this is a fix because everything gets parsed by the proc macro
+                // Check program ID first to avoid parsing unrelated instructions
+                if *ix_update.program != ID_BYTES {
+                    return Err(ParseError::Filtered);
+                }
+
                 let data = &ix_update.data;
                 let accounts = &ix_update.accounts;
 
