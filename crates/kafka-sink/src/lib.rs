@@ -1,6 +1,7 @@
 pub mod assembler;
 pub mod config;
 pub mod events;
+pub mod filters;
 pub mod handler;
 pub mod parsers;
 pub mod processor;
@@ -22,7 +23,8 @@ pub use handler::{
 pub use parsers::{BlockMetaParser, SlotParser, TransactionParser};
 pub use processor::{BlockProcessor, BlockRecordPreparer, ProcessableBlock};
 pub use producer::create_producer;
-pub use sink::{ConfiguredParsers, KafkaSinkBuilder, ParsedInstruction};
+pub use sink::{ConfiguredParsers, KafkaSinkBuilder, ParsedInstruction, SecondaryFilter};
+pub use filters::JupTransferFilter;
 pub use schema_registry::{
     ensure_schemas_registered, wrap_payload_with_confluent_wire_format, RegisteredSchema,
     SchemaDefinition,

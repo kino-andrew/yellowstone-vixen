@@ -64,7 +64,21 @@ pub trait DynInstructionParser: Send + Sync {
     fn program_name(&self) -> &str;
 }
 
-/// Wrapper that implements DynInstructionParser for any Vixen Parser.
+/// Secondary filter that can emit additional records for instructions.
+/// Runs after the main parser, allowing the same instruction to be routed
+/// to multiple topics without modifying the primary flow.
+pub trait SecondaryFilter: Send + Sync {
+    fn filter<'a>(
+        &'a self,
+        ix: &'a InstructionUpdate,
+        primary_parsed: Option<&'a ParsedInstruction>,
+    ) -> Pin<Box<dyn Future<Output = Option<ParsedInstruction>> + Send + 'a>>;
+
+    fn topic(&self) -> &str;
+
+    fn label(&self) -> &str;
+}
+
 struct ParserWrapper<P> {
     parser: P,
     topic: String,
@@ -83,7 +97,7 @@ where
         Box::pin(async move {
             match self.parser.parse(ix).await {
                 Ok(output) => Some(ParsedInstruction::from_proto(&output)),
-                Err(ParseError::Filtered) => None, // Not handled by this parser
+                Err(ParseError::Filtered) => None,
                 Err(e) => {
                     tracing::warn!(?e, program = %self.program_name, "Error parsing instruction");
                     None
@@ -99,6 +113,7 @@ where
 
 pub struct KafkaSinkBuilder {
     parsers: Vec<Arc<dyn DynInstructionParser>>,
+    secondary_filters: Vec<Arc<dyn SecondaryFilter>>,
     fallback_topic: String,
 }
 
@@ -110,6 +125,7 @@ impl KafkaSinkBuilder {
     pub fn new() -> Self {
         Self {
             parsers: Vec::new(),
+            secondary_filters: Vec::new(),
             fallback_topic: "unknown.instructions".to_string(),
         }
     }
@@ -139,9 +155,19 @@ impl KafkaSinkBuilder {
         self
     }
 
+    /// Add a secondary filter that can emit additional records.
+    /// Secondary filters run after the main parser and can route
+    /// matching instructions to additional topics.
+    pub fn secondary_filter<F>(mut self, filter: F) -> Self
+    where F: SecondaryFilter + 'static {
+        self.secondary_filters.push(Arc::new(filter));
+        self
+    }
+
     pub fn build(self) -> ConfiguredParsers {
         ConfiguredParsers {
             parsers: self.parsers,
+            secondary_filters: self.secondary_filters,
             fallback_topic: self.fallback_topic,
             schema_ids: HashMap::new(),
         }
@@ -149,6 +175,7 @@ impl KafkaSinkBuilder {
 
     pub fn topics(&self) -> Vec<&str> {
         let mut topics: Vec<&str> = self.parsers.iter().map(|p| p.topic()).collect();
+        topics.extend(self.secondary_filters.iter().map(|f| f.topic()));
         topics.push(&self.fallback_topic);
         topics.dedup();
         topics
@@ -160,6 +187,7 @@ use crate::schema_registry::{wrap_payload_with_confluent_wire_format, Registered
 #[derive(Clone)]
 pub struct ConfiguredParsers {
     parsers: Vec<Arc<dyn DynInstructionParser>>,
+    secondary_filters: Vec<Arc<dyn SecondaryFilter>>,
     fallback_topic: String,
     /// Map of topic -> schema info for encoding with Confluent wire format.
     schema_ids: HashMap<String, RegisteredSchema>,
@@ -169,6 +197,7 @@ impl Default for ConfiguredParsers {
     fn default() -> Self {
         Self {
             parsers: Vec::new(),
+            secondary_filters: Vec::new(),
             fallback_topic: "unknown.instructions".to_string(),
             schema_ids: HashMap::new(),
         }
@@ -178,6 +207,7 @@ impl Default for ConfiguredParsers {
 impl ConfiguredParsers {
     pub fn topics(&self) -> Vec<&str> {
         let mut topics: Vec<&str> = self.parsers.iter().map(|p| p.topic()).collect();
+        topics.extend(self.secondary_filters.iter().map(|f| f.topic()));
         topics.push(&self.fallback_topic);
         topics.dedup();
         topics
@@ -354,22 +384,39 @@ impl<B: ProcessableBlock> BlockRecordPreparer<B> for ConfiguredParsers {
 
             for (ix_index, ix_update) in instructions.iter().enumerate() {
                 for (path, ix) in get_all_ix_with_index(ix_update, ix_index) {
-                    let record = match self.try_parse(ix).await {
+                    // Primary parsing flow (unchanged)
+                    let primary_result = self.try_parse(ix).await;
+                    let record = match &primary_result {
                         Some((parsed, program_name, topic)) => {
                             decoded_count += 1;
                             self.prepare_decoded_record(
                                 slot,
                                 &ix.shared.signature,
                                 &path,
-                                parsed,
+                                parsed.clone(),
                                 program_name,
                                 topic,
                             )
                         },
                         None => self.prepare_fallback_record(slot, &ix.shared.signature, &path, ix),
                     };
-
                     records.push(record);
+
+                    // Secondary filters: emit additional records to other topics
+                    let primary_parsed = primary_result.as_ref().map(|(p, ..)| p);
+                    for filter in &self.secondary_filters {
+                        if let Some(filtered) = filter.filter(ix, primary_parsed).await {
+                            let secondary_record = self.prepare_decoded_record(
+                                slot,
+                                &ix.shared.signature,
+                                &path,
+                                filtered,
+                                filter.label(),
+                                filter.topic(),
+                            );
+                            records.push(secondary_record);
+                        }
+                    }
                 }
             }
         }
