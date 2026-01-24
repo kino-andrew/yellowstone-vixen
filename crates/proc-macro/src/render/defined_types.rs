@@ -39,6 +39,7 @@ fn render_defined_struct(
 
     quote! {
         #extra_defs
+
         #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
         pub struct #ident {
             #(#fields),*
@@ -103,21 +104,26 @@ fn render_defined_enum(
         .join(", ");
     let tags_lit = LitStr::new(&tags_list, Span::call_site());
 
+    let oneof_path = format!("{}::{}", mod_ident, oneof_ident);
+    let oneof_lit = LitStr::new(&oneof_path, Span::call_site());
+
     let mut payload_defs = TokenStream::new();
-    let mut empty_variant_msgs = TokenStream::new();
 
     for variant in &enum_type.variants {
         match variant {
             EnumVariantTypeNode::Empty(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
-                empty_variant_msgs.extend(quote! {
+                let payload_ident = format_ident!("{}{}", enum_ident, v_ident);
+
+                payload_defs.extend(quote! {
                     #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
-                    pub struct #v_ident {}
+                    pub struct #payload_ident {}
                 });
             },
 
             EnumVariantTypeNode::Tuple(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                let payload_ident = format_ident!("{}{}", enum_ident, v_ident);
 
                 let tuple = match &v.tuple {
                     codama_nodes::NestedTypeNode::Value(t) => t,
@@ -131,7 +137,7 @@ fn render_defined_enum(
                     let tag = (i + 1) as u32;
                     let name = format_ident!("item_{}", i);
 
-                    let rendered = render_field_with_helpers(&v_ident, &name, tag, item);
+                    let rendered = render_field_with_helpers(&payload_ident, &name, tag, item);
                     extra_defs.extend(rendered.extra_defs);
                     fields.push(rendered.field);
                 }
@@ -139,7 +145,7 @@ fn render_defined_enum(
                 payload_defs.extend(quote! {
                     #extra_defs
                     #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
-                    pub struct #v_ident {
+                    pub struct #payload_ident {
                         #(#fields),*
                     }
                 });
@@ -147,6 +153,7 @@ fn render_defined_enum(
 
             EnumVariantTypeNode::Struct(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                let payload_ident = format_ident!("{}{}", enum_ident, v_ident);
 
                 let st = match &v.r#struct {
                     codama_nodes::NestedTypeNode::Value(st) => st,
@@ -155,12 +162,12 @@ fn render_defined_enum(
                     ),
                 };
 
-                let (extra_defs, fields) = render_struct_fields(&v_ident, &st.fields);
+                let (extra_defs, fields) = render_struct_fields(&payload_ident, &st.fields);
 
                 payload_defs.extend(quote! {
                     #extra_defs
                     #[derive(Clone, PartialEq, ::prost::Message, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
-                    pub struct #v_ident {
+                    pub struct #payload_ident {
                         #(#fields),*
                     }
                 });
@@ -174,26 +181,94 @@ fn render_defined_enum(
         match variant {
             EnumVariantTypeNode::Empty(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
-                quote! { #[prost(message, tag = #tag)] #v_ident(super::#v_ident) }
+                let payload_ident = format_ident!("{}{}", enum_ident, v_ident);
+                quote! { #[prost(message, tag = #tag)] #v_ident(super::#payload_ident) }
             },
             EnumVariantTypeNode::Tuple(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
-                quote! { #[prost(message, tag = #tag)] #v_ident(super::#v_ident) }
+                let payload_ident = format_ident!("{}{}", enum_ident, v_ident);
+                quote! { #[prost(message, tag = #tag)] #v_ident(super::#payload_ident) }
             },
             EnumVariantTypeNode::Struct(v) => {
                 let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
-                quote! { #[prost(message, tag = #tag)] #v_ident(super::#v_ident) }
+                let payload_ident = format_ident!("{}{}", enum_ident, v_ident);
+                quote! { #[prost(message, tag = #tag)] #v_ident(super::#payload_ident) }
+            },
+        }
+    });
+
+    let borsh_ser_arms = enum_type.variants.iter().enumerate().map(|(i, variant)| {
+        let disc = i as u8;
+        match variant {
+            EnumVariantTypeNode::Empty(v) => {
+                let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                quote! {
+                    ::core::option::Option::Some(#mod_ident::#oneof_ident::#v_ident(v)) => {
+                        ::borsh::BorshSerialize::serialize(&#disc, writer)?;
+                        ::borsh::BorshSerialize::serialize(v, writer)
+                    }
+                }
+            },
+            EnumVariantTypeNode::Tuple(v) => {
+                let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                quote! {
+                    ::core::option::Option::Some(#mod_ident::#oneof_ident::#v_ident(v)) => {
+                        ::borsh::BorshSerialize::serialize(&#disc, writer)?;
+                        ::borsh::BorshSerialize::serialize(v, writer)
+                    }
+                }
+            },
+            EnumVariantTypeNode::Struct(v) => {
+                let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                quote! {
+                    ::core::option::Option::Some(#mod_ident::#oneof_ident::#v_ident(v)) => {
+                        ::borsh::BorshSerialize::serialize(&#disc, writer)?;
+                        ::borsh::BorshSerialize::serialize(v, writer)
+                    }
+                }
+            },
+        }
+    });
+
+    let borsh_de_arms = enum_type.variants.iter().enumerate().map(|(i, variant)| {
+        let disc = i as u8;
+        match variant {
+            EnumVariantTypeNode::Empty(v) => {
+                let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                quote! {
+                    #disc => {
+                        let v = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+                        ::core::option::Option::Some(#mod_ident::#oneof_ident::#v_ident(v))
+                    }
+                }
+            },
+            EnumVariantTypeNode::Tuple(v) => {
+                let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                quote! {
+                    #disc => {
+                        let v = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+                        ::core::option::Option::Some(#mod_ident::#oneof_ident::#v_ident(v))
+                    }
+                }
+            },
+            EnumVariantTypeNode::Struct(v) => {
+                let v_ident = format_ident!("{}", crate::utils::to_pascal_case(&v.name));
+                quote! {
+                    #disc => {
+                        let v = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+                        ::core::option::Option::Some(#mod_ident::#oneof_ident::#v_ident(v))
+                    }
+                }
             },
         }
     });
 
     quote! {
-        #empty_variant_msgs
         #payload_defs
 
         #[derive(Clone, PartialEq, ::prost::Message)]
         pub struct #enum_ident {
-            #[prost(oneof = #mod_ident::#oneof_ident, tags = #tags_lit)]
+            #[prost(oneof = #oneof_lit, tags = #tags_lit)]
             pub kind: ::core::option::Option<#mod_ident::#oneof_ident>,
         }
 
@@ -201,6 +276,41 @@ fn render_defined_enum(
             #[derive(Clone, PartialEq, ::prost::Oneof)]
             pub enum #oneof_ident {
                 #(#oneof_variants),*
+            }
+        }
+
+        impl ::borsh::BorshSerialize for #enum_ident {
+            fn serialize<W: ::borsh::io::Write>(
+                &self,
+                writer: &mut W
+            ) -> ::core::result::Result<(), ::borsh::io::Error> {
+                match &self.kind {
+                    #(#borsh_ser_arms,)*
+                    ::core::option::Option::None => {
+                        ::core::result::Result::Err(::borsh::io::Error::new(
+                            ::borsh::io::ErrorKind::InvalidData,
+                            "enum kind is None"
+                        ))
+                    }
+                }
+            }
+        }
+
+        impl ::borsh::BorshDeserialize for #enum_ident {
+            fn deserialize_reader<R: ::borsh::io::Read>(
+                reader: &mut R
+            ) -> ::core::result::Result<Self, ::borsh::io::Error> {
+                let disc: u8 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+                let kind = match disc {
+                    #(#borsh_de_arms,)*
+                    _ => {
+                        return ::core::result::Result::Err(::borsh::io::Error::new(
+                            ::borsh::io::ErrorKind::InvalidData,
+                            "invalid enum discriminant"
+                        ));
+                    }
+                };
+                ::core::result::Result::Ok(Self { kind })
             }
         }
     }

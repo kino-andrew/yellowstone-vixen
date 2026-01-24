@@ -14073,6 +14073,7 @@ name = "yellowstone-vixen-example-idl-parser"
 version = "0.0.0"
 dependencies = [
  "borsh 1.6.0",
+ "bs58",
  "clap 4.5.53",
  "prost 0.14.1",
  "prost-types 0.14.1",

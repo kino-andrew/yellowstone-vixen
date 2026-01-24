@@ -240,7 +240,7 @@ pub fn parser(
 
                 #(#instruction_matches)*
 
-                Err(ParseError::from("Invalid Instruction discriminator".to_owned()))
+                Err(ParseError::Filtered)
             }
         }
     }
