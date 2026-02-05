@@ -1,10 +1,9 @@
-pub mod assembler;
 pub mod config;
 pub mod events;
 pub mod filters;
 pub mod handler;
+pub mod kafka_sink;
 pub mod parsers;
-pub mod processor;
 pub mod producer;
 pub mod schema_registry;
 pub mod sink;
@@ -12,16 +11,13 @@ pub mod topics;
 pub mod utils;
 
 // Re-export main types
-pub use assembler::{AssembledSlot, SlotAssembler, SlotBuffer};
 pub use config::KafkaSinkConfig;
 pub use events::{
     DecodedInstructionEvent, PreparedRecord, RawInstructionEvent, RecordHeader, SlotCommitEvent,
 };
-pub use handler::{
-    AssemblerChannels, BlockBufferHandler, BlockMetaHandler, SlotHandler, TransactionHandler,
-};
-pub use parsers::{BlockMetaParser, SlotParser, TransactionParser};
-pub use processor::{BlockProcessor, BlockRecordPreparer, ProcessableBlock};
+pub use handler::BufferingHandler;
+pub use parsers::TransactionParser;
+pub use kafka_sink::ConfirmedSlotSink;
 pub use producer::create_producer;
 pub use sink::{ConfiguredParsers, KafkaSinkBuilder, ParsedInstruction, SecondaryFilter};
 pub use filters::JupTransferFilter;

@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use yellowstone_vixen_core::instruction::InstructionUpdate;
 
 /// Get all instructions (main + inner CPIs) with their index path.
@@ -7,35 +9,38 @@ pub fn get_all_ix_with_index(
     base_index: usize,
 ) -> Vec<(Vec<usize>, &InstructionUpdate)> {
     let mut result = Vec::new();
-    let path = vec![base_index];
-    collect_recursive(ix, path, &mut result);
+    let mut path = vec![base_index];
+    collect_recursive(ix, &mut path, &mut result);
     result
 }
 
 fn collect_recursive<'a>(
     ix: &'a InstructionUpdate,
-    path: Vec<usize>,
+    path: &mut Vec<usize>,
     result: &mut Vec<(Vec<usize>, &'a InstructionUpdate)>,
 ) {
     result.push((path.clone(), ix));
     for (i, inner) in ix.inner.iter().enumerate() {
-        let mut inner_path = path.clone();
-        inner_path.push(i);
-        collect_recursive(inner, inner_path, result);
+        path.push(i);
+        collect_recursive(inner, path, result);
+        path.pop();
     }
 }
 
 /// Format a path as a dot-separated string (e.g., "0.1.2").
 pub fn format_path(path: &[usize]) -> String {
-    path.iter()
-        .map(|i| i.to_string())
-        .collect::<Vec<_>>()
-        .join(".")
+    let mut out = String::new();
+    for (i, idx) in path.iter().enumerate() {
+        if i > 0 {
+            out.push('.');
+        }
+        write!(out, "{idx}").unwrap();
+    }
+    out
 }
 
 /// Generate a unique Kafka key for deduplication.
-/// Format: `{signature}:{ix_index}`
-/// The signature is unique per transaction, and ix_index identifies the instruction within it.
-pub fn make_record_key(signature: &str, ix_index: &str) -> String {
-    format!("{}:{}", signature, ix_index)
+/// Format: `{slot}:{signature}:{ix_index}`
+pub fn make_record_key(slot: u64, signature: &str, ix_index: &str) -> String {
+    format!("{slot}:{signature}:{ix_index}")
 }

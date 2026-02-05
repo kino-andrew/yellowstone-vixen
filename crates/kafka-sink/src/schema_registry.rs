@@ -44,16 +44,12 @@ pub fn wrap_payload_with_confluent_wire_format(
     payload: &[u8],
 ) -> Vec<u8> {
     let capacity = wire_format_max_capacity(message_indices.len(), payload.len());
-
-    [MAGIC_BYTE]
-        .into_iter()
-        .chain(schema_id.to_be_bytes())
-        .chain(encode_indices(message_indices))
-        .chain(payload.iter().copied())
-        .fold(Vec::with_capacity(capacity), |mut acc, byte| {
-            acc.push(byte);
-            acc
-        })
+    let mut buf = Vec::with_capacity(capacity);
+    buf.push(MAGIC_BYTE);
+    buf.extend_from_slice(&schema_id.to_be_bytes());
+    buf.extend(encode_indices(message_indices));
+    buf.extend_from_slice(payload);
+    buf
 }
 
 fn encode_indices(indices: &[i32]) -> impl Iterator<Item = u8> + '_ {
@@ -201,38 +197,22 @@ pub fn ensure_schemas_registered(
     tracing::info!(url = %base_url, "Registering schemas with Schema Registry");
 
     for schema_def in schemas {
-        match register_schema(&client, base_url, &schema_def.subject, schema_def.schema) {
+        let schema_id = register_schema(&client, base_url, &schema_def.subject, schema_def.schema)
+            .or_else(|e| {
+                tracing::debug!(subject = %schema_def.subject, error = %e, "Registration failed, trying existing");
+                get_latest_schema_id_for_subject(&client, base_url, &schema_def.subject).ok_or(e)
+            });
+
+        match schema_id {
             Ok(id) => {
-                tracing::info!(
-                    subject = %schema_def.subject,
-                    schema_id = id,
-                    "Schema registered successfully"
-                );
+                tracing::info!(subject = %schema_def.subject, schema_id = id, "Schema ready");
                 registered.insert(schema_def.subject.clone(), RegisteredSchema {
                     schema_id: id,
                     message_index: schema_def.message_index,
                 });
             },
             Err(e) => {
-                if let Some(id) =
-                    get_latest_schema_id_for_subject(&client, base_url, &schema_def.subject)
-                {
-                    tracing::info!(
-                        subject = %schema_def.subject,
-                        schema_id = id,
-                        "Using existing schema"
-                    );
-                    registered.insert(schema_def.subject.clone(), RegisteredSchema {
-                        schema_id: id,
-                        message_index: schema_def.message_index,
-                    });
-                } else {
-                    tracing::warn!(
-                        subject = %schema_def.subject,
-                        error = %e,
-                        "Failed to register schema"
-                    );
-                }
+                tracing::warn!(subject = %schema_def.subject, error = %e, "No schema available");
             },
         }
     }

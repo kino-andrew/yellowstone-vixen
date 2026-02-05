@@ -70,6 +70,6 @@ pub struct PreparedRecord {
 /// A Kafka record header (key-value pair).
 #[derive(Debug, Clone)]
 pub struct RecordHeader {
-    pub key: String,
+    pub key: &'static str,
     pub value: String,
 }

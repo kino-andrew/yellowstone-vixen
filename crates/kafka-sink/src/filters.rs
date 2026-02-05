@@ -1,16 +1,22 @@
 //! Secondary filters for routing instructions to additional topics.
 
-use std::{future::Future, pin::Pin};
+use std::{future::Future, pin::Pin, sync::LazyLock};
 
-use yellowstone_vixen_core::instruction::InstructionUpdate;
+use yellowstone_vixen_core::{bs58, instruction::InstructionUpdate};
 
 use crate::sink::{ParsedInstruction, SecondaryFilter};
 
 /// JUP token mint address
 const JUP_MINT: &str = "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN";
 
-/// SPL Token program ID
-const TOKEN_PROGRAM_ID: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+/// SPL Token program ID (decoded to raw bytes for zero-allocation comparison).
+static TOKEN_PROGRAM_BYTES: LazyLock<[u8; 32]> = LazyLock::new(|| {
+    let mut buf = [0u8; 32];
+    bs58::decode("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+        .onto(&mut buf)
+        .expect("valid base58");
+    buf
+});
 
 /// SPL Token instruction discriminants
 const SPL_TOKEN_TRANSFER: u8 = 3;
@@ -43,8 +49,7 @@ impl JupTransferFilter {
 
     /// Check if this is an SPL Token program instruction
     fn is_token_program(ix: &InstructionUpdate) -> bool {
-        let program_id = yellowstone_vixen_core::bs58::encode(&ix.program).into_string();
-        program_id == TOKEN_PROGRAM_ID
+        AsRef::<[u8; 32]>::as_ref(&ix.program) == TOKEN_PROGRAM_BYTES.as_ref()
     }
 
     /// Check if instruction is a Transfer or TransferChecked

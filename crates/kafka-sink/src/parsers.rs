@@ -1,13 +1,12 @@
-//! Pass-through parsers for TransactionUpdate, BlockMetaUpdate, and SlotUpdate.
+//! Pass-through parser for TransactionUpdate.
 //!
-//! These parsers simply forward the updates without transformation,
-//! allowing Vixen to route them to the appropriate handlers.
+//! Forwards transaction updates as-is so the Vixen Runtime routes them
+//! to BufferingHandler for eager instruction parsing.
 
 use std::borrow::Cow;
 
 use yellowstone_vixen_core::{
-    BlockMetaPrefilter, BlockMetaUpdate, ParseResult, Parser, Prefilter, SlotPrefilter,
-    SlotUpdate, TransactionPrefilter, TransactionUpdate,
+    ParseResult, Parser, Prefilter, TransactionPrefilter, TransactionUpdate,
 };
 
 /// Pass-through parser for transaction updates.
@@ -36,72 +35,6 @@ impl Parser for TransactionParser {
             parser_id = %self.id(),
             has_transaction_filter = prefilter.transaction.is_some(),
             "TransactionParser prefilter created - receiving all transactions"
-        );
-        prefilter
-    }
-
-    async fn parse(&self, value: &Self::Input) -> ParseResult<Self::Output> {
-        Ok(value.clone())
-    }
-}
-
-/// Pass-through parser for block metadata updates.
-/// Subscribes to all block metas and forwards them as-is.
-#[derive(Debug, Clone, Copy)]
-pub struct BlockMetaParser;
-
-impl Parser for BlockMetaParser {
-    type Input = BlockMetaUpdate;
-    type Output = BlockMetaUpdate;
-
-    fn id(&self) -> Cow<'static, str> {
-        "kafka-sink::BlockMetaParser".into()
-    }
-
-    fn prefilter(&self) -> Prefilter {
-        let prefilter = Prefilter {
-            block_meta: Some(BlockMetaPrefilter {}),
-            ..Default::default()
-        };
-        tracing::info!(
-            parser_id = %self.id(),
-            has_block_meta_filter = prefilter.block_meta.is_some(),
-            "BlockMetaParser prefilter created"
-        );
-        prefilter
-    }
-
-    async fn parse(&self, value: &Self::Input) -> ParseResult<Self::Output> {
-        Ok(value.clone())
-    }
-}
-
-/// Pass-through parser for slot status updates.
-/// Subscribes to ALL slot status transitions (processed, confirmed, finalized, dead)
-/// by setting filter_by_commitment to false.
-#[derive(Debug, Clone, Copy)]
-pub struct SlotParser;
-
-impl Parser for SlotParser {
-    type Input = SlotUpdate;
-    type Output = SlotUpdate;
-
-    fn id(&self) -> Cow<'static, str> {
-        "kafka-sink::SlotParser".into()
-    }
-
-    fn prefilter(&self) -> Prefilter {
-        let prefilter = Prefilter {
-            slot: Some(SlotPrefilter {
-                // Receive ALL slot status updates (processed, confirmed, finalized, dead)
-                filter_by_commitment: false,
-            }),
-            ..Default::default()
-        };
-        tracing::info!(
-            parser_id = %self.id(),
-            filter_by_commitment = false,
-            "SlotParser prefilter created - receiving all slot status updates"
         );
         prefilter
     }

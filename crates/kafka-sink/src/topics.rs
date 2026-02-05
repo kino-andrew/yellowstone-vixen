@@ -25,19 +25,11 @@ pub fn ensure_topics_exist_with_log_compaction(
         .expect("Failed to create runtime for topic creation");
 
     rt.block_on(async {
-        // Collect all topics to create
-        let mut topics_to_create: Vec<NewTopic> =
-            vec![
-                NewTopic::new(&config.slots_topic, 1, TopicReplication::Fixed(1))
-                    .set("cleanup.policy", "compact"),
-            ];
-
-        for topic in instruction_topics {
-            topics_to_create.push(
-                NewTopic::new(topic, 1, TopicReplication::Fixed(1))
-                    .set("cleanup.policy", "compact"),
-            );
-        }
+        let topics_to_create: Vec<NewTopic> =
+            std::iter::once(config.slots_topic.as_str())
+                .chain(instruction_topics.iter().copied())
+                .map(|t| NewTopic::new(t, 1, TopicReplication::Fixed(1)).set("cleanup.policy", "compact"))
+                .collect();
 
         match admin
             .create_topics(topics_to_create.iter(), &AdminOptions::new())
@@ -124,18 +116,20 @@ pub fn read_last_committed_block(config: &KafkaSinkConfig) -> Option<LastCommitt
         .ok()?;
         consumer.assign(&tpl).ok()?;
 
-        if let Some(Ok(msg)) = consumer.poll(Duration::from_secs(5)) {
-            if let Some(payload) = msg.payload() {
-                if let Ok(event) = serde_json::from_slice::<SlotCommitEvent>(payload) {
-                    if let Some(height) = event.block_height {
-                        if latest.map_or(true, |l| height > l.block_height) {
-                            latest = Some(LastCommitted {
-                                slot: event.slot,
-                                block_height: height,
-                            });
-                        }
-                    }
-                }
+        let candidate = consumer
+            .poll(Duration::from_secs(5))
+            .and_then(|r| r.ok())
+            .and_then(|msg| msg.payload().map(|p| p.to_vec()))
+            .and_then(|payload| serde_json::from_slice::<SlotCommitEvent>(&payload).ok())
+            .and_then(|event| {
+                event
+                    .block_height
+                    .map(|h| LastCommitted { slot: event.slot, block_height: h })
+            });
+
+        if let Some(c) = candidate {
+            if latest.map_or(true, |l| c.block_height > l.block_height) {
+                latest = Some(c);
             }
         }
     }

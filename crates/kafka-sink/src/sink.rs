@@ -5,16 +5,14 @@
 //!
 //! All parsed instructions are serialized using protobuf (prost::Message::encode).
 
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+use std::{collections::{BTreeSet, HashMap}, future::Future, pin::Pin, sync::Arc};
 
 use prost::Message;
-use yellowstone_grpc_proto::geyser::SubscribeUpdateTransaction;
 use yellowstone_vixen_core::{bs58, instruction::InstructionUpdate, ParseError, Parser};
 
 use crate::{
     events::{PreparedRecord, RecordHeader},
-    processor::{BlockRecordPreparer, ProcessableBlock},
-    utils::{format_path, get_all_ix_with_index, make_record_key},
+    utils::{format_path, make_record_key},
 };
 
 /// Parsed instruction result with protobuf-encoded bytes.
@@ -31,23 +29,25 @@ pub struct ParsedInstruction {
 impl ParsedInstruction {
     /// Create from any prost::Message type.
     pub fn from_proto<T: Message + std::fmt::Debug>(output: &T) -> Self {
-        // TODO: change later
-        // Extract name from Debug representation for logging
         let debug_str = format!("{:?}", output);
-        let instruction_name = debug_str
-            .split_once('{')
-            .map(|(name, _)| name.trim())
-            .or_else(|| debug_str.split_once('(').map(|(name, _)| name.trim()))
-            .unwrap_or(&debug_str)
-            .to_string();
-        let instruction_type = format!("{:?}", std::mem::discriminant(output));
-
         Self {
-            instruction_name,
-            instruction_type,
+            instruction_name: extract_type_name_from_debug(&debug_str).to_string(),
+            instruction_type: format!("{:?}", std::mem::discriminant(output)),
             data: output.encode_to_vec(),
         }
     }
+}
+
+/// Extract the type name from a Debug-formatted string.
+///
+/// Handles both struct-like `TypeName { .. }` and tuple-like `TypeName(..)` formats.
+// TODO: replace with a proper name method on the proto types.
+fn extract_type_name_from_debug(debug_str: &str) -> &str {
+    debug_str
+        .split_once('{')
+        .map(|(name, _)| name.trim())
+        .or_else(|| debug_str.split_once('(').map(|(name, _)| name.trim()))
+        .unwrap_or(debug_str)
 }
 
 /// Type-erased instruction parser trait.
@@ -174,11 +174,12 @@ impl KafkaSinkBuilder {
     }
 
     pub fn topics(&self) -> Vec<&str> {
-        let mut topics: Vec<&str> = self.parsers.iter().map(|p| p.topic()).collect();
-        topics.extend(self.secondary_filters.iter().map(|f| f.topic()));
-        topics.push(&self.fallback_topic);
-        topics.dedup();
-        topics
+        self.parsers.iter().map(|p| p.topic())
+            .chain(self.secondary_filters.iter().map(|f| f.topic()))
+            .chain(std::iter::once(self.fallback_topic.as_str()))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect()
     }
 }
 
@@ -206,11 +207,12 @@ impl Default for ConfiguredParsers {
 
 impl ConfiguredParsers {
     pub fn topics(&self) -> Vec<&str> {
-        let mut topics: Vec<&str> = self.parsers.iter().map(|p| p.topic()).collect();
-        topics.extend(self.secondary_filters.iter().map(|f| f.topic()));
-        topics.push(&self.fallback_topic);
-        topics.dedup();
-        topics
+        self.parsers.iter().map(|p| p.topic())
+            .chain(self.secondary_filters.iter().map(|f| f.topic()))
+            .chain(std::iter::once(self.fallback_topic.as_str()))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect()
     }
 
     pub fn fallback_topic(&self) -> &str { &self.fallback_topic }
@@ -244,7 +246,7 @@ impl ConfiguredParsers {
         result
     }
 
-    pub async fn try_parse(
+    async fn try_parse(
         &self,
         ix: &InstructionUpdate,
     ) -> Option<(ParsedInstruction, &str, &str)> {
@@ -256,9 +258,68 @@ impl ConfiguredParsers {
         None
     }
 
+    /// Parse an instruction and prepare a Kafka record.
+    ///
+    /// Tries each registered parser in order. If one matches, builds a decoded record;
+    /// otherwise builds a fallback record with raw instruction data.
+    /// Returns the record and the parsed result (if any) for secondary filters.
+    pub async fn parse_instruction(
+        &self,
+        slot: u64,
+        signature: &[u8],
+        path: &[usize],
+        ix: &InstructionUpdate,
+    ) -> (PreparedRecord, Option<ParsedInstruction>) {
+        match self.try_parse(ix).await {
+            Some((parsed, program_name, topic)) => {
+                let record = self.prepare_decoded_record(
+                    slot, signature, path, parsed.clone(), program_name, topic,
+                );
+                (record, Some(parsed))
+            },
+            None => {
+                let record = self.prepare_fallback_record(slot, signature, path, ix);
+                (record, None)
+            },
+        }
+    }
+
+    pub fn secondary_filters(&self) -> &[Arc<dyn SecondaryFilter>] {
+        &self.secondary_filters
+    }
+
+    /// Build the base headers and key shared by all record types.
+    fn base_record(slot: u64, signature: &[u8], path: &[usize]) -> (String, Vec<RecordHeader>) {
+        let sig_str = bs58::encode(signature).into_string();
+        let path_str = format_path(path);
+        let key = make_record_key(slot, &sig_str, &path_str);
+        let headers = vec![
+            RecordHeader { key: "slot", value: slot.to_string() },
+            RecordHeader { key: "signature", value: sig_str },
+            RecordHeader { key: "ix_index", value: path_str },
+        ];
+        (key, headers)
+    }
+
+    /// Encode payload with Confluent wire format if a schema is registered for the topic,
+    /// otherwise return the raw protobuf bytes.
+    fn encode_payload_for_topic(&self, topic: &str, raw_data: Vec<u8>) -> Vec<u8> {
+        match self.get_schema_for_topic(topic) {
+            Some(schema) => {
+                let indices: &[i32] = if schema.message_index == 0 {
+                    &[] // First message: empty array per Confluent spec
+                } else {
+                    &[schema.message_index]
+                };
+                wrap_payload_with_confluent_wire_format(schema.schema_id, indices, &raw_data)
+            },
+            None => raw_data,
+        }
+    }
+
     /// Prepare a record for a successfully decoded instruction.
     /// Payload is protobuf-encoded with Confluent wire format, metadata goes in Kafka headers.
-    fn prepare_decoded_record(
+    pub fn prepare_decoded_record(
         &self,
         slot: u64,
         signature: &[u8],
@@ -267,61 +328,19 @@ impl ConfiguredParsers {
         program_name: &str,
         topic: &str,
     ) -> PreparedRecord {
-        let sig_str = bs58::encode(signature).into_string();
-        let path_str = format_path(path);
+        let (key, mut headers) = Self::base_record(slot, signature, path);
+        let payload = self.encode_payload_for_topic(topic, parsed.data);
 
-        // Wrap payload with Confluent wire format if schema is registered
-        let payload = if let Some(schema) = self.get_schema_for_topic(topic) {
-            tracing::debug!(
-                topic,
-                schema_id = schema.schema_id,
-                message_index = schema.message_index,
-                "Encoding with Confluent wire format"
-            );
-            // For message_index 0 (first message), use empty array per Confluent spec
-            let indices: &[i32] = if schema.message_index == 0 {
-                &[]
-            } else {
-                &[schema.message_index]
-            };
-            wrap_payload_with_confluent_wire_format(schema.schema_id, indices, &parsed.data)
-        } else {
-            tracing::debug!(topic, "No schema found, using raw protobuf");
-            parsed.data
-        };
-
-        // Metadata as Kafka headers (readable without decoding payload)
-        let headers = vec![
-            RecordHeader {
-                key: "slot".into(),
-                value: slot.to_string(),
-            },
-            RecordHeader {
-                key: "signature".into(),
-                value: sig_str.clone(),
-            },
-            RecordHeader {
-                key: "ix_index".into(),
-                value: path_str.clone(),
-            },
-            RecordHeader {
-                key: "program".into(),
-                value: program_name.to_string(),
-            },
-            RecordHeader {
-                key: "instruction_type".into(),
-                value: parsed.instruction_type,
-            },
-            RecordHeader {
-                key: "instruction_name".into(),
-                value: parsed.instruction_name.clone(),
-            },
-        ];
+        headers.extend([
+            RecordHeader { key: "program", value: program_name.to_string() },
+            RecordHeader { key: "instruction_type", value: parsed.instruction_type },
+            RecordHeader { key: "instruction_name", value: parsed.instruction_name.clone() },
+        ]);
 
         PreparedRecord {
             topic: topic.to_string(),
             payload,
-            key: make_record_key(&sig_str, &path_str),
+            key,
             headers,
             label: parsed.instruction_name,
             is_decoded: true,
@@ -330,40 +349,22 @@ impl ConfiguredParsers {
 
     /// Prepare a fallback record for unrecognized instructions.
     /// Payload is the raw instruction data, metadata in headers.
-    fn prepare_fallback_record(
+    pub fn prepare_fallback_record(
         &self,
         slot: u64,
         signature: &[u8],
         path: &[usize],
         ix: &InstructionUpdate,
     ) -> PreparedRecord {
-        let sig_str = bs58::encode(signature).into_string();
-        let path_str = format_path(path);
+        let (key, mut headers) = Self::base_record(slot, signature, path);
         let program_id = bs58::encode(ix.program).into_string();
 
-        let headers = vec![
-            RecordHeader {
-                key: "slot".into(),
-                value: slot.to_string(),
-            },
-            RecordHeader {
-                key: "signature".into(),
-                value: sig_str.clone(),
-            },
-            RecordHeader {
-                key: "ix_index".into(),
-                value: path_str.clone(),
-            },
-            RecordHeader {
-                key: "program_id".into(),
-                value: program_id.clone(),
-            },
-        ];
+        headers.push(RecordHeader { key: "program_id", value: program_id.clone() });
 
         PreparedRecord {
             topic: self.fallback_topic.clone(),
-            payload: ix.data.clone(), // Raw instruction data as bytes
-            key: make_record_key(&sig_str, &path_str),
+            payload: ix.data.clone(),
+            key,
             headers,
             label: program_id,
             is_decoded: false,
@@ -371,65 +372,3 @@ impl ConfiguredParsers {
     }
 }
 
-impl<B: ProcessableBlock> BlockRecordPreparer<B> for ConfiguredParsers {
-    async fn prepare_records(&self, block: &B) -> (Vec<PreparedRecord>, u64) {
-        let slot = block.slot();
-        let mut records = Vec::new();
-        let mut decoded_count = 0u64;
-
-        for tx_info in block.transactions() {
-            let tx_update = SubscribeUpdateTransaction {
-                slot,
-                transaction: Some(tx_info.clone()),
-            };
-
-            let instructions = match InstructionUpdate::parse_from_txn(&tx_update) {
-                Ok(ixs) => ixs,
-                Err(e) => {
-                    tracing::warn!(?e, slot, "Failed to parse transaction instructions");
-                    continue;
-                },
-            };
-
-            for (ix_index, ix_update) in instructions.iter().enumerate() {
-                for (path, ix) in get_all_ix_with_index(ix_update, ix_index) {
-                    // Primary parsing flow (unchanged)
-                    let primary_result = self.try_parse(ix).await;
-                    let record = match &primary_result {
-                        Some((parsed, program_name, topic)) => {
-                            decoded_count += 1;
-                            self.prepare_decoded_record(
-                                slot,
-                                &ix.shared.signature,
-                                &path,
-                                parsed.clone(),
-                                program_name,
-                                topic,
-                            )
-                        },
-                        None => self.prepare_fallback_record(slot, &ix.shared.signature, &path, ix),
-                    };
-                    records.push(record);
-
-                    // Secondary filters: emit additional records to other topics
-                    let primary_parsed = primary_result.as_ref().map(|(p, ..)| p);
-                    for filter in &self.secondary_filters {
-                        if let Some(filtered) = filter.filter(ix, primary_parsed).await {
-                            let secondary_record = self.prepare_decoded_record(
-                                slot,
-                                &ix.shared.signature,
-                                &path,
-                                filtered,
-                                filter.label(),
-                                filter.topic(),
-                            );
-                            records.push(secondary_record);
-                        }
-                    }
-                }
-            }
-        }
-
-        (records, decoded_count)
-    }
-}
