@@ -117,3 +117,6 @@ yellowstone-vixen-yellowstone-grpc-source = { path = "crates/yellowstone-grpc-so
 yellowstone-vixen-yellowstone-fumarole-source = { path = "crates/yellowstone-fumarole-source", version = "0.6.0-alpha.0" }
 yellowstone-vixen-solana-snapshot-source = { path = "crates/solana-snapshot-source", version = "0.6.0-alpha.0" }
 yellowstone-vixen-jetstream-source = { path = "crates/jetstreamer-source", version = "0.6.0-alpha.0" }
+
+# Sinks
+yellowstone-vixen-kafka-sink = { path = "crates/kafka-sink", version = "0.6.0-alpha.0" }

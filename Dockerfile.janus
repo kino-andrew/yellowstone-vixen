@@ -1,0 +1,32 @@
+FROM rust:1.90.0-bookworm AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libclang-dev \
+    llvm-dev \
+    clang \
+    protobuf-compiler \
+    pkg-config \
+    libssl-dev \
+    libsasl2-dev \
+    libzstd-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV LIBCLANG_PATH=/usr/lib/llvm-14/lib
+
+COPY . .
+
+RUN cargo build --release -p yellowstone-vixen-janus
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/release/yellowstone-vixen-janus /usr/local/bin/vixen-poc
+COPY --from=builder /app/examples/janus/Vixen.toml /etc/vixen/Vixen.toml
+
+CMD ["vixen-poc", "--config", "/etc/vixen/Vixen.toml"]

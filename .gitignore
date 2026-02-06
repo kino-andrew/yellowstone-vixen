@@ -4,3 +4,4 @@ crates/mock/fixtures
 .DS_Store
 **/.DS_Store
 Vixen.toml
+Vixen.docker.toml
