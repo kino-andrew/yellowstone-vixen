@@ -479,6 +479,11 @@ fn render_instruction_parser(
                 &self,
                 ix_update: &instruction::InstructionUpdate,
             ) -> ParseResult<Self::Output> {
+                // Check program ID first to avoid parsing unrelated instructions
+                if *ix_update.program != ID {
+                    return Err(ParseError::Filtered);
+                }
+
                 let data = &ix_update.data;
                 let accounts = &ix_update.accounts;
 
