@@ -60,6 +60,9 @@ pub struct BlockMachineCoordinator<R> {
     /// Parsed records for these slots are dropped to prevent re-creating
     /// a buffer entry that can never satisfy the two-gate flush.
     discarded_slots: BTreeSet<Slot>,
+    /// Highest slot number that has been successfully flushed.
+    /// Used to detect two-gate invariant violations (late parsed messages).
+    last_flushed_slot: Option<Slot>,
     input_rx: mpsc::Receiver<CoordinatorInput>,
     parsed_rx: mpsc::Receiver<CoordinatorMessage<R>>,
     output_tx: mpsc::Sender<ConfirmedSlot<R>>,
@@ -75,6 +78,7 @@ impl<R: Send + 'static> BlockMachineCoordinator<R> {
             block_sm: BlocksStateMachine::default(),
             buffer: BTreeMap::new(),
             discarded_slots: BTreeSet::new(),
+            last_flushed_slot: None,
             input_rx,
             parsed_rx,
             output_tx,
@@ -226,8 +230,23 @@ impl<R: Send + 'static> BlockMachineCoordinator<R> {
             CoordinatorMessage::Parsed { slot, .. }
             | CoordinatorMessage::TransactionParsed { slot } => *slot,
         };
+
+        // Drop messages for discarded slots (dead/forked/untracked).
         if self.discarded_slots.contains(&slot) {
             return;
+        }
+
+        // Late messages for flushed slots indicate a critical bug — the two-gate
+        // system guarantees all transactions are parsed before flush. If this
+        // happens, something is fundamentally broken and we must crash to
+        // prevent silent data corruption.
+        if self.last_flushed_slot.is_some_and(|last| slot <= last) {
+            panic!(
+                "TWO-GATE INVARIANT VIOLATED: Received parsed message for slot {} \
+                 but last_flushed_slot is {:?}. This means a slot was flushed before \
+                 all its transactions were parsed. Check handler/coordinator timing.",
+                slot, self.last_flushed_slot
+            );
         }
 
         let buf = self.buffer.entry(slot).or_default();
@@ -252,12 +271,37 @@ impl<R: Send + 'static> BlockMachineCoordinator<R> {
     /// Iterates the BTreeMap from lowest slot. Stops at the first non-ready slot
     /// to preserve cross-slot ordering. Dead/forked slots are removed by
     /// `discard_slot`, which then calls this method to unblock subsequent slots.
+    ///
+    /// ## Gap Detection
+    ///
+    /// A slot can only flush if its parent has been flushed (or discarded).
+    /// This prevents out-of-order flushing when slots arrive non-sequentially.
     fn try_flush_sequential(&mut self) {
-        while self
-            .buffer
-            .first_key_value()
-            .is_some_and(|(_, buf)| buf.is_ready())
-        {
+        while let Some((slot, buf)) = self.buffer.first_key_value() {
+            if !buf.is_ready() {
+                break;
+            }
+
+            // Gap check: parent must be flushed or discarded.
+            let parent_slot = buf.parent_slot.unwrap_or(0);
+            let parent_ok = self
+                .last_flushed_slot
+                .is_some_and(|last| parent_slot <= last)
+                || self.discarded_slots.contains(&parent_slot);
+
+            // Allow flush if this is the first slot we've ever seen.
+            let is_first = self.last_flushed_slot.is_none();
+
+            if !is_first && !parent_ok {
+                tracing::debug!(
+                    slot = %ColorSlot(*slot),
+                    parent_slot,
+                    last_flushed = ?self.last_flushed_slot,
+                    "Slot ready but parent not flushed — waiting"
+                );
+                break;
+            }
+
             let (slot, mut buf) = self.buffer.pop_first().unwrap();
             let records = buf.drain_sorted_records();
 
@@ -279,6 +323,9 @@ impl<R: Send + 'static> BlockMachineCoordinator<R> {
                 parent_slot = confirmed.parent_slot,
                 "Flushing slot"
             );
+
+            // Track this as the last flushed slot.
+            self.last_flushed_slot = Some(slot);
 
             if self.output_tx.try_send(confirmed).is_err() {
                 tracing::error!(slot = %ColorSlot(slot), "Failed to send confirmed slot to output");

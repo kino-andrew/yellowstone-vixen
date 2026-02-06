@@ -4,7 +4,7 @@
 //! into a side channel while forwarding transaction events to the Runtime.
 //!
 
-use std::time::Duration;
+use std::{path::PathBuf, time::Duration};
 
 use async_trait::async_trait;
 use futures_util::StreamExt;
@@ -21,7 +21,7 @@ use yellowstone_vixen::{sources::SourceTrait, Error as VixenError};
 use yellowstone_vixen_core::Filters;
 use yellowstone_vixen_yellowstone_grpc_source::YellowstoneGrpcConfig;
 
-use crate::{extract_coordinator_inputs, CoordinatorInput};
+use crate::{extract_coordinator_inputs, fixtures::FixtureWriter, CoordinatorInput};
 
 /// Config for CoordinatorSource.
 ///
@@ -38,6 +38,16 @@ pub struct CoordinatorSourceConfig {
     #[serde(skip)]
     #[arg(skip)]
     pub coordinator_input_tx: Option<Sender<CoordinatorInput>>,
+
+    /// Path to write captured fixture data (length-delimited protobuf).
+    #[serde(skip)]
+    #[arg(skip)]
+    pub fixture_path: Option<PathBuf>,
+
+    /// Number of BlockMeta messages to capture before stopping.
+    #[serde(skip)]
+    #[arg(skip)]
+    pub fixture_slots: Option<usize>,
 }
 
 trait CoordinatorSubscription {
@@ -99,6 +109,14 @@ impl SourceTrait for CoordinatorSource {
             .as_ref()
             .expect("coordinator_input_tx must be set before connect");
 
+        let mut fixture_writer = match (&self.config.fixture_path, self.config.fixture_slots) {
+            (Some(path), Some(slots)) => {
+                tracing::info!(?path, slots, "Fixture capture enabled");
+                Some(FixtureWriter::new(path, slots).map_err(VixenError::Io)?)
+            },
+            _ => None,
+        };
+
         let config = &self.config.source;
         let timeout = Duration::from_secs(config.timeout);
 
@@ -136,6 +154,21 @@ impl SourceTrait for CoordinatorSource {
 
         while let Some(update) = stream.next().await {
             if let Ok(ref subscribe_update) = update {
+                // Capture raw protobuf to fixture file if enabled.
+                if let Some(ref mut writer) = fixture_writer {
+                    match writer.write(subscribe_update) {
+                        Ok(true) => {},
+                        Ok(false) => {
+                            tracing::info!(path = ?self.config.fixture_path, "Fixture capture complete");
+                            return Ok(());
+                        },
+                        Err(e) => {
+                            tracing::error!(?e, "Fixture write failed");
+                            return Ok(());
+                        },
+                    }
+                }
+
                 // Lightweight extraction: integers + 32-byte hash only.
                 let inputs: Vec<CoordinatorInput> = extract_coordinator_inputs(subscribe_update);
                 if !inputs.is_empty() {

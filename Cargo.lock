@@ -14093,6 +14093,7 @@ dependencies = [
  "bs58",
  "clap 4.5.53",
  "futures-util",
+ "prost 0.14.1",
  "serde",
  "solana-clock 3.0.0",
  "solana-commitment-config 3.1.0",
