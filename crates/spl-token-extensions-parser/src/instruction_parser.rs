@@ -429,6 +429,6 @@ mod tests {
         };
 
         assert_eq!(args.decimals, 9);
-        assert_eq!(args.amount, 100.mul(10u64.pow(args.decimals.into())));
+        assert_eq!(args.amount, 100.mul(10u64.pow(args.decimals)));
     }
 }

@@ -128,7 +128,7 @@ fn account_to_proto(a: &Account) -> AccountProto {
         amount: a.amount,
         delegate: a.delegate.map(|pk| pk.to_bytes().to_vec()).into(),
         state: account_state_to_u32(a.state),
-        is_native: a.is_native.map(|v| v.into()).into(),
+        is_native: a.is_native.into(),
         delegated_amount: a.delegated_amount,
         close_authority: a.close_authority.map(|pk| pk.to_bytes().to_vec()).into(),
     }
@@ -298,8 +298,10 @@ mod tests {
         };
 
         let base = ext_mint.base_account.expect("missing base mint");
+
         assert_eq!(base.decimals, 9);
+
         // Extensions count will depend on the fixture
-        assert!(ext_mint.extensions.len() >= 1);
+        assert!(!ext_mint.extensions.is_empty());
     }
 }

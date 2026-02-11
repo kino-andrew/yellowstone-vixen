@@ -102,7 +102,7 @@ use crate::intermediate_representation::{
 /// ```
 ///
 /// This allows a single protobuf message to represent any instruction.
-
+///
 pub fn build_instructions_schema(instructions: &[InstructionNode], ir: &mut SchemaIr) {
     for ix in instructions {
         let ix_name = crate::utils::to_pascal_case(&ix.name);

@@ -222,9 +222,9 @@ fn map_type(t: &codama_nodes::TypeNode) -> FieldTypeIr {
 /// Unwrap Codama's NestedTypeNode wrappers to get to the underlying StructTypeNode for accounts.
 ///
 /// We expect the account data to always be a struct, but Codama wraps it in various ways (e.g. for fixed-size arrays) so we need to unwrap those.
-pub fn unwrap_nested_struct<'a>(
-    node: &'a codama_nodes::NestedTypeNode<codama_nodes::StructTypeNode>,
-) -> &'a codama_nodes::StructTypeNode {
+pub fn unwrap_nested_struct(
+    node: &codama_nodes::NestedTypeNode<codama_nodes::StructTypeNode>,
+) -> &codama_nodes::StructTypeNode {
     use codama_nodes::NestedTypeNode as N;
 
     match node {
