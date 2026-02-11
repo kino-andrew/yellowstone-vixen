@@ -134,19 +134,21 @@ fn account_to_proto(a: &Account) -> AccountProto {
     }
 }
 
-fn multisig_to_proto(m: &Multisig) -> MultisigProto {
-    // Multisig has fixed signers array; keep only the first `n` signers (but safe even if n is weird)
-    let n = m.n as usize;
-    let max = m.signers.len().min(n);
+fn multisig_to_proto(multisig: &Multisig) -> MultisigProto {
+    // Multisig has fixed signers array; keep only the first `n` signers
+    let n = multisig.n as usize;
+    let max = multisig.signers.len().min(n);
+
     let mut signers = Vec::with_capacity(max);
+
     for i in 0..max {
-        signers.push(m.signers[i].to_bytes().to_vec());
+        signers.push(multisig.signers[i].to_bytes().to_vec());
     }
 
     MultisigProto {
-        m: m.m as u32,
-        n: m.n as u32,
-        is_initialized: m.is_initialized,
+        m: multisig.m as u32,
+        n: multisig.n as u32,
+        is_initialized: multisig.is_initialized,
         signers,
     }
 }
@@ -162,12 +164,15 @@ fn extension_account_type(data_bytes: &[u8]) -> Result<TokenExtensionAccountType
     if StateWithExtensions::<Mint>::unpack(data_bytes).is_ok() {
         return Ok(TokenExtensionAccountType::Mint);
     }
+
     if StateWithExtensions::<Account>::unpack(data_bytes).is_ok() {
         return Ok(TokenExtensionAccountType::TokenAccount);
     }
+
     if Multisig::unpack(data_bytes).is_ok() {
         return Ok(TokenExtensionAccountType::Multisig);
     }
+
     Err(ProgramError::InvalidAccountData)
 }
 
@@ -180,6 +185,7 @@ fn build_extensions_for_mint(
     unpacked: &StateWithExtensions<Mint>,
 ) -> Result<Vec<ExtensionDataProto>, ProgramError> {
     let extension_types = unpacked.get_extension_types()?;
+
     let mut out = Vec::with_capacity(extension_types.len());
 
     for ext in extension_types {
@@ -198,6 +204,7 @@ fn build_extensions_for_account(
     unpacked: &StateWithExtensions<Account>,
 ) -> Result<Vec<ExtensionDataProto>, ProgramError> {
     let extension_types = unpacked.get_extension_types()?;
+
     let mut out = Vec::with_capacity(extension_types.len());
 
     for ext in extension_types {
@@ -218,6 +225,7 @@ impl TokenExtensionStateProto {
             TokenExtensionAccountType::Mint => {
                 let unpacked = StateWithExtensions::<Mint>::unpack(data_bytes)?;
                 let extensions = build_extensions_for_mint(&unpacked)?;
+
                 Ok(TokenExtensionStateProto {
                     state: Some(token_extension_state_proto::State::ExtendedMint(
                         ExtendedMintProto {
@@ -230,6 +238,7 @@ impl TokenExtensionStateProto {
             TokenExtensionAccountType::TokenAccount => {
                 let unpacked = StateWithExtensions::<Account>::unpack(data_bytes)?;
                 let extensions = build_extensions_for_account(&unpacked)?;
+
                 Ok(TokenExtensionStateProto {
                     state: Some(token_extension_state_proto::State::ExtendedTokenAccount(
                         ExtendedTokenAccountProto {
@@ -240,10 +249,11 @@ impl TokenExtensionStateProto {
                 })
             },
             TokenExtensionAccountType::Multisig => {
-                let m = Multisig::unpack(data_bytes)?;
+                let multisig = Multisig::unpack(data_bytes)?;
+
                 Ok(TokenExtensionStateProto {
                     state: Some(token_extension_state_proto::State::Multisig(
-                        multisig_to_proto(&m),
+                        multisig_to_proto(&multisig),
                     )),
                 })
             },
@@ -290,9 +300,11 @@ mod tests {
     #[tokio::test]
     async fn test_mint_account_parsing_proto() {
         let parser = AccountParser;
+
         let account = account_fixture!("BtSLwAFDsMX4bhamtyggn2xsdFKQvpaSzw9jEL7BNuyu", &parser);
 
         let state = account.state.expect("missing state");
+
         let token_extension_state_proto::State::ExtendedMint(ext_mint) = state else {
             panic!("Invalid Account");
         };

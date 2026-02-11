@@ -148,6 +148,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeInstruction {
         let ix_msg = match ix_type {
             SplConfidentialTransferFeeInstruction::InitializeConfidentialTransferFeeConfig => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::InitializeConfidentialTransferFeeConfig(
                     oneof::InitializeConfidentialTransferFeeConfig {
                         accounts: Some(InitializeConfidentialTransferFeeConfigAccounts {
@@ -159,6 +160,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeInstruction {
 
             SplConfidentialTransferFeeInstruction::WithdrawWithheldTokensFromMint => {
                 check_min_accounts_req(accounts_len, 4)?;
+
                 oneof::Ix::WithdrawWithheldTokensFromMint(oneof::WithdrawWithheldTokensFromMint {
                     accounts: Some(ConfidentialWithdrawWithheldTokensFromMintAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -172,6 +174,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeInstruction {
 
             SplConfidentialTransferFeeInstruction::WithdrawWithheldTokensFromAccounts => {
                 check_min_accounts_req(accounts_len, 5)?;
+
                 oneof::Ix::WithdrawWithheldTokensFromAccounts(
                     oneof::WithdrawWithheldTokensFromAccounts {
                         accounts: Some(ConfidentialWithdrawWithheldTokensFromAccounts {
@@ -191,6 +194,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeInstruction {
 
             SplConfidentialTransferFeeInstruction::HarvestWithheldTokensToMint => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::HarvestWithheldTokensToMint(oneof::HarvestWithheldTokensToMint {
                     accounts: Some(ConfidentialHarvestWithheldTokensToMintAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -201,6 +205,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeInstruction {
 
             SplConfidentialTransferFeeInstruction::EnableHarvestToMint => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::EnableHarvestToMint(oneof::EnableHarvestToMint {
                     accounts: Some(EnableHarvestToMintAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -212,6 +217,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeInstruction {
 
             SplConfidentialTransferFeeInstruction::DisableHarvestToMint => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::DisableHarvestToMint(oneof::DisableHarvestToMint {
                     accounts: Some(DisableHarvestToMintAccounts {
                         account: ix.accounts[0].to_vec(),

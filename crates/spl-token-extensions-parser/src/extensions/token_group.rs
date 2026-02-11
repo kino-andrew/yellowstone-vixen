@@ -18,8 +18,6 @@ pub struct InitializeGroupAccounts {
 pub struct InitializeGroupArgs {
     #[prost(uint64, tag = "1")]
     pub max_size: u64,
-
-    // OptionalNonZeroPubkey -> Option<bytes>
     #[prost(bytes = "vec", optional, tag = "2")]
     pub update_authority: ::core::option::Option<PubkeyBytes>,
 }

@@ -53,47 +53,37 @@ impl ProgramParser for InstructionParser {
 impl InstructionParser {
     #[allow(clippy::too_many_lines)]
     fn parse_impl(ix: &InstructionUpdate) -> Result<TokenExtensionProgramInstruction> {
+        use token_extension_program_instruction as TEPI;
+
         let accounts_len = ix.accounts.len();
 
         // helper: wrap a oneof variant into the envelope struct
-        let envelope = |ix_oneof: token_extension_program_instruction::Ix| {
-            TokenExtensionProgramInstruction { ix: Some(ix_oneof) }
-        };
+        let envelope = |ix_oneof: TEPI::Ix| TokenExtensionProgramInstruction { ix: Some(ix_oneof) };
 
         match SplTokenInstruction::unpack(&ix.data) {
             Ok(token_ix) => match token_ix {
                 SplTokenInstruction::TransferFeeExtension => {
                     let parsed = TransferFeeInstruction::try_parse(ix)?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::TransferFee(
-                            token_extension_program_instruction::TransferFee { ix: Some(parsed) },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::TransferFee(TEPI::TransferFee {
+                        ix: Some(parsed),
+                    })))
                 },
 
                 SplTokenInstruction::ConfidentialTransferExtension => {
                     let parsed = ConfidentialTransferInstruction::try_parse(ix)?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::ConfidentialTransfer(
-                            token_extension_program_instruction::ConfidentialTransfer {
-                                ix: Some(parsed),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::ConfidentialTransfer(
+                        TEPI::ConfidentialTransfer { ix: Some(parsed) },
+                    )))
                 },
 
                 SplTokenInstruction::ConfidentialTransferFeeExtension => {
                     let parsed = ConfidentialTransferFeeInstruction::try_parse(ix)?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::ConfidentialTransferFee(
-                            token_extension_program_instruction::ConfidentialTransferFee {
-                                ix: Some(parsed),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::ConfidentialTransferFee(
+                        TEPI::ConfidentialTransferFee { ix: Some(parsed) },
+                    )))
                 },
 
                 SplTokenInstruction::CpiGuardExtension => {
@@ -102,9 +92,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(token_extension_program_instruction::Ix::CpiGuard(
-                        token_extension_program_instruction::CpiGuard { ix: Some(parsed) },
-                    )))
+                    Ok(envelope(TEPI::Ix::CpiGuard(TEPI::CpiGuard {
+                        ix: Some(parsed),
+                    })))
                 },
 
                 SplTokenInstruction::DefaultAccountStateExtension => {
@@ -113,13 +103,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::DefaultAccountState(
-                            token_extension_program_instruction::DefaultAccountState {
-                                ix: Some(parsed),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::DefaultAccountState(
+                        TEPI::DefaultAccountState { ix: Some(parsed) },
+                    )))
                 },
 
                 SplTokenInstruction::InterestBearingMintExtension => {
@@ -128,13 +114,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::InterestBearingMint(
-                            token_extension_program_instruction::InterestBearingMint {
-                                ix: Some(parsed),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::InterestBearingMint(
+                        TEPI::InterestBearingMint { ix: Some(parsed) },
+                    )))
                 },
 
                 SplTokenInstruction::MemoTransferExtension => {
@@ -143,11 +125,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::MemoTransfer(
-                            token_extension_program_instruction::MemoTransfer { ix: Some(parsed) },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::MemoTransfer(TEPI::MemoTransfer {
+                        ix: Some(parsed),
+                    })))
                 },
 
                 SplTokenInstruction::GroupMemberPointerExtension => {
@@ -156,13 +136,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::GroupMemberPointer(
-                            token_extension_program_instruction::GroupMemberPointer {
-                                ix: Some(parsed),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::GroupMemberPointer(
+                        TEPI::GroupMemberPointer { ix: Some(parsed) },
+                    )))
                 },
 
                 SplTokenInstruction::GroupPointerExtension => {
@@ -171,11 +147,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::GroupPointer(
-                            token_extension_program_instruction::GroupPointer { ix: Some(parsed) },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::GroupPointer(TEPI::GroupPointer {
+                        ix: Some(parsed),
+                    })))
                 },
 
                 SplTokenInstruction::MetadataPointerExtension => {
@@ -184,13 +158,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::MetadataPointer(
-                            token_extension_program_instruction::MetadataPointer {
-                                ix: Some(parsed),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::MetadataPointer(TEPI::MetadataPointer {
+                        ix: Some(parsed),
+                    })))
                 },
 
                 SplTokenInstruction::TransferHookExtension => {
@@ -199,11 +169,9 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::TransferHook(
-                            token_extension_program_instruction::TransferHook { ix: Some(parsed) },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::TransferHook(TEPI::TransferHook {
+                        ix: Some(parsed),
+                    })))
                 },
 
                 SplTokenInstruction::SetAuthority {
@@ -224,12 +192,10 @@ impl InstructionParser {
                         new_authority: new_authority.map(|pk| pk.to_bytes().to_vec()).into(),
                     };
 
-                    Ok(envelope(token_extension_program_instruction::Ix::SetAuthority(
-                        crate::instructions::token_extension_program_instruction::SetAuthority {
-                            accounts: Some(accounts),
-                            args: Some(args),
-                        },
-                    )))
+                    Ok(envelope(TEPI::Ix::SetAuthority(TEPI::SetAuthority {
+                        accounts: Some(accounts),
+                        args: Some(args),
+                    })))
                 },
 
                 SplTokenInstruction::CreateNativeMint => {
@@ -240,13 +206,11 @@ impl InstructionParser {
                         mint: ix.accounts[1].to_vec(),
                     };
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::CreateNativeMint(
-                            crate::instructions::token_extension_program_instruction::CreateNativeMint {
-                                accounts: Some(accounts),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::CreateNativeMint(
+                        TEPI::CreateNativeMint {
+                            accounts: Some(accounts),
+                        },
+                    )))
                 },
 
                 SplTokenInstruction::InitializeMintCloseAuthority { close_authority } => {
@@ -260,14 +224,12 @@ impl InstructionParser {
                         close_authority: close_authority.map(|pk| pk.to_bytes().to_vec()).into(),
                     };
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::InitializeMintCloseAuthority(
-                            crate::instructions::token_extension_program_instruction::InitializeMintCloseAuthority {
-                                accounts: Some(accounts),
-                                args: Some(args),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::InitializeMintCloseAuthority(
+                        TEPI::InitializeMintCloseAuthority {
+                            accounts: Some(accounts),
+                            args: Some(args),
+                        },
+                    )))
                 },
 
                 SplTokenInstruction::InitializeNonTransferableMint => {
@@ -277,13 +239,11 @@ impl InstructionParser {
                         mint: ix.accounts[0].to_vec(),
                     };
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::InitializeNonTransferableMint(
-                            crate::instructions::token_extension_program_instruction::InitializeNonTransferableMint {
-                                accounts: Some(accounts),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::InitializeNonTransferableMint(
+                        TEPI::InitializeNonTransferableMint {
+                            accounts: Some(accounts),
+                        },
+                    )))
                 },
 
                 SplTokenInstruction::Reallocate { extension_types } => {
@@ -300,14 +260,10 @@ impl InstructionParser {
                         extension_types: extension_types.into_iter().map(|t| t as u32).collect(),
                     };
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::Reallocate(
-                            crate::instructions::token_extension_program_instruction::Reallocate {
-                                accounts: Some(accounts),
-                                args: Some(args),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::Reallocate(TEPI::Reallocate {
+                        accounts: Some(accounts),
+                        args: Some(args),
+                    })))
                 },
 
                 SplTokenInstruction::InitializePermanentDelegate { delegate } => {
@@ -321,14 +277,12 @@ impl InstructionParser {
                         delegate: delegate.to_bytes().to_vec(),
                     };
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::InitializePermanentDelegate(
-                            crate::instructions::token_extension_program_instruction::InitializePermanentDelegate {
-                                accounts: Some(accounts),
-                                args: Some(args),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::InitializePermanentDelegate(
+                        TEPI::InitializePermanentDelegate {
+                            accounts: Some(accounts),
+                            args: Some(args),
+                        },
+                    )))
                 },
 
                 SplTokenInstruction::WithdrawExcessLamports => {
@@ -341,13 +295,11 @@ impl InstructionParser {
                         multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
                     };
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::WithdrawExcessLamports(
-                            crate::instructions::token_extension_program_instruction::WithdrawExcessLamports{
-                                accounts: Some(accounts),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::WithdrawExcessLamports(
+                        TEPI::WithdrawExcessLamports {
+                            accounts: Some(accounts),
+                        },
+                    )))
                 },
 
                 // Anything else: fallback to SPL token parser
@@ -357,13 +309,9 @@ impl InstructionParser {
                             "Error parsing token extension instruction as token instruction",
                         )?;
 
-                    Ok(envelope(
-                        token_extension_program_instruction::Ix::TokenProgram(
-                            token_extension_program_instruction::TokenProgram {
-                                ix: Some(token_instruction),
-                            },
-                        ),
-                    ))
+                    Ok(envelope(TEPI::Ix::TokenProgram(TEPI::TokenProgram {
+                        ix: Some(token_instruction),
+                    })))
                 },
             },
 
@@ -371,21 +319,17 @@ impl InstructionParser {
                 if SplTokenMetadataInstruction::unpack(&ix.data).is_ok() {
                     let parsed = TokenMetadataInstruction::try_parse(ix)?;
 
-                    return Ok(envelope(
-                        token_extension_program_instruction::Ix::TokenMetadata(
-                            token_extension_program_instruction::TokenMetadata { ix: Some(parsed) },
-                        ),
-                    ));
+                    return Ok(envelope(TEPI::Ix::TokenMetadata(TEPI::TokenMetadata {
+                        ix: Some(parsed),
+                    })));
                 }
 
                 if SplTokenGroupInstruction::unpack(&ix.data).is_ok() {
                     let parsed = TokenGroupInstruction::try_parse(ix)?;
 
-                    return Ok(envelope(
-                        token_extension_program_instruction::Ix::TokenGroup(
-                            token_extension_program_instruction::TokenGroup { ix: Some(parsed) },
-                        ),
-                    ));
+                    return Ok(envelope(TEPI::Ix::TokenGroup(TEPI::TokenGroup {
+                        ix: Some(parsed),
+                    })));
                 }
 
                 Err(Error::from_inner("Error unpacking instruction data", e))
