@@ -65,91 +65,31 @@ pub fn build_fields_ir(
     let mut out = Vec::new();
     let mut tag: u32 = 0;
 
-    for f in fields {
-        if f.default_value_strategy() == Some(codama_nodes::DefaultValueStrategy::Omitted) {
+    for field in fields {
+        if field.default_value_strategy() == Some(codama_nodes::DefaultValueStrategy::Omitted) {
             continue;
         }
 
         tag += 1;
 
-        let name = crate::utils::to_snake_case(f.name());
+        let field_name = crate::utils::to_snake_case(field.name());
 
-        match f.r#type() {
+        match field.r#type() {
+            // Inline tuple => materialize a new message and reference it as Optional
             codama_nodes::TypeNode::Tuple(tuple) => {
-                // Inline tuple => synth message Parent + Field + Tuple, and field is Option<Msg>
-                let tuple_name = format!(
+                let tuple_msg_name = format!(
                     "{}{}Tuple",
                     parent_name,
-                    crate::utils::to_pascal_case(&name)
+                    crate::utils::to_pascal_case(&field_name)
                 );
 
-                // Materialize the tuple message now (and recurse for nested tuple elements via build_fields below)
-                let mut tuple_fields = Vec::new();
-
-                for (j, item) in tuple.items.iter().enumerate() {
-                    let item_tag = (j + 1) as u32;
-                    let item_name = format!("item_{}", j);
-
-                    match item {
-                        codama_nodes::TypeNode::Tuple(inner_tuple) => {
-                            let inner_tuple_name = format!(
-                                "{}{}Tuple",
-                                tuple_name,
-                                crate::utils::to_pascal_case(&item_name)
-                            );
-
-                            // recurse: create inner tuple message first
-                            let mut inner_fields = Vec::new();
-
-                            for (k, inner_item) in inner_tuple.items.iter().enumerate() {
-                                let (label, field_type) = map_type_with_label(inner_item);
-
-                                inner_fields.push(FieldIr {
-                                    name: format!("item_{}", k),
-                                    tag: (k + 1) as u32,
-                                    label,
-                                    field_type,
-                                });
-                            }
-
-                            ir.push_unique_type(TypeIr {
-                                name: inner_tuple_name.clone(),
-                                fields: inner_fields,
-                                kind: tuple_msg_kind.clone(),
-                            });
-
-                            tuple_fields.push(FieldIr {
-                                name: item_name,
-                                tag: item_tag,
-                                label: LabelIr::Optional,
-                                field_type: FieldTypeIr::Message(inner_tuple_name),
-                            });
-                        },
-
-                        other => {
-                            let (label, field_type) = map_type_with_label(other);
-
-                            tuple_fields.push(FieldIr {
-                                name: item_name,
-                                tag: item_tag,
-                                label,
-                                field_type,
-                            });
-                        },
-                    }
-                }
-
-                ir.push_unique_type(TypeIr {
-                    name: tuple_name.clone(),
-                    fields: tuple_fields,
-                    kind: tuple_msg_kind.clone(),
-                });
+                materialize_tuple_message(&tuple_msg_name, tuple, ir, &tuple_msg_kind);
 
                 out.push(FieldIr {
-                    name,
+                    name: field_name,
                     tag,
                     label: LabelIr::Optional,
-                    field_type: FieldTypeIr::Message(tuple_name),
+                    field_type: FieldTypeIr::Message(tuple_msg_name),
                 });
             },
 
@@ -157,7 +97,7 @@ pub fn build_fields_ir(
                 let (label, field_type) = map_type_with_label(other);
 
                 out.push(FieldIr {
-                    name,
+                    name: field_name,
                     tag,
                     label,
                     field_type,
@@ -167,6 +107,76 @@ pub fn build_fields_ir(
     }
 
     out
+}
+
+///
+/// Recursively materialize a tuple type as a new IR message, registering it in the schema.
+///
+/// Each tuple item becomes a field named `item_0`, `item_1`, etc.
+/// Nested tuples are recursively materialized as their own messages.
+///
+/// E.g. for a nested tuple `(u64, (bool, String))` with name "MyTuple":
+///
+/// ```protobuf
+/// message MyTupleItem1Tuple {
+///   bool item_0 = 1;
+///   string item_1 = 2;
+/// }
+///
+/// message MyTuple {
+///   uint64 item_0 = 1;
+///   MyTupleItem1Tuple item_1 = 2;
+/// }
+/// ```
+///
+fn materialize_tuple_message(
+    tuple_msg_name: &str,
+    tuple: &codama_nodes::TupleTypeNode,
+    ir: &mut SchemaIr,
+    kind: &TypeKindIr,
+) {
+    let mut fields = Vec::new();
+
+    for (i, item) in tuple.items.iter().enumerate() {
+        let item_name = format!("item_{}", i);
+        let tag = (i + 1) as u32;
+
+        match item {
+            // Nested tuple => recurse to materialize it first, then reference the message
+            codama_nodes::TypeNode::Tuple(inner_tuple) => {
+                let inner_msg_name = format!(
+                    "{}{}Tuple",
+                    tuple_msg_name,
+                    crate::utils::to_pascal_case(&item_name)
+                );
+
+                materialize_tuple_message(&inner_msg_name, inner_tuple, ir, kind);
+
+                fields.push(FieldIr {
+                    name: item_name,
+                    tag,
+                    label: LabelIr::Optional,
+                    field_type: FieldTypeIr::Message(inner_msg_name),
+                });
+            },
+
+            other => {
+                let (label, field_type) = map_type_with_label(other);
+                fields.push(FieldIr {
+                    name: item_name,
+                    tag,
+                    label,
+                    field_type,
+                });
+            },
+        }
+    }
+
+    ir.push_unique_type(TypeIr {
+        name: tuple_msg_name.to_string(),
+        fields,
+        kind: kind.clone(),
+    });
 }
 
 pub fn map_type_with_label(type_node: &codama_nodes::TypeNode) -> (LabelIr, FieldTypeIr) {
@@ -179,9 +189,12 @@ pub fn map_type_with_label(type_node: &codama_nodes::TypeNode) -> (LabelIr, Fiel
     }
 }
 
-// Helper to map codama type nodes to our IR types
+/// Map a single Codama type node to its IR scalar/message type.
+///
+/// Does NOT handle wrappers like Option/Array (use `map_type_with_label` for that)
+/// or Tuple (handled by `materialize_tuple_message`).
 fn map_type(t: &codama_nodes::TypeNode) -> FieldTypeIr {
-    use codama_nodes::TypeNode as T;
+    use codama_nodes::{NumberFormat as NF, TypeNode as T};
 
     match t {
         T::String(_) | T::SizePrefix(_) => FieldTypeIr::Scalar(ScalarIr::String),
@@ -190,25 +203,13 @@ fn map_type(t: &codama_nodes::TypeNode) -> FieldTypeIr {
         T::Boolean(_) => FieldTypeIr::Scalar(ScalarIr::Bool),
 
         T::Number(n) => match n.format {
-            codama_nodes::NumberFormat::U8
-            | codama_nodes::NumberFormat::U16
-            | codama_nodes::NumberFormat::U32
-            | codama_nodes::NumberFormat::ShortU16 => FieldTypeIr::Scalar(ScalarIr::Uint32),
-
-            codama_nodes::NumberFormat::U64 => FieldTypeIr::Scalar(ScalarIr::Uint64),
-
-            codama_nodes::NumberFormat::I8
-            | codama_nodes::NumberFormat::I16
-            | codama_nodes::NumberFormat::I32 => FieldTypeIr::Scalar(ScalarIr::Int32),
-
-            codama_nodes::NumberFormat::I64 => FieldTypeIr::Scalar(ScalarIr::Int64),
-
-            codama_nodes::NumberFormat::F32 => FieldTypeIr::Scalar(ScalarIr::Float),
-            codama_nodes::NumberFormat::F64 => FieldTypeIr::Scalar(ScalarIr::Double),
-
-            codama_nodes::NumberFormat::U128 | codama_nodes::NumberFormat::I128 => {
-                FieldTypeIr::Scalar(ScalarIr::Bytes)
-            },
+            NF::U8 | NF::U16 | NF::U32 | NF::ShortU16 => FieldTypeIr::Scalar(ScalarIr::Uint32),
+            NF::U64 => FieldTypeIr::Scalar(ScalarIr::Uint64),
+            NF::I8 | NF::I16 | NF::I32 => FieldTypeIr::Scalar(ScalarIr::Int32),
+            NF::I64 => FieldTypeIr::Scalar(ScalarIr::Int64),
+            NF::F32 => FieldTypeIr::Scalar(ScalarIr::Float),
+            NF::F64 => FieldTypeIr::Scalar(ScalarIr::Double),
+            NF::U128 | NF::I128 => FieldTypeIr::Scalar(ScalarIr::Bytes),
         },
 
         T::Link(link) => FieldTypeIr::Message(crate::utils::to_pascal_case(&link.name)),
@@ -219,8 +220,10 @@ fn map_type(t: &codama_nodes::TypeNode) -> FieldTypeIr {
             _ => panic!("map_type not implemented for FixedSize {:?}", node.r#type),
         },
 
-        // Tuple must be handled at call-site for naming/materialization.
-        T::Tuple(_) => panic!("map_type() called with Tuple; handle tuple wrapper at call site"),
+        // Tuple must be handled at call-site via materialize_tuple_message
+        T::Tuple(_) => {
+            panic!("map_type() called with Tuple; handle tuple via materialize_tuple_message")
+        },
 
         T::Option(o) => map_type(&o.item),
         T::Array(a) => map_type(&a.item),
