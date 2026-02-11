@@ -18,7 +18,7 @@ pub fn single_instruction_parser(
     let args_ident = format_ident!("{}Args", ix_name_pascal);
 
     //
-    // e.g
+    // Example:
     //
     // CreateAccounts {
     //   seller: accounts.get(0).ok_or(...)?.to_vec(),
@@ -46,7 +46,7 @@ pub fn single_instruction_parser(
     let build_payload = |args_expr: TokenStream| {
         quote! {
             //
-            // e.g
+            // Example:
             //
             // ProgramInstruction {
             //  ix: Some(
