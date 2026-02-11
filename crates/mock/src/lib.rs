@@ -364,7 +364,11 @@ macro_rules! run_account_parse {
 #[macro_export]
 macro_rules! run_ix_parse {
     ($parser:expr, $ix:expr) => {
-        $parser.parse(&$ix.into()).await.unwrap()
+        match $parser.parse(&$ix.into()).await {
+            Ok(v) => Some(v),
+            Err(yellowstone_vixen_core::ParseError::Filtered) => None,
+            Err(e) => panic!("parse error: {e:?}"),
+        }
     };
 }
 
