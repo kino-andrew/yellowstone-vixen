@@ -6,18 +6,6 @@ use yellowstone_vixen_core::{
     AccountUpdate, ParseError, ParseResult, Parser, Prefilter, ProgramParser,
 };
 
-// ------------------------------------------------------------------------------------------------
-// Proto-compatible output (pure ::prost derives)
-//
-// NOTE:
-// StakePool + ValidatorList are big structs and change across spl-stake-pool versions.
-//
-// The most robust “proto compatible” approach is:
-//  - keep the discriminator
-//  - keep the raw account bytes
-//  - (optionally) keep a parsed borsh struct internally if you need it elsewhere
-//  ------------------------------------------------------------------------------------------------
-
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SplStakePoolProgramStateProto {
     #[prost(oneof = "spl_stake_pool_program_state_proto::State", tags = "1, 2")]
@@ -55,11 +43,6 @@ pub struct ValidatorListAccountProto {
     #[prost(bytes = "vec", tag = "2")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
-
-// ------------------------------------------------------------------------------------------------
-// If you still want the typed enum for internal use, keep it (no proto derive).
-// You can delete this entirely if you don’t use it anywhere else.
-// ------------------------------------------------------------------------------------------------
 
 #[allow(clippy::large_enum_variant)]
 pub enum SplStakePoolProgramState {
@@ -114,10 +97,6 @@ impl SplStakePoolProgramState {
         }
     }
 }
-
-// ------------------------------------------------------------------------------------------------
-// Parser impl (now outputs proto)
-// ------------------------------------------------------------------------------------------------
 
 #[derive(Copy, Clone)]
 pub struct AccountParser;
