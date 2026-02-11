@@ -106,72 +106,83 @@ use crate::intermediate_representation::{
 ///
 pub fn build_instructions_schema(instructions: &[InstructionNode], ir: &mut SchemaIr) {
     for ix in instructions {
-        let ix_name = crate::utils::to_pascal_case(&ix.name);
-
-        let accounts_name = format!("{}Accounts", ix_name);
-        let args_name = format!("{}Args", ix_name);
-        let payload_name = format!("{}Ix", ix_name);
-
-        // Accounts: always PubkeyBytes, singular
-        let mut acct_fields = Vec::new();
-
-        for (i, a) in ix.accounts.iter().enumerate() {
-            acct_fields.push(FieldIr {
-                name: crate::utils::to_snake_case(&a.name),
-                tag: (i + 1) as u32,
-                label: LabelIr::Singular,
-                field_type: FieldTypeIr::Scalar(ScalarIr::PubkeyBytes),
-            });
-        }
-
-        ir.push_unique_type(TypeIr {
-            name: accounts_name.clone(),
-            fields: acct_fields,
-            kind: TypeKindIr::Instruction,
-        });
-
-        let arg_fields = build_fields_ir(&args_name, &ix.arguments, ir, TypeKindIr::Helper);
-
-        ir.push_unique_type(TypeIr {
-            name: args_name.clone(),
-            fields: arg_fields,
-            kind: TypeKindIr::Instruction,
-        });
-
-        // Payload wrapper: accounts + args optional
-        ir.push_unique_type(TypeIr {
-            name: payload_name.clone(),
-            fields: vec![
-                FieldIr {
-                    name: "accounts".to_string(),
-                    tag: 1,
-                    label: LabelIr::Optional,
-                    field_type: FieldTypeIr::Message(accounts_name),
-                },
-                FieldIr {
-                    name: "args".to_string(),
-                    tag: 2,
-                    label: LabelIr::Optional,
-                    field_type: FieldTypeIr::Message(args_name),
-                },
-            ],
-            kind: TypeKindIr::Instruction,
-        });
+        build_instruction_messages(ix, ir);
     }
 
-    // ProgramInstruction oneof
+    build_instruction_dispatch_oneof(instructions, ir);
+}
+
+/// Build the three messages for a single instruction:
+///   - `<IxName>Accounts`  — one PubkeyBytes field per account
+///   - `<IxName>Args`      — instruction arguments (delegates to `build_fields_ir`)
+///   - `<IxName>Ix`        — wrapper with optional accounts + args
+fn build_instruction_messages(ix: &InstructionNode, ir: &mut SchemaIr) {
+    let ix_name = crate::utils::to_pascal_case(&ix.name);
+
+    let accounts_name = format!("{ix_name}Accounts");
+    let args_name = format!("{ix_name}Args");
+    let payload_name = format!("{ix_name}Ix");
+
+    let account_fields: Vec<FieldIr> = ix
+        .accounts
+        .iter()
+        .enumerate()
+        .map(|(i, acct)| FieldIr {
+            name: crate::utils::to_snake_case(&acct.name),
+            tag: (i + 1) as u32,
+            label: LabelIr::Singular,
+            field_type: FieldTypeIr::Scalar(ScalarIr::PubkeyBytes),
+        })
+        .collect();
+
+    ir.push_unique_type(TypeIr {
+        name: accounts_name.clone(),
+        fields: account_fields,
+        kind: TypeKindIr::Instruction,
+    });
+
+    let arg_fields = build_fields_ir(&args_name, &ix.arguments, ir, TypeKindIr::Helper);
+
+    ir.push_unique_type(TypeIr {
+        name: args_name.clone(),
+        fields: arg_fields,
+        kind: TypeKindIr::Instruction,
+    });
+
+    ir.push_unique_type(TypeIr {
+        name: payload_name,
+        fields: vec![
+            FieldIr {
+                name: "accounts".to_string(),
+                tag: 1,
+                label: LabelIr::Optional,
+                field_type: FieldTypeIr::Message(accounts_name),
+            },
+            FieldIr {
+                name: "args".to_string(),
+                tag: 2,
+                label: LabelIr::Optional,
+                field_type: FieldTypeIr::Message(args_name),
+            },
+        ],
+        kind: TypeKindIr::Instruction,
+    });
+}
+
+/// Build the `ProgramInstruction` message with a `oneof ix { ... }` that dispatches
+/// to each individual `<IxName>Ix` payload.
+fn build_instruction_dispatch_oneof(instructions: &[InstructionNode], ir: &mut SchemaIr) {
     ir.push_unique_type(TypeIr {
         name: "ProgramInstruction".to_string(),
         fields: vec![],
         kind: TypeKindIr::Instruction,
     });
 
-    let variants = instructions
+    let variants: Vec<OneofVariantIr> = instructions
         .iter()
         .enumerate()
         .map(|(i, ix)| {
-            let ix_name = crate::utils::to_pascal_case(&ix.name);
-            let payload_name = format!("{}Ix", ix_name);
+            let payload_name = format!("{}Ix", crate::utils::to_pascal_case(&ix.name));
 
             OneofVariantIr {
                 tag: (i + 1) as u32,
@@ -179,7 +190,7 @@ pub fn build_instructions_schema(instructions: &[InstructionNode], ir: &mut Sche
                 message_type: payload_name,
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     ir.oneofs.push(OneofIr {
         parent_message: "ProgramInstruction".to_string(),
