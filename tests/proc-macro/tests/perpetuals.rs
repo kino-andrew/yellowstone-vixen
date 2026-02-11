@@ -90,7 +90,7 @@ async fn parse_decrease_position_with_tpsl_and_close_position_request_2_ix() {
                     31, 110, 107, 244, 132, 55, 71, 222, 35, 151, 202, 112, 75, 230, 84, 146, 147,
                     148, 134, 231, 7, 116, 227, 98, 240, 124, 71, 211, 219, 57, 210, 145,
                 ],
-                program: perpetuals::ID_BYTES.to_vec(),
+                program: perpetuals::PROGRAM_ID.to_vec(),
             }),
             args: Some(perpetuals::DecreasePositionWithTpslArgs {}),
         };
@@ -157,7 +157,7 @@ async fn parse_decrease_position_with_tpsl_and_close_position_request_2_ix() {
                     31, 110, 107, 244, 132, 55, 71, 222, 35, 151, 202, 112, 75, 230, 84, 146, 147,
                     148, 134, 231, 7, 116, 227, 98, 240, 124, 71, 211, 219, 57, 210, 145,
                 ],
-                program: perpetuals::ID_BYTES.to_vec(),
+                program: perpetuals::PROGRAM_ID.to_vec(),
             }),
             args: Some(perpetuals::ClosePositionRequest2Args {}),
         };

@@ -30,8 +30,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
             /// 32 bytes by convention.
             pub type PubkeyBytes = ::prost::alloc::vec::Vec<u8>;
 
-            /// Program id bytes as a const (no allocations).
-            pub const ID_BYTES: [u8; 32] = #program_pubkey;
+            pub const PROGRAM_ID: [u8; 32] = #program_pubkey;
 
             /// Generated .proto schema for this program.
             pub const PROTOBUF_SCHEMA: &str = #proto_lit;

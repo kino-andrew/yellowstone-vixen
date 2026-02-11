@@ -221,7 +221,7 @@ pub fn instruction_parser(
 
             fn prefilter(&self) -> Prefilter {
                 Prefilter::builder()
-                    .transaction_accounts([ID_BYTES])
+                    .transaction_accounts([PROGRAM_ID])
                     .build()
                     .unwrap()
             }
@@ -232,7 +232,7 @@ pub fn instruction_parser(
             ) -> ParseResult<Self::Output> {
                 // TODO: this is a fix because everything gets parsed by the proc macro
                 // Check program ID first to avoid parsing unrelated instructions
-                if *ix_update.program != ID_BYTES {
+                if *ix_update.program != PROGRAM_ID {
                     return Err(ParseError::Filtered);
                 }
 
@@ -249,7 +249,7 @@ pub fn instruction_parser(
         impl ::yellowstone_vixen_core::ProgramParser for InstructionParser {
             #[inline]
             fn program_id(&self) -> yellowstone_vixen_core::Pubkey {
-                yellowstone_vixen_core::KeyBytes::<32>(ID_BYTES)
+                yellowstone_vixen_core::KeyBytes::<32>(PROGRAM_ID)
             }
         }
     }

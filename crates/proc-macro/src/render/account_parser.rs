@@ -208,7 +208,7 @@ pub fn account_parser(
 
             fn prefilter(&self) -> Prefilter {
                 Prefilter::builder()
-                    .account_owners([ID_BYTES])
+                    .account_owners([PROGRAM_ID])
                     .build()
                     .unwrap()
             }
@@ -227,7 +227,7 @@ pub fn account_parser(
         impl ::yellowstone_vixen_core::ProgramParser for AccountParser {
             #[inline]
             fn program_id(&self) -> yellowstone_vixen_core::Pubkey {
-                yellowstone_vixen_core::KeyBytes::<32>(ID_BYTES)
+                yellowstone_vixen_core::KeyBytes::<32>(PROGRAM_ID)
             }
         }
     }
