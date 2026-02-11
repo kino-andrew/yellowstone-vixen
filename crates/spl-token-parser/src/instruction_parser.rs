@@ -53,6 +53,7 @@ impl InstructionParser {
     pub fn parse_impl(ix: &InstructionUpdate) -> Result<crate::TokenProgramInstruction> {
         let ix_type = SplTokenInstruction::unpack(&ix.data)
             .parse_err("Error unpacking token instruction data")?;
+
         let accounts_len = ix.accounts.len();
 
         use crate::token_program_instruction as oneof;
@@ -60,6 +61,7 @@ impl InstructionParser {
         let ix_msg = match ix_type {
             SplTokenInstruction::Transfer { amount } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::Transfer(oneof::Transfer {
                     accounts: Some(crate::TransferAccounts {
                         source: ix.accounts[0].to_vec(),
@@ -73,6 +75,7 @@ impl InstructionParser {
 
             SplTokenInstruction::InitializeAccount => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::InitializeAccount(oneof::InitializeAccount {
                     accounts: Some(crate::InitializeAccountAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -93,6 +96,7 @@ impl InstructionParser {
                 freeze_authority,
             } => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::InitializeMint(oneof::InitializeMint {
                     accounts: Some(crate::InitializeMintAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -107,6 +111,7 @@ impl InstructionParser {
 
             SplTokenInstruction::InitializeAccount2 { owner } => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::InitializeAccount2(oneof::InitializeAccount2 {
                     accounts: Some(crate::InitializeAccount2Accounts {
                         account: ix.accounts[0].to_vec(),
@@ -120,6 +125,7 @@ impl InstructionParser {
 
             SplTokenInstruction::InitializeAccount3 { owner } => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::InitializeAccount3(oneof::InitializeAccount3 {
                     accounts: Some(crate::InitializeAccount2Accounts {
                         account: ix.accounts[0].to_vec(),
@@ -133,6 +139,7 @@ impl InstructionParser {
 
             SplTokenInstruction::InitializeMultisig { m } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::InitializeMultisig(oneof::InitializeMultisig {
                     accounts: Some(crate::InitializeMultisigAccounts {
                         multisig: ix.accounts[0].to_vec(),
@@ -144,6 +151,7 @@ impl InstructionParser {
 
             SplTokenInstruction::InitializeMultisig2 { m } => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::InitializeMultisig(oneof::InitializeMultisig {
                     accounts: Some(crate::InitializeMultisigAccounts {
                         multisig: ix.accounts[0].to_vec(),
@@ -155,6 +163,7 @@ impl InstructionParser {
 
             SplTokenInstruction::Approve { amount } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::Approve(oneof::Approve {
                     accounts: Some(crate::ApproveAccounts {
                         source: ix.accounts[0].to_vec(),
@@ -168,6 +177,7 @@ impl InstructionParser {
 
             SplTokenInstruction::Revoke => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::Revoke(oneof::Revoke {
                     accounts: Some(crate::RevokeAccounts {
                         source: ix.accounts[0].to_vec(),
@@ -182,6 +192,7 @@ impl InstructionParser {
                 new_authority,
             } => {
                 check_min_accounts_req(accounts_len, 2)?;
+
                 oneof::Ix::SetAuthority(oneof::SetAuthority {
                     accounts: Some(crate::SetAuthorityAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -197,6 +208,7 @@ impl InstructionParser {
 
             SplTokenInstruction::MintTo { amount } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::MintTo(oneof::MintTo {
                     accounts: Some(crate::MintToAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -210,6 +222,7 @@ impl InstructionParser {
 
             SplTokenInstruction::Burn { amount } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::Burn(oneof::Burn {
                     accounts: Some(crate::BurnAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -223,6 +236,7 @@ impl InstructionParser {
 
             SplTokenInstruction::CloseAccount => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::CloseAccount(oneof::CloseAccount {
                     accounts: Some(crate::CloseAccountAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -235,6 +249,7 @@ impl InstructionParser {
 
             SplTokenInstruction::FreezeAccount => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::FreezeAccount(oneof::FreezeAccount {
                     accounts: Some(crate::FreezeAccountAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -247,6 +262,7 @@ impl InstructionParser {
 
             SplTokenInstruction::ThawAccount => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::ThawAccount(oneof::ThawAccount {
                     accounts: Some(crate::ThawAccountAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -259,6 +275,7 @@ impl InstructionParser {
 
             SplTokenInstruction::TransferChecked { amount, decimals } => {
                 check_min_accounts_req(accounts_len, 4)?;
+
                 oneof::Ix::TransferChecked(oneof::TransferChecked {
                     accounts: Some(crate::TransferCheckedAccounts {
                         source: ix.accounts[0].to_vec(),
@@ -276,6 +293,7 @@ impl InstructionParser {
 
             SplTokenInstruction::ApproveChecked { amount, decimals } => {
                 check_min_accounts_req(accounts_len, 4)?;
+
                 oneof::Ix::ApproveChecked(oneof::ApproveChecked {
                     accounts: Some(crate::ApproveCheckedAccounts {
                         source: ix.accounts[0].to_vec(),
@@ -293,6 +311,7 @@ impl InstructionParser {
 
             SplTokenInstruction::MintToChecked { amount, decimals } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::MintToChecked(oneof::MintToChecked {
                     accounts: Some(crate::MintToCheckedAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -309,6 +328,7 @@ impl InstructionParser {
 
             SplTokenInstruction::BurnChecked { amount, decimals } => {
                 check_min_accounts_req(accounts_len, 3)?;
+
                 oneof::Ix::BurnChecked(oneof::BurnChecked {
                     accounts: Some(crate::BurnCheckedAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -325,6 +345,7 @@ impl InstructionParser {
 
             SplTokenInstruction::SyncNative => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::SyncNative(oneof::SyncNative {
                     accounts: Some(crate::SyncNativeAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -334,6 +355,7 @@ impl InstructionParser {
 
             SplTokenInstruction::GetAccountDataSize => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::GetAccountDataSize(oneof::GetAccountDataSize {
                     accounts: Some(crate::GetAccountDataSizeAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -343,6 +365,7 @@ impl InstructionParser {
 
             SplTokenInstruction::InitializeImmutableOwner => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::InitializeImmutableOwner(oneof::InitializeImmutableOwner {
                     accounts: Some(crate::InitializeImmutableOwnerAccounts {
                         account: ix.accounts[0].to_vec(),
@@ -352,6 +375,7 @@ impl InstructionParser {
 
             SplTokenInstruction::AmountToUiAmount { amount } => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::AmountToUiAmount(oneof::AmountToUiAmount {
                     accounts: Some(crate::AmountToUiAmountAccounts {
                         mint: ix.accounts[0].to_vec(),
@@ -362,6 +386,7 @@ impl InstructionParser {
 
             SplTokenInstruction::UiAmountToAmount { ui_amount } => {
                 check_min_accounts_req(accounts_len, 1)?;
+
                 oneof::Ix::UiAmountToAmount(oneof::UiAmountToAmount {
                     accounts: Some(crate::UiAmountToAmountAccounts {
                         mint: ix.accounts[0].to_vec(),

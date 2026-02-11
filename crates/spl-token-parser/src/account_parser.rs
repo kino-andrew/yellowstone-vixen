@@ -57,8 +57,6 @@ pub struct MultisigProto {
     pub n: u32,
     #[prost(bool, tag = "3")]
     pub is_initialized: bool,
-
-    /// Signer pubkeys (each expected len = 32).
     #[prost(bytes = "vec", repeated, tag = "4")]
     pub signers: ::prost::alloc::vec::Vec<PubkeyBytes>,
 }
