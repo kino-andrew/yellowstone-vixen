@@ -6,6 +6,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::LitStr;
 
+/// 
 /// Build the *account parser* for a program.
 ///
 /// Generates a prost-compatible wrapper struct with a oneof field:
@@ -27,6 +28,7 @@ use syn::LitStr;
 ///     }
 /// }
 /// ```
+/// 
 pub fn account_parser(
     program_name_camel: &CamelCaseString,
     accounts: &[codama_nodes::AccountNode],
@@ -59,7 +61,6 @@ pub fn account_parser(
         LitStr::new(&tags_list, Span::call_site())
     };
 
-    // Generate oneof enum variants
     let oneof_variants = accounts.iter().enumerate().map(|(i, account)| {
         let tag = (i + 1) as u32;
         let account_ident = format_ident!("{}", crate::utils::to_pascal_case(&account.name));
@@ -222,6 +223,7 @@ pub fn account_parser(
             }
         }
 
+        // Implement the trait for Mock
         impl ::yellowstone_vixen_core::ProgramParser for AccountParser {
             #[inline]
             fn program_id(&self) -> yellowstone_vixen_core::Pubkey {

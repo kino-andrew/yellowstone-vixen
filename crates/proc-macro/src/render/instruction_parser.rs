@@ -245,6 +245,7 @@ pub fn instruction_parser(
             }
         }
 
+        // Implement the trait for Mock
         impl ::yellowstone_vixen_core::ProgramParser for InstructionParser {
             #[inline]
             fn program_id(&self) -> yellowstone_vixen_core::Pubkey {
