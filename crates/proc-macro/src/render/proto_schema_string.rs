@@ -9,20 +9,22 @@ pub fn proto_schema_string(schema: &SchemaIr, package: &str) -> String {
     let mut out = String::new();
 
     // Header
-    writeln!(&mut out, r#"syntax = "proto3";"#).unwrap();
-    writeln!(&mut out).unwrap();
-
-    if !package.is_empty() {
-        writeln!(&mut out, "package {};", package).unwrap();
+    {
+        writeln!(&mut out, r#"syntax = "proto3";"#).unwrap();
         writeln!(&mut out).unwrap();
+
+        if !package.is_empty() {
+            writeln!(&mut out, "package {};", package).unwrap();
+            writeln!(&mut out).unwrap();
+        }
     }
 
-    // 1) Regular types
+    // Regular types
     for t in &schema.types {
         render_type(&mut out, t);
     }
 
-    // 2) Oneof parent types
+    // Oneof parent types
     for oneof in &schema.oneofs {
         render_oneof_parent(&mut out, oneof);
     }
