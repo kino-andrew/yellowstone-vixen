@@ -97,7 +97,9 @@ pub struct InstructionUpdateOutput<T> {
 pub trait Parser {
     /// The input update type for this parser.
     type Input;
+
     /// The type of the parsed value produced by this parser.
+    /// Implements `prost::Message` to make it compatible with protobuf serialization.
     type Output: ::prost::Message;
 
     /// A unique ID for this parser.  Used to associate the parser with its

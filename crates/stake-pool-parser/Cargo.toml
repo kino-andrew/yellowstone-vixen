@@ -19,8 +19,6 @@ yellowstone-vixen-proto = { workspace = true, features = [
 thiserror.workspace = true
 borsh.workspace = true
 bs58.workspace = true
-
-# Proto
 prost = { workspace = true }
 prost-types = { workspace = true }
 

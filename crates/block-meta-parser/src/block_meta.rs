@@ -63,12 +63,12 @@ impl Parser for BlockMetaParser {
             rewards: r
                 .rewards
                 .iter()
-                .map(|x| Reward {
-                    pubkey: x.pubkey.clone(),
-                    lamports: x.lamports,
-                    post_balance: x.post_balance,
-                    reward_type: x.reward_type,
-                    commission: x.commission.clone(),
+                .map(|reward| Reward {
+                    pubkey: reward.pubkey.clone(),
+                    lamports: reward.lamports,
+                    post_balance: reward.post_balance,
+                    reward_type: reward.reward_type,
+                    commission: reward.commission.clone(),
                 })
                 .collect(),
             num_partitions: r.num_partitions.map(|n| n.num_partitions),

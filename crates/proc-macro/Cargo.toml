@@ -26,8 +26,6 @@ codama-nodes = { workspace = true }
 hex = { workspace = true }
 bs58 = { workspace = true }
 base64 = { workspace = true }
-
-# Proto
 prost = { workspace = true }
 prost-types = { workspace = true }
 
