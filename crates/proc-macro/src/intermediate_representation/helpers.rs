@@ -3,6 +3,7 @@ use crate::intermediate_representation::{
 };
 
 /// Common interface for field-like nodes from Codama (both struct fields and instruction arguments).
+/// Used to deduplicate logic
 pub trait FieldLikeNode {
     fn name(&self) -> &codama_nodes::CamelCaseString;
     fn r#type(&self) -> &codama_nodes::TypeNode;
@@ -41,10 +42,19 @@ impl FieldLikeNode for codama_nodes::InstructionArgumentNode {
 ///   }
 /// ```
 ///
-/// We materialize a new message `MyStructField2Tuple` with fields `item_0: u64` and `item_1: String`, and the original struct's IR fields become:
+/// We materialize:
 ///
-///   field1: uint64
-///   field2: MyStructField2Tuple
+/// ```protobuf
+/// message MyStructField2Tuple {
+///   uint64 item_0 = 1;
+///   string item_1 = 2;
+/// }
+///
+/// message MyStruct {
+///   uint64 field1 = 1;
+///   MyStructField2Tuple field2 = 2;
+/// }
+/// ```
 ///
 pub fn build_fields_ir(
     parent_name: &str,

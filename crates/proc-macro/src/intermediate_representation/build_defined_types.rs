@@ -13,9 +13,9 @@ pub fn build_defined_types(defined_types: &[DefinedTypeNode], ir: &mut SchemaIr)
         let name = crate::utils::to_pascal_case(&defined_type.name);
 
         match &defined_type.r#type {
-            TypeNode::Struct(st) => build_defined_type_struct(&name, st, ir),
-            TypeNode::Tuple(tu) => build_defined_type_tuple(&name, tu, ir),
-            TypeNode::Enum(en) => build_defined_type_enum(&name, en, ir),
+            TypeNode::Struct(struct_type) => build_defined_type_struct(&name, struct_type, ir),
+            TypeNode::Tuple(tuple_type) => build_defined_type_tuple(&name, tuple_type, ir),
+            TypeNode::Enum(enum_type) => build_defined_type_enum(&name, enum_type, ir),
 
             other => {
                 // alias / scalar defined type: we don't store it
@@ -25,6 +25,7 @@ pub fn build_defined_types(defined_types: &[DefinedTypeNode], ir: &mut SchemaIr)
     }
 }
 
+///
 /// IDL example:
 ///
 /// ```text
@@ -46,6 +47,7 @@ pub fn build_defined_types(defined_types: &[DefinedTypeNode], ir: &mut SchemaIr)
 ///   kind: DefinedType
 /// }
 /// ```
+///
 fn build_defined_type_struct(
     name: &str,
     struct_type_node: &codama_nodes::StructTypeNode,
@@ -60,6 +62,7 @@ fn build_defined_type_struct(
     });
 }
 
+///
 /// IDL example:
 ///
 /// ```text
@@ -78,6 +81,7 @@ fn build_defined_type_struct(
 ///   kind: DefinedType
 /// }
 /// ```
+///
 fn build_defined_type_tuple(
     name: &str,
     tuple_type_node: &codama_nodes::TupleTypeNode,
@@ -103,6 +107,7 @@ fn build_defined_type_tuple(
     });
 }
 
+///
 /// IDL example:
 ///
 /// ```text
@@ -135,6 +140,7 @@ fn build_defined_type_tuple(
 ///   ]
 /// }
 /// ```
+///
 fn build_defined_type_enum(name: &str, en: &codama_nodes::EnumTypeNode, ir: &mut SchemaIr) {
     let enum_name = name.to_string();
     let mut variants = Vec::with_capacity(en.variants.len());
@@ -182,33 +188,35 @@ fn build_enum_variant_payload(
     ir: &mut SchemaIr,
 ) -> (String, Vec<FieldIr>) {
     match variant {
-        codama_nodes::EnumVariantTypeNode::Empty(v) => {
-            (crate::utils::to_pascal_case(&v.name), vec![])
+        codama_nodes::EnumVariantTypeNode::Empty(variant) => {
+            (crate::utils::to_pascal_case(&variant.name), vec![])
         },
 
-        codama_nodes::EnumVariantTypeNode::Tuple(v) => {
-            let vname = crate::utils::to_pascal_case(&v.name);
+        codama_nodes::EnumVariantTypeNode::Tuple(variant) => {
+            let variant_name = crate::utils::to_pascal_case(&variant.name);
 
-            let tuple = match &v.tuple {
-                NestedTypeNode::Value(t) => t,
+            let tuple = match &variant.tuple {
+                NestedTypeNode::Value(tuple) => tuple,
                 _ => panic!("enum tuple variant payload must be NestedTypeNode::Value"),
             };
 
-            (vname, build_tuple_payload_fields(&tuple.items))
+            (variant_name, build_tuple_payload_fields(&tuple.items))
         },
 
-        codama_nodes::EnumVariantTypeNode::Struct(v) => {
-            let vname = crate::utils::to_pascal_case(&v.name);
+        codama_nodes::EnumVariantTypeNode::Struct(variant) => {
+            let variant_name = crate::utils::to_pascal_case(&variant.name);
 
-            let st = match &v.r#struct {
-                NestedTypeNode::Value(st) => st,
+            let struct_type = match &variant.r#struct {
+                NestedTypeNode::Value(struct_type) => struct_type,
                 _ => panic!("enum struct variant payload must be NestedTypeNode::Value"),
             };
 
-            let payload_name = format!("{}{}", enum_name, vname);
-            let fields = build_fields_ir(&payload_name, &st.fields, ir, TypeKindIr::Helper);
+            let payload_name = format!("{}{}", enum_name, variant_name);
 
-            (vname, fields)
+            let fields =
+                build_fields_ir(&payload_name, &struct_type.fields, ir, TypeKindIr::Helper);
+
+            (variant_name, fields)
         },
     }
 }

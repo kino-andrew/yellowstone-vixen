@@ -4,7 +4,7 @@ use crate::intermediate_representation::SchemaIr;
 
 /// Build an intermediate representation of the IDL schema that we can use to render .proto and rust code.
 ///
-/// Why use IR? So we can unify the parsing. Then we have one source of truth for the schema that both the .proto renderer and Rust code.
+/// Why use IR? So we can unify the parsing. Then we have one source of truth for both the .proto renderer and Rust code.
 pub fn build_schema_ir(idl: &RootNode) -> SchemaIr {
     let mut ir = SchemaIr {
         types: Vec::new(),

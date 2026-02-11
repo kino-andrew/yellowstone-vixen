@@ -5,6 +5,7 @@ use crate::intermediate_representation::{
     SchemaIr, TypeIr, TypeKindIr,
 };
 
+///
 /// Converts Codama `instructions` into IR messages.
 ///
 /// For each instruction in the IDL, we generate three messages:
@@ -42,7 +43,7 @@ use crate::intermediate_representation::{
 ///
 /// 1) Accounts message
 ///
-/// ```rust,ignore
+/// ```rust, ignore
 /// TypeIr {
 ///   name: "OpenPositionAccounts",
 ///   fields: [
@@ -56,7 +57,7 @@ use crate::intermediate_representation::{
 ///
 /// 2) Args message
 ///
-/// ```rust,ignore
+/// ```rust, ignore
 /// TypeIr {
 ///   name: "OpenPositionArgs",
 ///   fields: [
@@ -69,7 +70,7 @@ use crate::intermediate_representation::{
 ///
 /// 3) Wrapper payload message
 ///
-/// ```rust,ignore
+/// ```rust, ignore
 /// TypeIr {
 ///   name: "OpenPositionIx",
 ///   fields: [
@@ -83,7 +84,7 @@ use crate::intermediate_representation::{
 /// ─────────────────────────────────────────────────────────────
 /// Final global instruction enum:
 ///
-/// ```rust,ignore
+/// ```rust, ignore
 /// TypeIr {
 ///   name: "ProgramInstruction",
 ///   fields: [],
@@ -129,7 +130,6 @@ pub fn build_instructions_schema(instructions: &[InstructionNode], ir: &mut Sche
             kind: TypeKindIr::Instruction,
         });
 
-        // Args: reuse build_fields_ir (same logic as struct fields: skip omitted, materialize tuples)
         let arg_fields = build_fields_ir(&args_name, &ix.arguments, ir, TypeKindIr::Helper);
 
         ir.push_unique_type(TypeIr {
