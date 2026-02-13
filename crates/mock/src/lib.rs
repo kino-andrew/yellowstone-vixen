@@ -62,7 +62,7 @@ impl From<AccountInfo> for SubscribeUpdateAccount {
                 txn_signature: None,
                 write_version: 0,
                 pubkey: value.pubkey.to_bytes().to_vec(),
-                data: value.data,
+                data: value.data.into(),
                 executable: value.executable,
                 lamports: value.lamports,
                 owner: value.owner.to_bytes().to_vec(),
@@ -94,7 +94,7 @@ impl TryFrom<SubscribeUpdateAccount> for AccountInfo {
 
         Ok(Self {
             pubkey,
-            data: account_info.data.clone(),
+            data: account_info.data.to_vec(),
             executable: account_info.executable,
             lamports: account_info.lamports,
             owner,
@@ -364,7 +364,13 @@ macro_rules! run_account_parse {
 #[macro_export]
 macro_rules! run_ix_parse {
     ($parser:expr, $ix:expr) => {
-        $parser.parse(&$ix.into()).await.unwrap()
+        match $parser.parse(&$ix.into()).await {
+            Ok(v) => Some(v),
+
+            // Ignore filtered instructions, but panic on actual errors
+            Err(yellowstone_vixen_core::ParseError::Filtered) => None,
+            Err(e) => panic!("parse error: {e:?}"),
+        }
     };
 }
 
@@ -374,6 +380,7 @@ pub async fn load_fixture<P: ProgramParser>(
 ) -> Result<FixtureData, Box<dyn std::error::Error>> {
     maybe_create_fixture_dir()?;
     let path = fixture_path(fixture)?;
+
     if path.is_file() {
         read_fixture(&path)
     } else {
