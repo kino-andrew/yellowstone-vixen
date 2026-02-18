@@ -126,10 +126,7 @@ fn build_defined_type_tuple(
 /// TypeIr { name: "OrderTypeLimit",  fields: [item_0: Uint64] }
 /// TypeIr { name: "OrderTypeStop",   fields: [price: Uint64] }
 ///
-/// // Parent enum type:
-/// TypeIr { name: "OrderType", fields: [], kind: DefinedType }
-///
-/// // Oneof:
+/// // Oneof (also acts as the parent message):
 /// OneofIr {
 ///   parent_message: "OrderType",
 ///   field_name: "kind",
@@ -164,13 +161,6 @@ fn build_defined_type_enum(name: &str, en: &codama_nodes::EnumTypeNode, ir: &mut
             message_type: payload_name,
         });
     }
-
-    // Parent enum type (fields empty; renderer injects the oneof field)
-    ir.types.push(TypeIr {
-        name: enum_name.clone(),
-        fields: vec![],
-        kind: TypeKindIr::DefinedType,
-    });
 
     ir.oneofs.push(OneofIr {
         parent_message: enum_name,
