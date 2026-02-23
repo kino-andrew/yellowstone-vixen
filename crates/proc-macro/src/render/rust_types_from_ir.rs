@@ -403,10 +403,24 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
     let borsh_attr = {
         let fixed = fixed_bytes_borsh_attrs(&f.label, &f.field_type, path_prefix);
 
-        if fixed.is_empty() {
-            widen_borsh_attrs(&f.label, &f.field_type, path_prefix)
-        } else {
+        if !fixed.is_empty() {
             fixed
+        } else {
+            let widen = widen_borsh_attrs(&f.label, &f.field_type, path_prefix);
+
+            if !widen.is_empty() {
+                widen
+            } else {
+                let float = float_borsh_attrs(&f.label, &f.field_type, path_prefix);
+
+                if !float.is_empty() {
+                    float
+                } else {
+                    // For FixedArray, we always need a custom borsh attr (no length prefix).
+                    // If none of the specialized attrs matched, use the generic fixed-array helper.
+                    fixed_array_default_borsh_attrs(&f.label, path_prefix)
+                }
+            }
         }
     };
 
@@ -474,12 +488,12 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
 
                 quote! { #borsh_attr pub #name: ::core::option::Option<#rust_type> }
             },
-            (LabelIr::Repeated, FieldTypeIr::Message(msg)) => {
+            (LabelIr::Repeated | LabelIr::FixedArray(_), FieldTypeIr::Message(msg)) => {
                 let ty = resolve_msg(msg);
 
-                quote! { pub #name: Vec<#ty> }
+                quote! { #borsh_attr pub #name: Vec<#ty> }
             },
-            (LabelIr::Repeated, field_type) => {
+            (LabelIr::Repeated | LabelIr::FixedArray(_), field_type) => {
                 let (_, rust_type) = map_ir_type_to_prost(field_type, in_module);
 
                 quote! { #borsh_attr pub #name: Vec<#rust_type> }
@@ -527,16 +541,17 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
             }
         },
 
-        (LabelIr::Repeated, FieldTypeIr::Message(msg)) => {
+        (LabelIr::Repeated | LabelIr::FixedArray(_), FieldTypeIr::Message(msg)) => {
             let ty = resolve_msg(msg);
 
             quote! {
                 #[prost(message, repeated, tag = #tag)]
+                #borsh_attr
                 pub #name: Vec<#ty>
             }
         },
 
-        (LabelIr::Repeated, field_type) => {
+        (LabelIr::Repeated | LabelIr::FixedArray(_), field_type) => {
             let (prost_type, rust_type) = map_ir_type_to_prost(field_type, in_module);
 
             quote! {
@@ -615,6 +630,21 @@ fn fixed_bytes_borsh_attrs(
                 serialize_with = #serialize_vec_path
             )]
         },
+        LabelIr::FixedArray(n) => {
+            let d = LitStr::new(
+                &format!(
+                    "{path_prefix}borsh_deserialize_fixed_array_fixed_bytes::<{size}, {n}, _>"
+                ),
+                Span::call_site(),
+            );
+
+            let s = LitStr::new(
+                &format!("{path_prefix}borsh_serialize_fixed_array_fixed_bytes::<{size}, {n}, _>"),
+                Span::call_site(),
+            );
+
+            quote! { #[borsh(deserialize_with = #d, serialize_with = #s)] }
+        },
     }
 }
 
@@ -642,10 +672,85 @@ fn widen_borsh_attrs(label: &LabelIr, field_type: &FieldTypeIr, path_prefix: &st
             format!("{path_prefix}borsh_deserialize_vec_{}", suffixes.0),
             format!("{path_prefix}borsh_serialize_vec_{}", suffixes.1),
         ),
+        LabelIr::FixedArray(n) => (
+            format!(
+                "{path_prefix}borsh_deserialize_fixed_array_{}<{n}, _>",
+                suffixes.0
+            ),
+            format!(
+                "{path_prefix}borsh_serialize_fixed_array_{}<{n}, _>",
+                suffixes.1
+            ),
+        ),
     };
 
     let deserialize_lit = LitStr::new(&deserialize_fn_name, Span::call_site());
     let serialize_lit = LitStr::new(&serialize_fn_name, Span::call_site());
+
+    quote! {
+        #[borsh(
+            deserialize_with = #deserialize_lit,
+            serialize_with = #serialize_lit
+        )]
+    }
+}
+
+/// Returns `#[borsh(deserialize_with = "...", serialize_with = "...")]` for float fields
+/// (f32, f64) that need permissive deserialization allowing NaN/Infinity values.
+/// Standard borsh rejects NaN for portability, but on-chain data may contain them.
+fn float_borsh_attrs(label: &LabelIr, field_type: &FieldTypeIr, path_prefix: &str) -> TokenStream {
+    let suffix = match field_type {
+        FieldTypeIr::Scalar(ScalarIr::Float) => "f32",
+        FieldTypeIr::Scalar(ScalarIr::Double) => "f64",
+        _ => return quote! {},
+    };
+
+    let (deserialize_fn_name, serialize_fn_name) = match label {
+        LabelIr::Singular => (
+            format!("{path_prefix}borsh_deserialize_{suffix}_permissive"),
+            format!("{path_prefix}borsh_serialize_{suffix}_permissive"),
+        ),
+        LabelIr::Optional => (
+            format!("{path_prefix}borsh_deserialize_opt_{suffix}_permissive"),
+            format!("{path_prefix}borsh_serialize_opt_{suffix}_permissive"),
+        ),
+        LabelIr::Repeated => (
+            format!("{path_prefix}borsh_deserialize_vec_{suffix}_permissive"),
+            format!("{path_prefix}borsh_serialize_vec_{suffix}_permissive"),
+        ),
+        LabelIr::FixedArray(n) => (
+            format!("{path_prefix}borsh_deserialize_fixed_array_{suffix}_permissive::<{n}, _>"),
+            format!("{path_prefix}borsh_serialize_fixed_array_{suffix}_permissive::<{n}, _>"),
+        ),
+    };
+
+    let deserialize_lit = LitStr::new(&deserialize_fn_name, Span::call_site());
+    let serialize_lit = LitStr::new(&serialize_fn_name, Span::call_site());
+
+    quote! {
+        #[borsh(
+            deserialize_with = #deserialize_lit,
+            serialize_with = #serialize_lit
+        )]
+    }
+}
+
+/// Returns borsh attrs for FixedArray fields whose element type has a standard BorshDeserialize
+/// (i.e., not fixed-bytes, not widened, not floats). Returns empty for non-FixedArray labels.
+fn fixed_array_default_borsh_attrs(label: &LabelIr, path_prefix: &str) -> TokenStream {
+    let n = match label {
+        LabelIr::FixedArray(n) => n,
+        _ => return quote! {},
+    };
+
+    let deserialize_lit = LitStr::new(
+        &format!("{path_prefix}borsh_deserialize_fixed_array::<_, {n}, _>"),
+        Span::call_site(),
+    );
+    let serialize_lit = LitStr::new(
+        &format!("{path_prefix}borsh_serialize_fixed_array::<_, {n}, _>"),
+        Span::call_site(),
+    );
 
     quote! {
         #[borsh(

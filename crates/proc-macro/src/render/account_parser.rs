@@ -92,7 +92,12 @@ pub fn account_parser(
     });
 
     let account_matches = accounts.iter().filter_map(|account| {
-        let discriminator = account.discriminators.first()?;
+        let discriminator = match account.discriminators.first() {
+            Some(d) => d,
+            None => {
+                return None;
+            }
+        };
 
         let account_ident = format_ident!("{}", crate::utils::to_pascal_case(&account.name));
 
@@ -111,6 +116,8 @@ pub fn account_parser(
                     return None;
                 };
 
+                let account_name = account_ident.to_string();
+
                 quote! {
                     if let Some(discriminator) = data.get(#offset) {
                         if discriminator == #value {
@@ -121,6 +128,7 @@ pub fn account_parser(
                                     });
                                 }
                                 Err(e) => {
+                                    println!("[try_unpack] pubkey={}, {} deserialization FAILED: {}", pubkey_str, #account_name, e);
                                     return Err(ParseError::Other(e.into()));
                                 }
                             }
@@ -139,7 +147,12 @@ pub fn account_parser(
                 };
 
                 // Find the discriminator field by name
-                let field = struct_node.fields.iter().find(|f| f.name == node.name)?;
+                let field = match struct_node.fields.iter().find(|f| f.name == node.name) {
+                    Some(f) => f,
+                    None => {
+                        return None;
+                    }
+                };
 
                 // Skip if discriminator field isn't fixed-size bytes
                 let TypeNode::FixedSize(fixed_size_node) = &field.r#type else {
@@ -149,7 +162,12 @@ pub fn account_parser(
                 let size = fixed_size_node.size;
 
                 // Skip if no default value
-                let default_value = field.default_value.as_ref()?;
+                let default_value = match field.default_value.as_ref() {
+                    Some(v) => v,
+                    None => {
+                        return None;
+                    }
+                };
 
                 // Skip if default value isn't bytes
                 let ValueNode::Bytes(bytes) = default_value else {
@@ -176,6 +194,7 @@ pub fn account_parser(
                 };
 
                 let end = offset + size;
+                let account_name = account_ident.to_string();
 
                 quote! {
                     if let Some(slice) = data.get(#offset..#end) {
@@ -187,6 +206,7 @@ pub fn account_parser(
                                     });
                                 }
                                 Err(e) => {
+                                    println!("[try_unpack] pubkey={}, {} deserialization FAILED: {}", pubkey_str, #account_name, e);
                                     return Err(ParseError::Other(e.into()));
                                 }
                             }
@@ -199,6 +219,8 @@ pub fn account_parser(
             DiscriminatorNode::Size(node) => {
                 let size = node.size;
 
+                let account_name = account_ident.to_string();
+
                 quote! {
                     if data.len() == #size {
                         match <#account_ident as ::borsh::BorshDeserialize>::deserialize(&mut &data[..]) {
@@ -208,6 +230,7 @@ pub fn account_parser(
                                 });
                             }
                             Err(e) => {
+                                println!("[try_unpack] pubkey={}, {} deserialization FAILED: {}", pubkey_str, #account_name, e);
                                 return Err(ParseError::Other(e.into()));
                             }
                         }
@@ -271,8 +294,20 @@ pub fn account_parser(
 
         impl #account_struct_ident {
             pub fn try_unpack(data: &[u8]) -> ParseResult<Self> {
+                Self::try_unpack_inner(data, None)
+            }
+
+            fn try_unpack_inner(data: &[u8], pubkey: Option<&[u8]>) -> ParseResult<Self> {
+                let pubkey_str = pubkey
+                    .filter(|p| p.len() == 32)
+                    .map(|p| ::yellowstone_vixen_core::bs58::encode(p).into_string())
+                    .unwrap_or_else(|| "<unknown>".to_string());
+
+                let first_bytes: String = data.iter().take(16).map(|b| format!("{:02x}", b)).collect::<Vec<_>>().join(" ");
+
                 #(#account_matches)*
 
+                println!("[try_unpack] pubkey={}, no discriminator matched, returning error", pubkey_str);
                 Err(ParseError::from(#parser_error_msg.to_owned()))
             }
         }
@@ -304,7 +339,7 @@ pub fn account_parser(
                         ParseError::from("Unable to unwrap account ref".to_owned())
                     })?;
 
-                #account_struct_ident::try_unpack(&inner.data)
+                #account_struct_ident::try_unpack_inner(&inner.data, Some(&inner.pubkey))
             }
         }
 
