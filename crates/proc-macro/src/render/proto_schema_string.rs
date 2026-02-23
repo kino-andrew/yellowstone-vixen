@@ -115,7 +115,7 @@ fn render_type(out: &mut String, msg: &TypeIr) {
         let label = match field.label {
             LabelIr::Singular => "",
             LabelIr::Optional => "optional ",
-            LabelIr::Repeated => "repeated ",
+            LabelIr::Repeated | LabelIr::FixedArray(_) => "repeated ",
         };
 
         let field_type = match &field.field_type {

@@ -198,7 +198,14 @@ pub fn map_type_with_label(type_node: &codama_nodes::TypeNode) -> (LabelIr, Fiel
 
     match type_node {
         T::Option(option) => (LabelIr::Optional, map_type(&option.item)),
-        T::Array(array) => (LabelIr::Repeated, map_type(&array.item)),
+        T::Array(array) => {
+            let label = match &array.count {
+                codama_nodes::CountNode::Fixed(fixed) => LabelIr::FixedArray(fixed.value),
+                _ => LabelIr::Repeated,
+            };
+
+            (label, map_type(&array.item))
+        },
         _ => (LabelIr::Singular, map_type(type_node)),
     }
 }

@@ -34,6 +34,10 @@ pub enum LabelIr {
     Singular,
     Optional,
     Repeated,
+    /// Fixed-count array (no length prefix on-chain). The value is the element count.
+    /// Rendered as `Vec<T>` / `repeated` in proto for compatibility, but borsh
+    /// reads/writes exactly N elements without a length prefix.
+    FixedArray(usize),
 }
 
 #[derive(Debug, Clone)]
