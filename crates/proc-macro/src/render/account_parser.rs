@@ -273,7 +273,7 @@ pub fn account_parser(
             pub fn try_unpack(data: &[u8]) -> ParseResult<Self> {
                 #(#account_matches)*
 
-                Err(ParseError::from(#parser_error_msg.to_owned()))
+                Err(ParseError::Filtered)
             }
         }
 
