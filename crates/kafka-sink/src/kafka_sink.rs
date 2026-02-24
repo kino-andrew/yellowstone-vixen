@@ -155,6 +155,8 @@ impl ConfirmedSlotSink {
         let failed_instruction_count = confirmed.failed_instruction_count;
         let filtered_account_count = confirmed.filtered_account_count;
         let failed_account_count = confirmed.failed_account_count;
+        let transaction_status_failed_count = confirmed.transaction_status_failed_count;
+        let transaction_status_succeeded_count = confirmed.transaction_status_succeeded_count;
 
         let event = SlotCommitEvent {
             slot,
@@ -166,6 +168,8 @@ impl ConfirmedSlotSink {
             failed_instruction_count,
             filtered_account_count,
             failed_account_count,
+            transaction_status_failed_count,
+            transaction_status_succeeded_count,
         };
 
         let payload = serde_json::to_string(&event)?;
@@ -191,6 +195,8 @@ impl ConfirmedSlotSink {
             failed_instruction_count,
             filtered_account_count,
             failed_account_count,
+            transaction_status_failed_count,
+            transaction_status_succeeded_count,
             record_count,
             "Kafka: committed slot"
         );
