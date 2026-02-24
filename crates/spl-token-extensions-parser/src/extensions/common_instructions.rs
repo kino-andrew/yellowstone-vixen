@@ -1,11 +1,11 @@
 use yellowstone_vixen_core::instruction::InstructionUpdate;
 use yellowstone_vixen_parser::{check_min_accounts_req, Error, Result};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::decode_extension_ix_type;
 use crate::PubkeyBytes;
 
-#[vixen_proto(enumeration)]
+#[vixen(enumeration)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
 pub enum ExtensionWithCommonInstruction {
@@ -43,13 +43,13 @@ impl ExtensionWithCommonInstruction {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtInitializeAccounts {
     pub mint: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateAccounts {
     pub mint: PubkeyBytes,
@@ -57,7 +57,7 @@ pub struct UpdateAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EnableAccounts {
     pub account: PubkeyBytes,
@@ -65,7 +65,7 @@ pub struct EnableAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DisableAccounts {
     pub account: PubkeyBytes,
@@ -73,13 +73,13 @@ pub struct DisableAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CommonExtensionInstructions {
-    #[vixen_proto_hint(enumeration = "ExtensionWithCommonInstruction")]
+    #[vixen_hint(enumeration = "ExtensionWithCommonInstruction")]
     pub extension: i32,
 
-    #[vixen_proto_hint(
+    #[vixen_hint(
         oneof = "common_extension_instructions::Instruction",
         tags = "2, 3, 4, 5"
     )]
@@ -87,33 +87,33 @@ pub struct CommonExtensionInstructions {
 }
 
 pub mod common_extension_instructions {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Initialize {
         pub accounts: Option<super::ExtInitializeAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Update {
         pub accounts: Option<super::UpdateAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Enable {
         pub accounts: Option<super::EnableAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Disable {
         pub accounts: Option<super::DisableAccounts>,
     }
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Instruction {
         Initialize(Initialize),

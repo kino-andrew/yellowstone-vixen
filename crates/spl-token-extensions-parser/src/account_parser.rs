@@ -7,21 +7,21 @@ use spl_token_2022::{
     state::{Account as SplAccount, AccountState, Mint as SplMint, Multisig as SplMultisig},
 };
 use yellowstone_vixen_core::{AccountUpdate, ParseResult, Parser, Prefilter, ProgramParser};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
 use crate::PubkeyBytes;
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenExtensionState {
-    #[vixen_proto_hint(oneof = "account::Account", tags = "1, 2, 3")]
+    #[vixen_hint(oneof = "account::Account", tags = "1, 2, 3")]
     pub account: Option<account::Account>,
 }
 
 pub mod account {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Account {
         ExtendedTokenAccount(super::ExtendedTokenAccount),
@@ -30,7 +30,7 @@ pub mod account {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtensionData {
     /// `spl_token_2022::extension::ExtensionType` as i32
@@ -40,21 +40,21 @@ pub struct ExtensionData {
     pub data: Vec<u8>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtendedMint {
     pub base_account: Option<Mint>,
     pub extensions: Vec<ExtensionData>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtendedTokenAccount {
     pub base_account: Option<Account>,
     pub extensions: Vec<ExtensionData>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Mint {
     pub mint_authority: Option<PubkeyBytes>,
@@ -64,7 +64,7 @@ pub struct Mint {
     pub freeze_authority: Option<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Account {
     pub mint: PubkeyBytes,
@@ -79,7 +79,7 @@ pub struct Account {
     pub close_authority: Option<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Multisig {
     pub m: u32,
@@ -88,7 +88,7 @@ pub struct Multisig {
     pub signers: Vec<PubkeyBytes>,
 }
 
-fn mint_to_proto(m: &SplMint) -> Mint {
+fn spl_to_mint(m: &SplMint) -> Mint {
     Mint {
         mint_authority: m.mint_authority.map(|pk| pk.to_bytes().to_vec()).into(),
         supply: m.supply,
@@ -106,7 +106,7 @@ fn account_state_to_u32(s: AccountState) -> u32 {
     }
 }
 
-fn account_to_proto(a: &SplAccount) -> Account {
+fn spl_to_account(a: &SplAccount) -> Account {
     Account {
         mint: a.mint.to_bytes().to_vec(),
         owner: a.owner.to_bytes().to_vec(),
@@ -119,7 +119,7 @@ fn account_to_proto(a: &SplAccount) -> Account {
     }
 }
 
-fn multisig_to_proto(multisig: &SplMultisig) -> Multisig {
+fn spl_to_multisig(multisig: &SplMultisig) -> Multisig {
     // Multisig has fixed signers array; keep only the first `n` signers
     let n = multisig.n as usize;
     let max = multisig.signers.len().min(n);
@@ -208,7 +208,7 @@ impl TokenExtensionState {
 
                 Ok(TokenExtensionState {
                     account: Some(account::Account::ExtendedMint(ExtendedMint {
-                        base_account: Some(mint_to_proto(&unpacked.base)),
+                        base_account: Some(spl_to_mint(&unpacked.base)),
                         extensions,
                     })),
                 })
@@ -220,7 +220,7 @@ impl TokenExtensionState {
                 Ok(TokenExtensionState {
                     account: Some(account::Account::ExtendedTokenAccount(
                         ExtendedTokenAccount {
-                            base_account: Some(account_to_proto(&unpacked.base)),
+                            base_account: Some(spl_to_account(&unpacked.base)),
                             extensions,
                         },
                     )),
@@ -230,9 +230,7 @@ impl TokenExtensionState {
                 let multisig = SplMultisig::unpack(data_bytes)?;
 
                 Ok(TokenExtensionState {
-                    account: Some(account::Account::Multisig(multisig_to_proto(
-                        &multisig,
-                    ))),
+                    account: Some(account::Account::Multisig(spl_to_multisig(&multisig))),
                 })
             },
         }

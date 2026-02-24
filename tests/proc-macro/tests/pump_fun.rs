@@ -6,8 +6,8 @@ use yellowstone_vixen_proc_macro::include_vixen_parser;
 
 include_vixen_parser!("idls/pump_fun.json");
 
-#[tokio::test]
-async fn check_protobuf_schema() {
+#[test]
+fn check_protobuf_schema() {
     common::check_protobuf_format(pump_fun::PROTOBUF_SCHEMA);
 
     insta::assert_snapshot!(pump_fun::PROTOBUF_SCHEMA);

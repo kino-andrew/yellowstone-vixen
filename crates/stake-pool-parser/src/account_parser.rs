@@ -5,19 +5,19 @@ use spl_stake_pool::{
 use yellowstone_vixen_core::{
     AccountUpdate, ParseError, ParseResult, Parser, Prefilter, ProgramParser,
 };
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SplStakePoolProgramState {
-    #[vixen_proto_hint(oneof = "spl_stake_pool_program_state::State", tags = "1, 2")]
+    #[vixen_hint(oneof = "spl_stake_pool_program_state::State", tags = "1, 2")]
     pub state: Option<spl_stake_pool_program_state::State>,
 }
 
 pub mod spl_stake_pool_program_state {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum State {
         StakePool(super::StakePoolAccount),
@@ -25,7 +25,7 @@ pub mod spl_stake_pool_program_state {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct StakePoolAccount {
     /// First byte discriminator (1)
@@ -35,7 +35,7 @@ pub struct StakePoolAccount {
     pub data: Vec<u8>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ValidatorListAccount {
     /// First byte discriminator (2)

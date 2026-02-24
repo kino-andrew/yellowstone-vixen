@@ -1,12 +1,12 @@
 use spl_token_2022::extension::transfer_fee::instruction::TransferFeeInstruction as SplTransferFeeInstruction;
 use yellowstone_vixen_core::instruction::InstructionUpdate;
 use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::ExtensionInstructionParser;
 use crate::PubkeyBytes;
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TransferCheckedWithFeeAccounts {
     pub source: PubkeyBytes,
@@ -16,7 +16,7 @@ pub struct TransferCheckedWithFeeAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TransferCheckedWithFeeArgs {
     pub amount: u64,
@@ -25,13 +25,13 @@ pub struct TransferCheckedWithFeeArgs {
     pub decimals: u32,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeTransferFeeConfigAccounts {
     pub mint: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeTransferFeeConfigArgs {
     pub transfer_fee_config_authority: Option<PubkeyBytes>,
@@ -41,7 +41,7 @@ pub struct InitializeTransferFeeConfigArgs {
     pub maximum_fee: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawWithheldTokensFromMintAccounts {
     pub mint: PubkeyBytes,
@@ -50,7 +50,7 @@ pub struct WithdrawWithheldTokensFromMintAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawWithheldTokensFromAccountsAccounts {
     pub mint: PubkeyBytes,
@@ -60,14 +60,14 @@ pub struct WithdrawWithheldTokensFromAccountsAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawWithheldTokensFromAccountsArgs {
     // u8 -> uint32 in proto
     pub num_token_accounts: u32,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetTransferFeeAccounts {
     pub mint: PubkeyBytes,
@@ -75,7 +75,7 @@ pub struct SetTransferFeeAccounts {
     pub multisig_signers: Vec<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetTransferFeeArgs {
     // u16 -> uint32 in proto
@@ -83,17 +83,17 @@ pub struct SetTransferFeeArgs {
     pub maximum_fee: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct HarvestWithheldTokensToMintAccounts {
     pub mint: PubkeyBytes,
     pub mint_fee_acc_owner: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TransferFeeIx {
-    #[vixen_proto_hint(
+    #[vixen_hint(
         oneof = "transfer_fee_instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6"
     )]
@@ -101,49 +101,49 @@ pub struct TransferFeeIx {
 }
 
 pub mod transfer_fee_instruction {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct TransferCheckedWithFee {
         pub accounts: Option<super::TransferCheckedWithFeeAccounts>,
         pub args: Option<super::TransferCheckedWithFeeArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InitializeTransferFeeConfig {
         pub accounts: Option<super::InitializeTransferFeeConfigAccounts>,
         pub args: Option<super::InitializeTransferFeeConfigArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct WithdrawWithheldTokensFromMint {
         pub accounts: Option<super::WithdrawWithheldTokensFromMintAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct WithdrawWithheldTokensFromAccounts {
         pub accounts: Option<super::WithdrawWithheldTokensFromAccountsAccounts>,
         pub args: Option<super::WithdrawWithheldTokensFromAccountsArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct HarvestWithheldTokensToMint {
         pub accounts: Option<super::HarvestWithheldTokensToMintAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct SetTransferFee {
         pub accounts: Option<super::SetTransferFeeAccounts>,
         pub args: Option<super::SetTransferFeeArgs>,
     }
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Instruction {
         TransferCheckedWithFee(TransferCheckedWithFee),

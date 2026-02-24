@@ -12,14 +12,14 @@ enum Mode {
 }
 
 ///
-/// Main entry point for the `#[vixen_proto]` attribute macro.
+/// Main entry point for the `#[vixen]` attribute macro.
 /// Determines the mode (message, oneof, enumeration) and dispatches to the appropriate expansion function.
 ///
 /// # Usage Examples
 ///
 /// ```rust, ignore
 /// // Struct with prost::Message (default mode):
-/// #[vixen_proto]
+/// #[vixen]
 /// struct Transfer {
 ///     pub source: Option<String>,
 ///     pub destination: Option<String>,
@@ -27,14 +27,14 @@ enum Mode {
 /// }
 ///
 /// // Enum with prost::Oneof:
-/// #[vixen_proto(oneof)]
+/// #[vixen(oneof)]
 /// enum Instruction {
 ///     Transfer(Transfer),
 ///     Approve(Approve),
 /// }
 ///
 /// // Enum with prost::Enumeration:
-/// #[vixen_proto(enumeration)]
+/// #[vixen(enumeration)]
 /// #[repr(i32)]
 /// enum AccountType {
 ///     Uninitialized = 0,
@@ -53,20 +53,19 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream> 
 
             Mode::Oneof => Err(syn::Error::new_spanned(
                 &item_struct.ident,
-                "vixen_proto(oneof) requires an enum, not a struct",
+                "vixen(oneof) requires an enum, not a struct",
             )),
 
             Mode::Enumeration => Err(syn::Error::new_spanned(
                 &item_struct.ident,
-                "vixen_proto(enumeration) requires an enum, not a struct",
+                "vixen(enumeration) requires an enum, not a struct",
             )),
         }
     } else if let Ok(mut item_enum) = syn::parse2::<ItemEnum>(item.clone()) {
         match mode {
             Mode::Message => Err(syn::Error::new_spanned(
                 &item_enum.ident,
-                "vixen_proto on an enum requires a mode: #[vixen_proto(oneof)] or \
-                 #[vixen_proto(enumeration)]",
+                "vixen on an enum requires a mode: #[vixen(oneof)] or #[vixen(enumeration)]",
             )),
 
             Mode::Oneof => expand_oneof(&mut item_enum),
@@ -76,7 +75,7 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> syn::Result<TokenStream> 
     } else {
         Err(syn::Error::new(
             Span::call_site(),
-            "vixen_proto can only be applied to structs or enums",
+            "vixen can only be applied to structs or enums",
         ))
     }
 }
@@ -92,27 +91,27 @@ fn parse_mode(attr: TokenStream) -> syn::Result<Mode> {
         "enumeration" => Ok(Mode::Enumeration),
         other => Err(syn::Error::new(
             ident.span(),
-            format!("unknown vixen_proto mode `{other}`, expected `oneof` or `enumeration`"),
+            format!("unknown vixen mode `{other}`, expected `oneof` or `enumeration`"),
         )),
     }
 }
 
 ///
-///  Expands a struct annotated with `#[vixen_proto]` into a `prost::Message`.
+///  Expands a struct annotated with `#[vixen]` into a `prost::Message`.
 ///
 /// Auto-tags fields starting at 1 and infers prost annotations from Rust types.
-/// Use `#[vixen_proto_hint(...)]` on individual fields when the type can't be auto-inferred.
+/// Use `#[vixen_hint(...)]` on individual fields when the type can't be auto-inferred.
 ///
 /// Input:
 /// ```rust, ignore
-/// #[vixen_proto]
+/// #[vixen]
 /// struct Transfer {
 ///     pub source: Option<String>,
 ///     pub destination: Option<String>,
 ///     pub amount: u64,
 ///     pub data: Vec<u8>,
 ///     pub signers: Vec<String>,
-///     #[vixen_proto_hint(oneof = "Kind", tags = "6, 7")]
+///     #[vixen_hint(oneof = "Kind", tags = "6, 7")]
 ///     pub kind: Option<Kind>,
 /// }
 /// ```
@@ -153,14 +152,14 @@ fn expand_message(item: &mut ItemStruct) -> syn::Result<TokenStream> {
     let Fields::Named(ref mut fields) = item.fields else {
         return Err(syn::Error::new_spanned(
             &item.ident,
-            "vixen_proto requires named fields",
+            "vixen requires named fields",
         ));
     };
 
     let mut tag: u32 = 1;
 
     for field in &mut fields.named {
-        // Always consume #[vixen_proto_hint(...)] to prevent unknown-attribute errors
+        // Always consume #[vixen_hint(...)] to prevent unknown-attribute errors
         let hint = take_proto_attr(&mut field.attrs)?;
 
         if cfg!(feature = "proto") {
@@ -202,13 +201,13 @@ fn expand_message(item: &mut ItemStruct) -> syn::Result<TokenStream> {
 }
 
 ///
-/// Expands an enum annotated with `#[vixen_proto(oneof)]` into a `prost::Oneof`.
+/// Expands an enum annotated with `#[vixen(oneof)]` into a `prost::Oneof`.
 ///
 /// Each variant must be a single-field tuple variant. Tags are auto-assigned starting at 1.
 ///
 /// Input:
 /// ```rust, ignore
-/// #[vixen_proto(oneof)]
+/// #[vixen(oneof)]
 /// enum Instruction {
 ///     Transfer(Transfer),
 ///     Approve(Approve),
@@ -282,13 +281,13 @@ fn expand_oneof(item: &mut ItemEnum) -> syn::Result<TokenStream> {
 }
 
 ///
-/// Expands an enum annotated with `#[vixen_proto(enumeration)]` into a `prost::Enumeration`.
+/// Expands an enum annotated with `#[vixen(enumeration)]` into a `prost::Enumeration`.
 ///
 /// Requires `#[repr(i32)]` on the enum because protobuf enumerations are int32 on the wire.
 ///
 /// Input:
 /// ```rust, ignore
-/// #[vixen_proto(enumeration)]
+/// #[vixen(enumeration)]
 /// #[repr(i32)]
 /// enum AccountType {
 ///     Uninitialized = 0,
@@ -337,7 +336,7 @@ fn expand_enumeration(item: &mut ItemEnum) -> syn::Result<TokenStream> {
     if !has_repr_i32 {
         return Err(syn::Error::new_spanned(
             &item.ident,
-            "vixen_proto(enumeration) requires #[repr(i32)] on the enum",
+            "vixen(enumeration) requires #[repr(i32)] on the enum",
         ));
     }
 
@@ -562,11 +561,9 @@ fn is_vec_u8_or_pubkey(vec_seg: &PathSegment) -> bool {
     matches!(inner_seg.ident.to_string().as_str(), "u8" | "PubkeyBytes")
 }
 
-/// Extract and remove a `#[vixen_proto_hint(...)]` attribute, returning its inner tokens.
+/// Extract and remove a `#[vixen_hint(...)]` attribute, returning its inner tokens.
 fn take_proto_attr(attrs: &mut Vec<Attribute>) -> syn::Result<Option<TokenStream>> {
-    let idx = attrs
-        .iter()
-        .position(|a| a.path().is_ident("vixen_proto_hint"));
+    let idx = attrs.iter().position(|a| a.path().is_ident("vixen_hint"));
 
     let Some(idx) = idx else {
         return Ok(None);
@@ -578,7 +575,7 @@ fn take_proto_attr(attrs: &mut Vec<Attribute>) -> syn::Result<Option<TokenStream
         Meta::List(list) => Ok(Some(list.tokens.clone())),
         _ => Err(syn::Error::new(
             attr.span(),
-            "expected #[vixen_proto_hint(...)] with arguments",
+            "expected #[vixen_hint(...)] with arguments",
         )),
     }
 }

@@ -1,11 +1,11 @@
 use spl_token_group_interface::instruction::TokenGroupInstruction as SplTokenGroupInstruction;
 use yellowstone_vixen_core::instruction::InstructionUpdate;
 use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
 use crate::{ExtensionInstructionParser, PubkeyBytes};
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeGroupAccounts {
     pub group: PubkeyBytes,
@@ -13,40 +13,40 @@ pub struct InitializeGroupAccounts {
     pub mint_authority: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeGroupArgs {
     pub max_size: u64,
     pub update_authority: ::core::option::Option<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupMaxSizeAccounts {
     pub group: PubkeyBytes,
     pub update_authority: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupMaxSizeArgs {
     pub max_size: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupAuthorityAccounts {
     pub group: PubkeyBytes,
     pub current_authority: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupAuthorityArgs {
     pub new_authority: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeMemberAccounts {
     pub member: PubkeyBytes,
@@ -56,51 +56,51 @@ pub struct InitializeMemberAccounts {
     pub group_update_authority: PubkeyBytes,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeMemberArgs {
     // empty
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenGroupIx {
-    #[vixen_proto_hint(oneof = "token_group_instruction::Instruction", tags = "1, 2, 3, 4")]
+    #[vixen_hint(oneof = "token_group_instruction::Instruction", tags = "1, 2, 3, 4")]
     pub instruction: ::core::option::Option<token_group_instruction::Instruction>,
 }
 
 pub mod token_group_instruction {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InitializeGroup {
         pub accounts: ::core::option::Option<super::InitializeGroupAccounts>,
         pub args: ::core::option::Option<super::InitializeGroupArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct UpdateGroupMaxSize {
         pub accounts: ::core::option::Option<super::UpdateGroupMaxSizeAccounts>,
         pub args: ::core::option::Option<super::UpdateGroupMaxSizeArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct UpdateGroupAuthority {
         pub accounts: ::core::option::Option<super::UpdateGroupAuthorityAccounts>,
         pub args: ::core::option::Option<super::UpdateGroupAuthorityArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InitializeMember {
         pub accounts: ::core::option::Option<super::InitializeMemberAccounts>,
         pub args: ::core::option::Option<super::InitializeMemberArgs>,
     }
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Instruction {
         InitializeGroup(InitializeGroup),

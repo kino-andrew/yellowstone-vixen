@@ -7,21 +7,21 @@ mod intermediate_representation;
 mod parse;
 mod render;
 mod utils;
-mod vixen_proto;
+mod vixen;
 
 /// Attribute macro that auto-infers prost annotations from Rust types.
 ///
 /// # Modes
 ///
-/// - `#[vixen_proto]` — struct with `prost::Message` (default)
-/// - `#[vixen_proto(oneof)]` — enum with `prost::Oneof`
-/// - `#[vixen_proto(enumeration)]` — enum with `prost::Enumeration`
+/// - `#[vixen]` — struct with `prost::Message` (default)
+/// - `#[vixen(oneof)]` — enum with `prost::Oneof`
+/// - `#[vixen(enumeration)]` — enum with `prost::Enumeration`
 ///
-/// Fields are auto-tagged starting at 1. Use `#[vixen_proto_hint(...)]` on individual
+/// Fields are auto-tagged starting at 1. Use `#[vixen_hint(...)]` on individual
 /// fields when the type can't be auto-inferred.
 #[proc_macro_attribute]
-pub fn vixen_proto(attr: TokenStream, item: TokenStream) -> TokenStream {
-    vixen_proto::expand(attr.into(), item.into())
+pub fn vixen(attr: TokenStream, item: TokenStream) -> TokenStream {
+    vixen::expand(attr.into(), item.into())
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

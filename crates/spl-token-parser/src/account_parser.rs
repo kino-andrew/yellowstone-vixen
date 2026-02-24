@@ -7,12 +7,12 @@ use spl_token::{
 use yellowstone_vixen_core::{
     AccountUpdate, ParseError, ParseResult, Parser, Prefilter, ProgramParser,
 };
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
 use crate::PubkeyBytes;
 
 /// SPL Token account state, proto-compatible
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Mint {
     pub mint_authority: ::core::option::Option<PubkeyBytes>,
@@ -22,7 +22,7 @@ pub struct Mint {
     pub freeze_authority: ::core::option::Option<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenAccount {
     pub mint: PubkeyBytes,
@@ -39,7 +39,7 @@ pub struct TokenAccount {
     pub close_authority: ::core::option::Option<PubkeyBytes>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Multisig {
     pub m: u32,
@@ -49,17 +49,17 @@ pub struct Multisig {
 }
 
 /// One-of wrapper for SPL Token program account state.
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenProgramState {
-    #[vixen_proto_hint(oneof = "account::Account", tags = "1, 2, 3")]
+    #[vixen_hint(oneof = "account::Account", tags = "1, 2, 3")]
     pub account: ::core::option::Option<account::Account>,
 }
 
 pub mod account {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Account {
         TokenAccount(super::TokenAccount),
@@ -160,7 +160,9 @@ impl Parser for AccountParser {
             _ => return Err(ParseError::Filtered),
         };
 
-        Ok(TokenProgramState { account: Some(state) })
+        Ok(TokenProgramState {
+            account: Some(state),
+        })
     }
 }
 
