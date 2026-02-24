@@ -9,7 +9,7 @@ use spl_token_2022::{
 use yellowstone_vixen_core::{AccountUpdate, ParseResult, Parser, Prefilter, ProgramParser};
 use yellowstone_vixen_proc_macro::vixen;
 
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen]
 #[derive(Clone, PartialEq)]
@@ -57,26 +57,26 @@ pub struct ExtendedTokenAccount {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Mint {
-    pub mint_authority: Option<PubkeyBytes>,
+    pub mint_authority: Option<PublicKey>,
     pub supply: u64,
     pub decimals: u32,
     pub is_initialized: bool,
-    pub freeze_authority: Option<PubkeyBytes>,
+    pub freeze_authority: Option<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Account {
-    pub mint: PubkeyBytes,
-    pub owner: PubkeyBytes,
+    pub mint: PublicKey,
+    pub owner: PublicKey,
     pub amount: u64,
-    pub delegate: Option<PubkeyBytes>,
+    pub delegate: Option<PublicKey>,
     /// `spl_token_2022::state::AccountState` as u32
     pub state: u32,
     /// If native: rent-exempt reserve lamports (same semantics as spl-token)
     pub is_native: Option<u64>,
     pub delegated_amount: u64,
-    pub close_authority: Option<PubkeyBytes>,
+    pub close_authority: Option<PublicKey>,
 }
 
 #[vixen]
@@ -85,7 +85,7 @@ pub struct Multisig {
     pub m: u32,
     pub n: u32,
     pub is_initialized: bool,
-    pub signers: Vec<PubkeyBytes>,
+    pub signers: Vec<PublicKey>,
 }
 
 fn spl_to_mint(m: &SplMint) -> Mint {

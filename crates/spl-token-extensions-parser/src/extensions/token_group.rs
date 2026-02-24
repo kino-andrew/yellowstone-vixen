@@ -3,28 +3,28 @@ use yellowstone_vixen_core::instruction::InstructionUpdate;
 use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
 use yellowstone_vixen_proc_macro::vixen;
 
-use crate::{ExtensionInstructionParser, PubkeyBytes};
+use crate::{ExtensionInstructionParser, PublicKey};
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeGroupAccounts {
-    pub group: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub mint_authority: PubkeyBytes,
+    pub group: PublicKey,
+    pub mint: PublicKey,
+    pub mint_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeGroupArgs {
     pub max_size: u64,
-    pub update_authority: ::core::option::Option<PubkeyBytes>,
+    pub update_authority: ::core::option::Option<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupMaxSizeAccounts {
-    pub group: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
+    pub group: PublicKey,
+    pub update_authority: PublicKey,
 }
 
 #[vixen]
@@ -36,24 +36,24 @@ pub struct UpdateGroupMaxSizeArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupAuthorityAccounts {
-    pub group: PubkeyBytes,
-    pub current_authority: PubkeyBytes,
+    pub group: PublicKey,
+    pub current_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateGroupAuthorityArgs {
-    pub new_authority: PubkeyBytes,
+    pub new_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeMemberAccounts {
-    pub member: PubkeyBytes,
-    pub member_mint: PubkeyBytes,
-    pub member_mint_authority: PubkeyBytes,
-    pub group: PubkeyBytes,
-    pub group_update_authority: PubkeyBytes,
+    pub member: PublicKey,
+    pub member_mint: PublicKey,
+    pub member_mint_authority: PublicKey,
+    pub group: PublicKey,
+    pub group_update_authority: PublicKey,
 }
 
 #[vixen]
@@ -119,7 +119,7 @@ fn pod_u64_to_u64(v: spl_pod::primitives::PodU64) -> u64 {
 #[inline]
 fn opt_nonzero_pubkey_to_bytes(
     v: spl_pod::optional_keys::OptionalNonZeroPubkey,
-) -> ::core::option::Option<PubkeyBytes> {
+) -> ::core::option::Option<PublicKey> {
     let bytes: [u8; 32] = v.0.to_bytes();
 
     if bytes == [0u8; 32] {

@@ -4,16 +4,16 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
 use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::ExtensionInstructionParser;
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TransferCheckedWithFeeAccounts {
-    pub source: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub destination: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub source: PublicKey,
+    pub mint: PublicKey,
+    pub destination: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
@@ -28,14 +28,14 @@ pub struct TransferCheckedWithFeeArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeTransferFeeConfigAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeTransferFeeConfigArgs {
-    pub transfer_fee_config_authority: Option<PubkeyBytes>,
-    pub withdraw_withheld_authority: Option<PubkeyBytes>,
+    pub transfer_fee_config_authority: Option<PublicKey>,
+    pub withdraw_withheld_authority: Option<PublicKey>,
     // u16 -> uint32 in proto
     pub transfer_fee_basis_points: u32,
     pub maximum_fee: u64,
@@ -44,20 +44,20 @@ pub struct InitializeTransferFeeConfigArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawWithheldTokensFromMintAccounts {
-    pub mint: PubkeyBytes,
-    pub fee_recipient: PubkeyBytes,
-    pub withdraw_withheld_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub fee_recipient: PublicKey,
+    pub withdraw_withheld_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawWithheldTokensFromAccountsAccounts {
-    pub mint: PubkeyBytes,
-    pub fee_recipient: PubkeyBytes,
-    pub withdraw_withheld_authority: PubkeyBytes,
-    pub source_accounts: Vec<PubkeyBytes>,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub fee_recipient: PublicKey,
+    pub withdraw_withheld_authority: PublicKey,
+    pub source_accounts: Vec<PublicKey>,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
@@ -70,9 +70,9 @@ pub struct WithdrawWithheldTokensFromAccountsArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetTransferFeeAccounts {
-    pub mint: PubkeyBytes,
-    pub mint_fee_acc_owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub mint_fee_acc_owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
@@ -86,8 +86,8 @@ pub struct SetTransferFeeArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct HarvestWithheldTokensToMintAccounts {
-    pub mint: PubkeyBytes,
-    pub mint_fee_acc_owner: PubkeyBytes,
+    pub mint: PublicKey,
+    pub mint_fee_acc_owner: PublicKey,
 }
 
 #[vixen]

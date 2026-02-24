@@ -3,7 +3,7 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Error, Result};
 use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::decode_extension_ix_type;
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen(enumeration)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,31 +46,31 @@ impl ExtensionWithCommonInstruction {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtInitializeAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateAccounts {
-    pub mint: PubkeyBytes,
-    pub extension_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub extension_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EnableAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DisableAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]

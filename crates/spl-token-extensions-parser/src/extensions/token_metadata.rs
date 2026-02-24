@@ -4,42 +4,42 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
 use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::ExtensionInstructionParser;
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeAccounts {
-    pub metadata: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub mint_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub update_authority: PublicKey,
+    pub mint: PublicKey,
+    pub mint_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateFieldAccounts {
-    pub metadata: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub update_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct RemoveKeyAccounts {
-    pub metadata: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub update_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateAuthorityAccounts {
-    pub metadata: PubkeyBytes,
-    pub current_update_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub current_update_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EmitAccounts {
-    pub metadata: PubkeyBytes,
+    pub metadata: PublicKey,
 }
 
 #[vixen]

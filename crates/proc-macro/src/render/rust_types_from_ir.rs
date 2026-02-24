@@ -565,7 +565,7 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
 
 ///
 /// Returns `#[borsh(deserialize_with = "...", serialize_with = "...")]` for fixed-size byte fields
-/// (PubkeyBytes and FixedBytes), or an empty TokenStream for all other field types.
+/// (PublicKey and FixedBytes), or an empty TokenStream for all other field types.
 ///
 fn fixed_bytes_borsh_attrs(
     label: &LabelIr,
@@ -573,7 +573,7 @@ fn fixed_bytes_borsh_attrs(
     path_prefix: &str,
 ) -> TokenStream {
     let size: usize = match field_type {
-        FieldTypeIr::Scalar(ScalarIr::PubkeyBytes) => 32,
+        FieldTypeIr::Scalar(ScalarIr::PublicKey) => 32,
         FieldTypeIr::Scalar(ScalarIr::FixedBytes(n)) => *n,
         _ => return quote! {},
     };
@@ -760,7 +760,7 @@ fn fixed_array_default_borsh_attrs(label: &LabelIr, path_prefix: &str) -> TokenS
     }
 }
 
-/// Return (prost_type, rust_type). When `in_module`, `PubkeyBytes` gets a `super::` prefix.
+/// Return (prost_type, rust_type). When `in_module`, `PublicKey` gets a `super::` prefix.
 fn map_ir_type_to_prost(field_type: &FieldTypeIr, in_module: bool) -> (TokenStream, TokenStream) {
     match field_type {
         FieldTypeIr::Scalar(s) => match s {
@@ -776,11 +776,11 @@ fn map_ir_type_to_prost(field_type: &FieldTypeIr, in_module: bool) -> (TokenStre
             ScalarIr::String => (quote!(string), quote!(String)),
             ScalarIr::Bytes => (quote!(bytes = "vec"), quote!(Vec<u8>)),
             ScalarIr::FixedBytes(_) => (quote!(bytes = "vec"), quote!(Vec<u8>)),
-            ScalarIr::PubkeyBytes => {
+            ScalarIr::PublicKey => {
                 if in_module {
-                    (quote!(bytes = "vec"), quote!(super::PubkeyBytes))
+                    (quote!(bytes = "vec"), quote!(super::PublicKey))
                 } else {
-                    (quote!(bytes = "vec"), quote!(PubkeyBytes))
+                    (quote!(bytes = "vec"), quote!(PublicKey))
                 }
             },
         },

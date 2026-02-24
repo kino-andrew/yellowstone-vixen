@@ -4,56 +4,56 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Result};
 use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::{decode_extension_ix_type, ExtensionInstructionParser};
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeConfidentialTransferFeeConfigAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfidentialWithdrawWithheldTokensFromMintAccounts {
-    pub mint: PubkeyBytes,
-    pub fee_recipient: PubkeyBytes,
-    pub sysvar: PubkeyBytes,
-    pub withdraw_withheld_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub fee_recipient: PublicKey,
+    pub sysvar: PublicKey,
+    pub withdraw_withheld_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfidentialWithdrawWithheldTokensFromAccounts {
-    pub mint: PubkeyBytes,
-    pub fee_recipient: PubkeyBytes,
-    pub sysvar: PubkeyBytes,
-    pub withdraw_withheld_authority: PubkeyBytes,
-    pub source_accounts: Vec<PubkeyBytes>,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub fee_recipient: PublicKey,
+    pub sysvar: PublicKey,
+    pub withdraw_withheld_authority: PublicKey,
+    pub source_accounts: Vec<PublicKey>,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfidentialHarvestWithheldTokensToMintAccounts {
-    pub mint: PubkeyBytes,
-    pub source_accounts: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub source_accounts: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EnableHarvestToMintAccounts {
-    pub mint: PubkeyBytes,
-    pub confidential_transfer_fee_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub confidential_transfer_fee_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DisableHarvestToMintAccounts {
-    pub account: PubkeyBytes,
-    pub confidential_transfer_fee_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub confidential_transfer_fee_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]

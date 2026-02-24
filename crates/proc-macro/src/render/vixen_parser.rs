@@ -68,7 +68,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
             use yellowstone_vixen_parser::prelude::*;
 
             /// 32 bytes by convention.
-            pub type PubkeyBytes = Vec<u8>;
+            pub type PublicKey = Vec<u8>;
 
             /// Borsh: deserialize N fixed bytes into `Vec<u8>`.
             /// On-chain, fixed-size byte fields (pubkeys, u128, fixed arrays) have no

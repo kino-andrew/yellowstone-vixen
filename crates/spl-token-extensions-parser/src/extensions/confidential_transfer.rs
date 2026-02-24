@@ -4,102 +4,102 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Result};
 use yellowstone_vixen_proc_macro::vixen;
 use yellowstone_vixen_spl_token_parser::InitializeMintAccounts;
 
-use crate::{decode_extension_ix_type, ExtensionInstructionParser, PubkeyBytes};
+use crate::{decode_extension_ix_type, ExtensionInstructionParser, PublicKey};
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateMintAccounts {
-    pub mint: PubkeyBytes,
-    pub authority: PubkeyBytes,
+    pub mint: PublicKey,
+    pub authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfigureAccountAccounts {
-    pub account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub sysvar: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub mint: PublicKey,
+    pub sysvar: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ApproveAccountAccounts {
-    pub account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub authority: PubkeyBytes,
+    pub account: PublicKey,
+    pub mint: PublicKey,
+    pub authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EmptyAccountAccounts {
-    pub account: PubkeyBytes,
-    pub sysvar: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub sysvar: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositAccounts {
-    pub account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub mint: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawAccounts {
-    pub source_account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub destination: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub source_account: PublicKey,
+    pub mint: PublicKey,
+    pub destination: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfidentialTransferAccounts {
-    pub source_account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub destination: PubkeyBytes,
-    pub context_account: PubkeyBytes, // Sysvar account or context state account
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub source_account: PublicKey,
+    pub mint: PublicKey,
+    pub destination: PublicKey,
+    pub context_account: PublicKey, // Sysvar account or context state account
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ApplyPendingBalanceAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CreditsAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TransferWithFeeAccounts {
-    pub source_account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub destination: PubkeyBytes,
+    pub source_account: PublicKey,
+    pub mint: PublicKey,
+    pub destination: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfigureAccountWithRegistryAccounts {
-    pub account: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub registry: PubkeyBytes,
+    pub account: PublicKey,
+    pub mint: PublicKey,
+    pub registry: PublicKey,
 }
 
 #[vixen]

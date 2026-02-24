@@ -9,34 +9,34 @@ use yellowstone_vixen_core::{
 };
 use yellowstone_vixen_proc_macro::vixen;
 
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 /// SPL Token account state, proto-compatible
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Mint {
-    pub mint_authority: ::core::option::Option<PubkeyBytes>,
+    pub mint_authority: ::core::option::Option<PublicKey>,
     pub supply: u64,
     pub decimals: u32,
     pub is_initialized: bool,
-    pub freeze_authority: ::core::option::Option<PubkeyBytes>,
+    pub freeze_authority: ::core::option::Option<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenAccount {
-    pub mint: PubkeyBytes,
-    pub owner: PubkeyBytes,
+    pub mint: PublicKey,
+    pub owner: PublicKey,
     pub amount: u64,
 
-    pub delegate: ::core::option::Option<PubkeyBytes>,
+    pub delegate: ::core::option::Option<PublicKey>,
     pub state: u32,
     pub delegated_amount: u64,
 
     /// If present, native rent-exempt reserve (lamports).
     pub is_native: ::core::option::Option<u64>,
 
-    pub close_authority: ::core::option::Option<PubkeyBytes>,
+    pub close_authority: ::core::option::Option<PublicKey>,
 }
 
 #[vixen]
@@ -45,7 +45,7 @@ pub struct Multisig {
     pub m: u32,
     pub n: u32,
     pub is_initialized: bool,
-    pub signers: Vec<PubkeyBytes>,
+    pub signers: Vec<PublicKey>,
 }
 
 /// One-of wrapper for SPL Token program account state.

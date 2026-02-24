@@ -393,7 +393,7 @@ fn classify_type(ty: &Type) -> FieldClassification {
         "f64" => FieldClassification::Scalar(ScalarKind::Double),
         "bool" => FieldClassification::Scalar(ScalarKind::Bool),
         "String" => FieldClassification::Scalar(ScalarKind::StringType),
-        "PubkeyBytes" => FieldClassification::Bytes,
+        "PublicKey" => FieldClassification::Bytes,
         "Option" => classify_option(seg),
         "Vec" => classify_vec(seg),
         _ => FieldClassification::Message,
@@ -418,9 +418,9 @@ fn classify_option(seg: &PathSegment) -> FieldClassification {
         "f64" => FieldClassification::OptionalScalar(ScalarKind::Double),
         "bool" => FieldClassification::OptionalScalar(ScalarKind::Bool),
         "String" => FieldClassification::OptionalScalar(ScalarKind::StringType),
-        "PubkeyBytes" => FieldClassification::OptionalBytes,
+        "PublicKey" => FieldClassification::OptionalBytes,
         "Vec" => {
-            // Option<Vec<u8>> or Option<PubkeyBytes>
+            // Option<Vec<u8>> or Option<PublicKey>
             if is_vec_u8_or_pubkey(inner_seg) {
                 FieldClassification::OptionalBytes
             } else {
@@ -450,7 +450,7 @@ fn classify_vec(seg: &PathSegment) -> FieldClassification {
         "f64" => FieldClassification::RepeatedScalar(ScalarKind::Double),
         "bool" => FieldClassification::RepeatedScalar(ScalarKind::Bool),
         "String" => FieldClassification::RepeatedScalar(ScalarKind::StringType),
-        "PubkeyBytes" => FieldClassification::RepeatedBytes,
+        "PublicKey" => FieldClassification::RepeatedBytes,
         "Vec" => {
             // Vec<Vec<u8>> = repeated bytes
             if is_vec_u8_or_pubkey(inner_seg) {
@@ -558,7 +558,7 @@ fn is_vec_u8_or_pubkey(vec_seg: &PathSegment) -> bool {
         return false;
     };
 
-    matches!(inner_seg.ident.to_string().as_str(), "u8" | "PubkeyBytes")
+    matches!(inner_seg.ident.to_string().as_str(), "u8" | "PublicKey")
 }
 
 /// Extract and remove a `#[hint(...)]` attribute, returning its inner tokens.
