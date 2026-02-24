@@ -52,7 +52,7 @@ pub struct Multisig {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenProgramState {
-    #[vixen_hint(oneof = "account::Account", tags = "1, 2, 3")]
+    #[hint(oneof = "account::Account", tags = "1, 2, 3")]
     pub account: ::core::option::Option<account::Account>,
 }
 

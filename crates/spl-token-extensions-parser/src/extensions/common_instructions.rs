@@ -76,10 +76,10 @@ pub struct DisableAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CommonExtensionInstructions {
-    #[vixen_hint(enumeration = "ExtensionWithCommonInstruction")]
+    #[hint(enumeration = "ExtensionWithCommonInstruction")]
     pub extension: i32,
 
-    #[vixen_hint(
+    #[hint(
         oneof = "common_extension_instructions::Instruction",
         tags = "2, 3, 4, 5"
     )]

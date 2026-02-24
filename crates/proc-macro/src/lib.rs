@@ -17,7 +17,7 @@ mod vixen;
 /// - `#[vixen(oneof)]` — enum with `prost::Oneof`
 /// - `#[vixen(enumeration)]` — enum with `prost::Enumeration`
 ///
-/// Fields are auto-tagged starting at 1. Use `#[vixen_hint(...)]` on individual
+/// Fields are auto-tagged starting at 1. Use `#[hint(...)]` on individual
 /// fields when the type can't be auto-inferred.
 #[proc_macro_attribute]
 pub fn vixen(attr: TokenStream, item: TokenStream) -> TokenStream {

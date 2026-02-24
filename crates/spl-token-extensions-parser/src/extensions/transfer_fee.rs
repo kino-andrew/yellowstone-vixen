@@ -93,7 +93,7 @@ pub struct HarvestWithheldTokensToMintAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TransferFeeIx {
-    #[vixen_hint(
+    #[hint(
         oneof = "transfer_fee_instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6"
     )]

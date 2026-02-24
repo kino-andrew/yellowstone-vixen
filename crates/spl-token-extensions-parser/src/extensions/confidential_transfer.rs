@@ -105,7 +105,7 @@ pub struct ConfigureAccountWithRegistryAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfidentialTransferIx {
-    #[vixen_hint(
+    #[hint(
         oneof = "confidential_transfer_instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15"
     )]

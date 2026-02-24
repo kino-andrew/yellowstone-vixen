@@ -65,7 +65,7 @@ pub struct InitializeMemberArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenGroupIx {
-    #[vixen_hint(oneof = "token_group_instruction::Instruction", tags = "1, 2, 3, 4")]
+    #[hint(oneof = "token_group_instruction::Instruction", tags = "1, 2, 3, 4")]
     pub instruction: ::core::option::Option<token_group_instruction::Instruction>,
 }
 

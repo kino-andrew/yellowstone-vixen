@@ -120,7 +120,7 @@ impl From<spl_token_2022::instruction::AuthorityType> for AuthorityType {
 #[vixen]
 #[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
 pub struct SetAuthorityArgs {
-    #[vixen_hint(enumeration = "AuthorityType")]
+    #[hint(enumeration = "AuthorityType")]
     pub authority_type: i32,
     pub new_authority: Option<PubkeyBytes>,
 }
@@ -128,7 +128,7 @@ pub struct SetAuthorityArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenExtensionProgram {
-    #[vixen_hint(
+    #[hint(
         oneof = "instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21"
     )]

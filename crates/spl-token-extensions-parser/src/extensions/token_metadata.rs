@@ -75,7 +75,7 @@ pub struct EmitArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenMetadataIx {
-    #[vixen_hint(
+    #[hint(
         oneof = "token_metadata_instruction::Instruction",
         tags = "1, 2, 3, 4, 5"
     )]

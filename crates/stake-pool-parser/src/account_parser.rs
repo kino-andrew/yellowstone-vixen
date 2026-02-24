@@ -10,7 +10,7 @@ use yellowstone_vixen_proc_macro::vixen;
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SplStakePoolProgramState {
-    #[vixen_hint(oneof = "spl_stake_pool_program_state::State", tags = "1, 2")]
+    #[hint(oneof = "spl_stake_pool_program_state::State", tags = "1, 2")]
     pub state: Option<spl_stake_pool_program_state::State>,
 }
 

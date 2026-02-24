@@ -59,7 +59,7 @@ pub struct DisableHarvestToMintAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ConfidentialTransferFeeIx {
-    #[vixen_hint(
+    #[hint(
         oneof = "confidential_transfer_fee_instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6"
     )]

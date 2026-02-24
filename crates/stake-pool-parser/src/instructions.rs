@@ -5,7 +5,7 @@ use crate::PubkeyBytes;
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct StakePoolProgram {
-    #[vixen_hint(
+    #[hint(
         oneof = "stake_pool_program::Instruction",
         tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, \
                 23, 24, 25, 26"
@@ -88,10 +88,10 @@ pub enum FeeKind {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct FeeType {
-    #[vixen_hint(enumeration = "FeeKind")]
+    #[hint(enumeration = "FeeKind")]
     pub kind: i32,
 
-    #[vixen_hint(oneof = "fee_type::Value", tags = "2, 3")]
+    #[hint(oneof = "fee_type::Value", tags = "2, 3")]
     pub value: Option<fee_type::Value>,
 }
 
@@ -262,7 +262,7 @@ pub struct SetPreferredValidatorAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetPreferredValidatorArgs {
-    #[vixen_hint(enumeration = "PreferredValidatorType")]
+    #[hint(enumeration = "PreferredValidatorType")]
     pub validator_type: i32,
     pub validator_vote_address: Option<PubkeyBytes>,
 }
@@ -477,7 +477,7 @@ pub struct SetFundingAuthorityAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFundingAuthorityArgs {
-    #[vixen_hint(enumeration = "FundingType")]
+    #[hint(enumeration = "FundingType")]
     pub funding_type: i32,
 }
 
