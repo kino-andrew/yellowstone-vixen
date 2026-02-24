@@ -14,7 +14,7 @@ use yellowstone_vixen_block_coordinator::ConfirmedSlot;
 
 use crate::{
     config::KafkaSinkConfig,
-    events::{PreparedRecord, RecordHeader, SlotCommitEvent},
+    events::{PreparedRecord, RecordHeader, RecordKind, SlotCommitEvent},
 };
 
 fn to_kafka_headers(headers: &[RecordHeader]) -> OwnedHeaders {
@@ -85,29 +85,49 @@ impl ConfirmedSlotSink {
         self.commit_slot_checkpoint(confirmed).await
     }
 
-    /// Publish all records sequentially to preserve transaction ordering within each topic.
+    /// Publish all records to Kafka, preserving transaction ordering within each topic.
     /// Records arrive pre-sorted by (tx_index, ix_path) from the coordinator.
+    ///
+    /// `FutureProducer::send()` is async only because it contains an internal sleep-retry
+    /// loop for queue-full conditions — the actual enqueue into librdkafka's internal queue
+    /// is synchronous.
+    ///
+    /// Uses `join_all` to await all delivery acks concurrently. Ordering is preserved
+    /// because: (1) `join_all` polls futures in index order, (2) each `send()` enqueues
+    /// synchronously on its first poll before yielding at the ack-wait, and
+    /// (3) `enable.idempotence=true` prevents retry reordering at the network layer.
+    ///
+    /// `queue_timeout` is set to `Duration::ZERO` so that a queue-full condition
+    /// immediately returns an error (failing the slot for retry) rather than sleeping
+    /// before enqueue, which could allow a later future to enqueue first.
+    ///
     /// Fails the entire slot on any write error so the caller can replay it.
     async fn batch_publish_records(
         &self,
         slot: u64,
         records: &[PreparedRecord],
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        for record in records {
-            let headers = to_kafka_headers(&record.headers);
-            self.producer
-                .send(
+        let futures: Vec<_> = records
+            .iter()
+            .map(|record| {
+                let headers = to_kafka_headers(&record.headers);
+                self.producer.send(
                     FutureRecord::to(&record.topic)
                         .payload(&record.payload)
                         .key(&record.key)
                         .headers(headers),
-                    Duration::from_secs(5),
+                    Duration::ZERO,
                 )
-                .await
-                .map_err(|(e, _)| -> Box<dyn std::error::Error + Send + Sync> {
-                    tracing::error!(?e, slot, topic = %record.topic, "Kafka write failed");
-                    format!("Kafka write failed for slot {slot}: {e}").into()
-                })?;
+            })
+            .collect();
+
+        let results = futures::future::join_all(futures).await;
+
+        for (i, result) in results.into_iter().enumerate() {
+            result.map_err(|(e, _)| -> Box<dyn std::error::Error + Send + Sync> {
+                tracing::error!(?e, slot, topic = %records[i].topic, "Kafka write failed");
+                format!("Kafka write failed for slot {slot}: {e}").into()
+            })?;
         }
 
         Ok(())
@@ -120,13 +140,32 @@ impl ConfirmedSlotSink {
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let slot = confirmed.slot;
         let record_count = confirmed.records.len();
-        let decoded_count = confirmed.records.iter().filter(|r| r.is_decoded).count() as u64;
+        let decoded_instruction_count = confirmed
+            .records
+            .iter()
+            .filter(|r| r.is_decoded && r.kind == RecordKind::Instruction)
+            .count() as u64;
+        let decoded_account_count = confirmed
+            .records
+            .iter()
+            .filter(|r| r.is_decoded && r.kind == RecordKind::Account)
+            .count() as u64;
+
+        let filtered_instruction_count = confirmed.filtered_instruction_count;
+        let failed_instruction_count = confirmed.failed_instruction_count;
+        let filtered_account_count = confirmed.filtered_account_count;
+        let failed_account_count = confirmed.failed_account_count;
 
         let event = SlotCommitEvent {
             slot,
             blockhash: confirmed.blockhash.to_string(),
             transaction_count: confirmed.executed_transaction_count,
-            decoded_instruction_count: decoded_count,
+            decoded_instruction_count,
+            decoded_account_count,
+            filtered_instruction_count,
+            failed_instruction_count,
+            filtered_account_count,
+            failed_account_count,
         };
 
         let payload = serde_json::to_string(&event)?;
@@ -144,7 +183,17 @@ impl ConfirmedSlotSink {
                 format!("Kafka: failed to commit slot {slot}: {e}").into()
             })?;
 
-        tracing::info!(slot, decoded_count, record_count, "Kafka: committed slot");
+        tracing::info!(
+            slot,
+            decoded_instruction_count,
+            decoded_account_count,
+            filtered_instruction_count,
+            failed_instruction_count,
+            filtered_account_count,
+            failed_account_count,
+            record_count,
+            "Kafka: committed slot"
+        );
         Ok(())
     }
 }

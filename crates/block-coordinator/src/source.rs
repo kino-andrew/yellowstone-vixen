@@ -24,7 +24,7 @@ use yellowstone_vixen::{
 use yellowstone_vixen_core::{CommitmentLevel, Filters};
 use yellowstone_vixen_yellowstone_grpc_source::YellowstoneGrpcConfig;
 
-use crate::fixtures::FixtureWriter;
+use crate::{fixtures::FixtureWriter, types::CoordinatorInput};
 
 /// Config for CoordinatorSource.
 ///
@@ -37,10 +37,10 @@ pub struct CoordinatorSourceConfig {
     #[serde(flatten)]
     pub source: YellowstoneGrpcConfig,
 
-    /// Channel to send raw SubscribeUpdate events to the coordinator.
+    /// Channel to send CoordinatorInput events to the coordinator.
     #[serde(skip)]
     #[arg(skip)]
-    pub coordinator_input_tx: Option<Sender<SubscribeUpdate>>,
+    pub coordinator_input_tx: Option<Sender<CoordinatorInput>>,
 
     /// Path to write captured fixture data (length-delimited protobuf).
     #[serde(skip)]
@@ -167,8 +167,10 @@ impl SourceTrait for CoordinatorSource {
 
         tracing::info!("CoordinatorSource gRPC stream started");
 
+        let mut account_seq: u64 = 0;
+
         let exit_status = 'stream: loop {
-            let Some(update) = stream.next().await else {
+            let Some(mut update) = stream.next().await else {
                 break SourceExitStatus::StreamEnded;
             };
 
@@ -188,6 +190,35 @@ impl SourceTrait for CoordinatorSource {
                             },
                         }
                     }
+                }
+                _ => {}
+            }
+
+            // Repurpose write_version as ingress sequence number for deterministic ordering
+            if let Ok(su) = &mut update {
+                if let Some(UpdateOneof::Account(acct)) = su.update_oneof.as_mut() {
+                    if let Some(info) = acct.account.as_mut() {
+                        info.write_version = account_seq;
+                        account_seq = account_seq.wrapping_add(1);
+                    }
+                }
+            }
+
+            match &update {
+                Ok(subscribe_update) => {
+                    // Send lightweight AccountEventSeen for each Account event.
+                    if let Some(UpdateOneof::Account(acct)) = &subscribe_update.update_oneof {
+                        if coordinator_tx
+                            .send(CoordinatorInput::AccountEventSeen { slot: acct.slot })
+                            .await
+                            .is_err()
+                        {
+                            tracing::error!("Coordinator input channel closed");
+                            break 'stream SourceExitStatus::Error(
+                                "Coordinator input channel closed".to_string(),
+                            );
+                        }
+                    }
 
                     // Forward BlockSM-relevant events to the coordinator.
                     // Entry, Slot, and BlockMeta events are needed for block reconstruction.
@@ -202,7 +233,11 @@ impl SourceTrait for CoordinatorSource {
 
                     if is_block_sm_event {
                         // Clone for coordinator (Account/Transaction events go to Runtime uncloned)
-                        if coordinator_tx.send(subscribe_update.clone()).await.is_err() {
+                        if coordinator_tx
+                            .send(CoordinatorInput::GeyserUpdate(subscribe_update.clone()))
+                            .await
+                            .is_err()
+                        {
                             tracing::error!("Coordinator input channel closed");
                             break 'stream SourceExitStatus::Error(
                                 "Coordinator input channel closed".to_string(),
