@@ -100,7 +100,7 @@ fn parse_mode(attr: TokenStream) -> syn::Result<Mode> {
 ///  Expands a struct annotated with `#[vixen]` into a `prost::Message`.
 ///
 /// Auto-tags fields starting at 1 and infers prost annotations from Rust types.
-/// Use `#[vixen_hint(...)]` on individual fields when the type can't be auto-inferred.
+/// Use `#[hint(...)]` on individual fields when the type can't be auto-inferred.
 ///
 /// Input:
 /// ```rust, ignore
@@ -111,7 +111,7 @@ fn parse_mode(attr: TokenStream) -> syn::Result<Mode> {
 ///     pub amount: u64,
 ///     pub data: Vec<u8>,
 ///     pub signers: Vec<String>,
-///     #[vixen_hint(oneof = "Kind", tags = "6, 7")]
+///     #[hint(oneof = "Kind", tags = "6, 7")]
 ///     pub kind: Option<Kind>,
 /// }
 /// ```
@@ -159,7 +159,7 @@ fn expand_message(item: &mut ItemStruct) -> syn::Result<TokenStream> {
     let mut tag: u32 = 1;
 
     for field in &mut fields.named {
-        // Always consume #[vixen_hint(...)] to prevent unknown-attribute errors
+        // Always consume #[hint(...)] to prevent unknown-attribute errors
         let hint = take_proto_attr(&mut field.attrs)?;
 
         if cfg!(feature = "proto") {
@@ -563,9 +563,9 @@ fn is_vec_u8(vec_seg: &PathSegment) -> bool {
     matches!(inner_seg.ident.to_string().as_str(), "u8")
 }
 
-/// Extract and remove a `#[vixen_hint(...)]` attribute, returning its inner tokens.
+/// Extract and remove a `#[hint(...)]` attribute, returning its inner tokens.
 fn take_proto_attr(attrs: &mut Vec<Attribute>) -> syn::Result<Option<TokenStream>> {
-    let idx = attrs.iter().position(|a| a.path().is_ident("vixen_hint"));
+    let idx = attrs.iter().position(|a| a.path().is_ident("hint"));
 
     let Some(idx) = idx else {
         return Ok(None);
@@ -577,7 +577,7 @@ fn take_proto_attr(attrs: &mut Vec<Attribute>) -> syn::Result<Option<TokenStream
         Meta::List(list) => Ok(Some(list.tokens.clone())),
         _ => Err(syn::Error::new(
             attr.span(),
-            "expected #[vixen_hint(...)] with arguments",
+            "expected #[hint(...)] with arguments",
         )),
     }
 }

@@ -65,7 +65,7 @@ pub struct InitializeMemberArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenGroupIx {
-    #[vixen_hint(oneof = "token_group_instruction::Instruction", tags = "1, 2, 3, 4")]
+    #[hint(oneof = "token_group_instruction::Instruction", tags = "1, 2, 3, 4")]
     pub instruction: ::core::option::Option<token_group_instruction::Instruction>,
 }
 
@@ -125,7 +125,9 @@ fn opt_nonzero_pubkey_to_bytes(
     if bytes == [0u8; 32] {
         None
     } else {
-        Some(PublicKey { value: bytes.to_vec() })
+        Some(PublicKey {
+            value: bytes.to_vec(),
+        })
     }
 }
 
@@ -144,9 +146,15 @@ impl ExtensionInstructionParser for TokenGroupIx {
 
                 oneof::Instruction::InitializeGroup(oneof::InitializeGroup {
                     accounts: Some(InitializeGroupAccounts {
-                        group: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                        mint: crate::PublicKey { value: ix.accounts[1].to_vec() },
-                        mint_authority: crate::PublicKey { value: ix.accounts[2].to_vec() },
+                        group: crate::PublicKey {
+                            value: ix.accounts[0].to_vec(),
+                        },
+                        mint: crate::PublicKey {
+                            value: ix.accounts[1].to_vec(),
+                        },
+                        mint_authority: crate::PublicKey {
+                            value: ix.accounts[2].to_vec(),
+                        },
                     }),
                     args: Some(InitializeGroupArgs {
                         max_size: pod_u64_to_u64(args.max_size),
@@ -159,8 +167,12 @@ impl ExtensionInstructionParser for TokenGroupIx {
 
                 oneof::Instruction::UpdateGroupMaxSize(oneof::UpdateGroupMaxSize {
                     accounts: Some(UpdateGroupMaxSizeAccounts {
-                        group: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                        update_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
+                        group: crate::PublicKey {
+                            value: ix.accounts[0].to_vec(),
+                        },
+                        update_authority: crate::PublicKey {
+                            value: ix.accounts[1].to_vec(),
+                        },
                     }),
                     args: Some(UpdateGroupMaxSizeArgs {
                         max_size: pod_u64_to_u64(args.max_size),
@@ -172,11 +184,17 @@ impl ExtensionInstructionParser for TokenGroupIx {
 
                 oneof::Instruction::UpdateGroupAuthority(oneof::UpdateGroupAuthority {
                     accounts: Some(UpdateGroupAuthorityAccounts {
-                        group: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                        current_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
+                        group: crate::PublicKey {
+                            value: ix.accounts[0].to_vec(),
+                        },
+                        current_authority: crate::PublicKey {
+                            value: ix.accounts[1].to_vec(),
+                        },
                     }),
                     args: Some(UpdateGroupAuthorityArgs {
-                        new_authority: Some(crate::PublicKey { value: args.new_authority.0.to_bytes().to_vec() }),
+                        new_authority: Some(crate::PublicKey {
+                            value: args.new_authority.0.to_bytes().to_vec(),
+                        }),
                     }),
                 })
             },
@@ -185,11 +203,21 @@ impl ExtensionInstructionParser for TokenGroupIx {
 
                 oneof::Instruction::InitializeMember(oneof::InitializeMember {
                     accounts: Some(InitializeMemberAccounts {
-                        member: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                        member_mint: crate::PublicKey { value: ix.accounts[1].to_vec() },
-                        member_mint_authority: crate::PublicKey { value: ix.accounts[2].to_vec() },
-                        group: crate::PublicKey { value: ix.accounts[3].to_vec() },
-                        group_update_authority: crate::PublicKey { value: ix.accounts[4].to_vec() },
+                        member: crate::PublicKey {
+                            value: ix.accounts[0].to_vec(),
+                        },
+                        member_mint: crate::PublicKey {
+                            value: ix.accounts[1].to_vec(),
+                        },
+                        member_mint_authority: crate::PublicKey {
+                            value: ix.accounts[2].to_vec(),
+                        },
+                        group: crate::PublicKey {
+                            value: ix.accounts[3].to_vec(),
+                        },
+                        group_update_authority: crate::PublicKey {
+                            value: ix.accounts[4].to_vec(),
+                        },
                     }),
                     args: Some(InitializeMemberArgs {}),
                 })

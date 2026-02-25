@@ -121,7 +121,7 @@ pub struct SetAuthorityAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetAuthorityArgs {
-    #[vixen_hint(enumeration = "AuthorityType")]
+    #[hint(enumeration = "AuthorityType")]
     pub authority_type: i32,
     pub new_authority: Option<PublicKey>,
 }
@@ -287,7 +287,7 @@ pub struct UiAmountToAmountArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenProgram {
-    #[vixen_hint(
+    #[hint(
         oneof = "instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23"
     )]

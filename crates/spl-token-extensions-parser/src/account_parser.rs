@@ -14,7 +14,7 @@ use crate::PublicKey;
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenExtensionState {
-    #[vixen_hint(oneof = "account::Account", tags = "1, 2, 3")]
+    #[hint(oneof = "account::Account", tags = "1, 2, 3")]
     pub account: Option<account::Account>,
 }
 
