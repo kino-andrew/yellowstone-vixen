@@ -389,6 +389,25 @@ macro_rules! pubkey_convert_helpers {
 /// working with Solana program crates.
 pub type Pubkey = KeyBytes<32>;
 
+/// Protobuf wrapper for a 32-byte public key.
+///
+/// This struct wraps raw public key bytes for protobuf serialization.  When the
+/// `proto` feature is enabled it derives [`prost::Message`] so it can be used
+/// as a nested message field (`message PublicKey { bytes value = 1; }`).
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "proto", derive(::prost::Message))]
+#[cfg_attr(not(feature = "proto"), derive(Debug, Default))]
+pub struct PublicKey {
+    /// The raw bytes of the public key.
+    #[cfg_attr(feature = "proto", prost(bytes = "vec", tag = "1"))]
+    pub value: Vec<u8>,
+}
+
+impl PublicKey {
+    /// Creates a new `PublicKey` from any type convertible to `Vec<u8>`.
+    pub fn new(value: impl Into<Vec<u8>>) -> Self { Self { value: value.into() } }
+}
+
 /// Generic wrapper for a fixed-length array of cryptographic key bytes,
 /// convertible to or from a base58-encoded string.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]

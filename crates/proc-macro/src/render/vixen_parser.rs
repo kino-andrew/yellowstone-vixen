@@ -67,18 +67,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
         pub mod #program_mod_ident {
             use yellowstone_vixen_parser::prelude::*;
 
-            /// Protobuf wrapper for a 32-byte public key.
-            #[derive(Clone, PartialEq, ::prost::Message)]
-            pub struct PublicKey {
-                #[prost(bytes = "vec", tag = "1")]
-                pub value: Vec<u8>,
-            }
-
-            impl PublicKey {
-                pub fn new(value: impl Into<Vec<u8>>) -> Self {
-                    Self { value: value.into() }
-                }
-            }
+            pub use yellowstone_vixen_core::PublicKey;
 
             /// Borsh: deserialize 32 bytes into a PublicKey wrapper (singular required field).
             fn borsh_deserialize_pubkey<R: ::borsh::io::Read>(

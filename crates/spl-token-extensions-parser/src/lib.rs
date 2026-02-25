@@ -14,4 +14,4 @@ pub use yellowstone_vixen_proto::parser::token_extensions::{
     ACCOUNT_DISPATCH_MESSAGE_INDEX, INSTRUCTION_DISPATCH_MESSAGE_INDEX, PROTOBUF_SCHEMA,
 };
 
-pub use yellowstone_vixen_spl_token_parser::PublicKey;
+pub use yellowstone_vixen_core::PublicKey;

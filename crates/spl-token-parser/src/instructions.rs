@@ -1,17 +1,6 @@
 use yellowstone_vixen_proc_macro::vixen;
 
-/// Protobuf wrapper for a 32-byte public key.
-#[vixen]
-#[derive(Clone, PartialEq)]
-pub struct PublicKey {
-    pub value: Vec<u8>,
-}
-
-impl PublicKey {
-    pub fn new(value: impl Into<Vec<u8>>) -> Self {
-        Self { value: value.into() }
-    }
-}
+pub use yellowstone_vixen_core::PublicKey;
 
 #[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq)]
