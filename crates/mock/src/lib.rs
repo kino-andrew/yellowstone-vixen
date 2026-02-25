@@ -33,7 +33,7 @@ use solana_transaction_status::{
 use yellowstone_grpc_proto::geyser::{SubscribeUpdateAccount, SubscribeUpdateAccountInfo};
 use yellowstone_vixen_core::{
     instruction::{InstructionShared, InstructionUpdate},
-    ProgramParser, Pubkey as VixenPubkey,
+    KeyBytes, ProgramParser,
 };
 
 //TODO: Look these up from the Vixen.toml config file
@@ -117,11 +117,11 @@ impl Display for SerializablePubkey {
     }
 }
 
-impl From<VixenPubkey> for SerializablePubkey {
-    fn from(value: VixenPubkey) -> Self { Self(value.into_bytes()) }
+impl From<KeyBytes<32>> for SerializablePubkey {
+    fn from(value: KeyBytes<32>) -> Self { Self(value.into_bytes()) }
 }
 
-impl From<SerializablePubkey> for VixenPubkey {
+impl From<SerializablePubkey> for KeyBytes<32> {
     fn from(value: SerializablePubkey) -> Self { Self::new(value.0) }
 }
 
@@ -186,7 +186,7 @@ pub fn get_account_pubkey_from_index(
             accounts.len(),
         )),
         |account| {
-            Ok(VixenPubkey::from_str(account)
+            Ok(KeyBytes::<32>::from_str(account)
                 .map_err(|e| e.to_string())?
                 .into())
         },

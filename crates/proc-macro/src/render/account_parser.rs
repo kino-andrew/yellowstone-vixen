@@ -346,7 +346,7 @@ pub fn account_parser(
         // Implement the trait for Mock
         impl ::yellowstone_vixen_core::ProgramParser for AccountParser {
             #[inline]
-            fn program_id(&self) -> yellowstone_vixen_core::Pubkey {
+            fn program_id(&self) -> yellowstone_vixen_core::KeyBytes::<32> {
                 yellowstone_vixen_core::KeyBytes::<32>(PROGRAM_ID)
             }
         }
