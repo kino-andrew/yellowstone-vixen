@@ -169,7 +169,9 @@ impl FilterOwnerKeyLookup {
         Self(Arc::new(lookup))
     }
 
-    fn lookup_by_owner(&self, owner: &KeyBytes<32>) -> Option<Vec<String>> { self.0.get(owner).cloned() }
+    fn lookup_by_owner(&self, owner: &KeyBytes<32>) -> Option<Vec<String>> {
+        self.0.get(owner).cloned()
+    }
 
     fn owners(&self) -> Vec<KeyBytes<32>> { self.0.keys().copied().collect() }
 }

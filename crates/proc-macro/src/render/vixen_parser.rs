@@ -737,7 +737,7 @@ fn fixed_array_widen_borsh_helpers() -> Vec<TokenStream> {
                         for &v in val {
                             ::borsh::BorshSerialize::serialize(&(v as #on_chain_ty), writer)?;
                         }
-                        
+
                         ::core::result::Result::Ok(())
                     }
                 }

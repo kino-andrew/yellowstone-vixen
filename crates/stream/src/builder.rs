@@ -8,8 +8,8 @@ use yellowstone_vixen::{
     util,
 };
 use yellowstone_vixen_core::{
-    instruction::InstructionUpdate, AccountUpdate, BlockMetaUpdate, KeyBytes, Parser, ProgramParser,
-    TransactionUpdate,
+    instruction::InstructionUpdate, AccountUpdate, BlockMetaUpdate, KeyBytes, Parser,
+    ProgramParser, TransactionUpdate,
 };
 use yellowstone_vixen_proto::{
     prost::{Message, Name},

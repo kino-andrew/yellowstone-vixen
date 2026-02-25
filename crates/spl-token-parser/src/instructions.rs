@@ -1,6 +1,5 @@
-use yellowstone_vixen_proc_macro::vixen;
-
 pub use yellowstone_vixen_core::PublicKey;
+use yellowstone_vixen_proc_macro::vixen;
 
 #[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq)]

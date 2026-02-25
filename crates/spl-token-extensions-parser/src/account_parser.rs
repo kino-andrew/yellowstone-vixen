@@ -90,11 +90,17 @@ pub struct Multisig {
 
 fn spl_to_mint(m: &SplMint) -> Mint {
     Mint {
-        mint_authority: m.mint_authority.map(|pk| PublicKey::new(pk.to_bytes())).into(),
+        mint_authority: m
+            .mint_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
         supply: m.supply,
         decimals: m.decimals as u32,
         is_initialized: m.is_initialized,
-        freeze_authority: m.freeze_authority.map(|pk| PublicKey::new(pk.to_bytes())).into(),
+        freeze_authority: m
+            .freeze_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
     }
 }
 
@@ -115,7 +121,10 @@ fn spl_to_account(a: &SplAccount) -> Account {
         state: account_state_to_u32(a.state),
         is_native: a.is_native.into(),
         delegated_amount: a.delegated_amount,
-        close_authority: a.close_authority.map(|pk| PublicKey::new(pk.to_bytes())).into(),
+        close_authority: a
+            .close_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
     }
 }
 
@@ -261,7 +270,9 @@ impl Parser for AccountParser {
 
 impl ProgramParser for AccountParser {
     #[inline]
-    fn program_id(&self) -> yellowstone_vixen_core::KeyBytes<32> { spl_token_2022::ID.to_bytes().into() }
+    fn program_id(&self) -> yellowstone_vixen_core::KeyBytes<32> {
+        spl_token_2022::ID.to_bytes().into()
+    }
 }
 
 #[cfg(test)]

@@ -178,7 +178,7 @@ pub fn account_parser(
                 let discriminator: Vec<u8> = match bytes.encoding {
                     codama_nodes::BytesEncoding::Base16 => {
                         let padded = crate::utils::pad_hex(&bytes.data);
-                        
+
                         hex::decode(&padded).expect("Failed to decode base16 (hex) bytes")
                     },
 
