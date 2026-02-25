@@ -839,7 +839,7 @@ fn fixed_array_default_borsh_attrs(label: &LabelIr, path_prefix: &str) -> TokenS
     }
 }
 
-/// Return (prost_type, rust_type). When `in_module`, `Pubkey` gets a `super::` prefix.
+/// Return (prost_type, rust_type). When `in_module`, `PublicKey` gets a `super::` prefix.
 fn map_ir_type_to_prost(field_type: &FieldTypeIr, in_module: bool) -> (TokenStream, TokenStream) {
     match field_type {
         FieldTypeIr::Scalar(s) => match s {

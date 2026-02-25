@@ -108,7 +108,7 @@ pub fn build_instructions_schema(instructions: &[InstructionNode], ir: &mut Sche
 
 ///
 /// Build the three messages for a single instruction:
-///   - `<IxName>Accounts`  — one Pubkey field per account
+///   - `<IxName>Accounts`  — one PublicKey field per account
 ///   - `<IxName>Args`      — instruction arguments (delegates to `build_fields_ir`)
 ///   - `<IxName>`          — wrapper with optional accounts + args
 ///
