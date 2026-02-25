@@ -312,8 +312,6 @@ pub fn set_authority_args_from_spl(
 ) -> SetAuthorityArgs {
     SetAuthorityArgs {
         authority_type: authority_type as i32,
-        new_authority: new_authority.map(|p| crate::PublicKey {
-            value: p.0.to_vec(),
-        }),
+        new_authority: new_authority.map(|p| crate::PublicKey::new(p.0)),
     }
 }

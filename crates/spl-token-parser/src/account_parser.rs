@@ -72,18 +72,14 @@ impl From<SplMint> for Mint {
     fn from(m: SplMint) -> Self {
         Self {
             mint_authority: match m.mint_authority {
-                COption::Some(pk) => Some(PublicKey {
-                    value: pk.to_bytes().to_vec(),
-                }),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
             supply: m.supply,
             decimals: m.decimals as u32,
             is_initialized: m.is_initialized,
             freeze_authority: match m.freeze_authority {
-                COption::Some(pk) => Some(PublicKey {
-                    value: pk.to_bytes().to_vec(),
-                }),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
         }
@@ -93,18 +89,12 @@ impl From<SplMint> for Mint {
 impl From<SplAccount> for TokenAccount {
     fn from(a: SplAccount) -> Self {
         Self {
-            mint: PublicKey {
-                value: a.mint.to_bytes().to_vec(),
-            },
-            owner: PublicKey {
-                value: a.owner.to_bytes().to_vec(),
-            },
+            mint: PublicKey::new(a.mint.to_bytes()),
+            owner: PublicKey::new(a.owner.to_bytes()),
             amount: a.amount,
 
             delegate: match a.delegate {
-                COption::Some(pk) => Some(PublicKey {
-                    value: pk.to_bytes().to_vec(),
-                }),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
             state: a.state as u32,
@@ -116,9 +106,7 @@ impl From<SplAccount> for TokenAccount {
             },
 
             close_authority: match a.close_authority {
-                COption::Some(pk) => Some(PublicKey {
-                    value: pk.to_bytes().to_vec(),
-                }),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
         }
@@ -134,9 +122,7 @@ impl From<SplMultisig> for Multisig {
             signers: m
                 .signers
                 .iter()
-                .map(|pk| PublicKey {
-                    value: pk.to_bytes().to_vec(),
-                })
+                .map(|pk| PublicKey::new(pk.to_bytes()))
                 .collect(),
         }
     }

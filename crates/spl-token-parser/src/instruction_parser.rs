@@ -7,11 +7,11 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
 use crate::PublicKey;
 
 fn pk(key: &yellowstone_vixen_core::KeyBytes<32>) -> PublicKey {
-    PublicKey { value: key.0.to_vec() }
+    PublicKey::new(key.0)
 }
 
 fn pk_from_key(key: &spl_token::solana_program::pubkey::Pubkey) -> PublicKey {
-    PublicKey { value: key.to_bytes().to_vec() }
+    PublicKey::new(key.to_bytes())
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -75,7 +75,7 @@ impl InstructionParser {
                         source: pk(&ix.accounts[0]),
                         destination: pk(&ix.accounts[1]),
                         owner: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::TransferArgs { amount }),
                 })
@@ -112,7 +112,7 @@ impl InstructionParser {
                     args: Some(crate::InitializeMintArgs {
                         decimals: decimals as u32,
                         mint_authority: pk_from_key(&mint_authority),
-                        freeze_authority: freeze_authority.map(|k| PublicKey { value: k.to_bytes().to_vec() }).into(),
+                        freeze_authority: freeze_authority.map(|k| PublicKey::new(k.to_bytes())).into(),
                     }),
                 })
             },
@@ -151,7 +151,7 @@ impl InstructionParser {
                 crate::instruction::Instruction::InitializeMultisig(crate::instruction::InitializeMultisig {
                     accounts: Some(crate::InitializeMultisigAccounts {
                         multisig: pk(&ix.accounts[0]),
-                        signers: ix.accounts[2..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        signers: ix.accounts[2..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::InitializeMultisigArgs { m: m as u32 }),
                 })
@@ -163,7 +163,7 @@ impl InstructionParser {
                 crate::instruction::Instruction::InitializeMultisig(crate::instruction::InitializeMultisig {
                     accounts: Some(crate::InitializeMultisigAccounts {
                         multisig: pk(&ix.accounts[0]),
-                        signers: ix.accounts[1..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        signers: ix.accounts[1..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::InitializeMultisigArgs { m: m as u32 }),
                 })
@@ -177,7 +177,7 @@ impl InstructionParser {
                         source: pk(&ix.accounts[0]),
                         delegate: pk(&ix.accounts[1]),
                         owner: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::ApproveArgs { amount }),
                 })
@@ -190,7 +190,7 @@ impl InstructionParser {
                     accounts: Some(crate::RevokeAccounts {
                         source: pk(&ix.accounts[0]),
                         owner: pk(&ix.accounts[1]),
-                        multisig_signers: ix.accounts[2..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[2..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                 })
             },
@@ -205,11 +205,11 @@ impl InstructionParser {
                     accounts: Some(crate::SetAuthorityAccounts {
                         account: pk(&ix.accounts[0]),
                         current_authority: pk(&ix.accounts[1]),
-                        multisig_signers: ix.accounts[2..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[2..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::SetAuthorityArgs {
                         authority_type: authority_type_to_proto(authority_type),
-                        new_authority: new_authority.map(|k| PublicKey { value: k.to_bytes().to_vec() }).into(),
+                        new_authority: new_authority.map(|k| PublicKey::new(k.to_bytes())).into(),
                     }),
                 })
             },
@@ -222,7 +222,7 @@ impl InstructionParser {
                         mint: pk(&ix.accounts[0]),
                         account: pk(&ix.accounts[1]),
                         mint_authority: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::MintToArgs { amount }),
                 })
@@ -236,7 +236,7 @@ impl InstructionParser {
                         account: pk(&ix.accounts[0]),
                         mint: pk(&ix.accounts[1]),
                         owner: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::BurnArgs { amount }),
                 })
@@ -250,7 +250,7 @@ impl InstructionParser {
                         account: pk(&ix.accounts[0]),
                         destination: pk(&ix.accounts[1]),
                         owner: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                 })
             },
@@ -263,7 +263,7 @@ impl InstructionParser {
                         account: pk(&ix.accounts[0]),
                         mint: pk(&ix.accounts[1]),
                         mint_freeze_authority: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                 })
             },
@@ -276,7 +276,7 @@ impl InstructionParser {
                         account: pk(&ix.accounts[0]),
                         mint: pk(&ix.accounts[1]),
                         mint_freeze_authority: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                 })
             },
@@ -290,7 +290,7 @@ impl InstructionParser {
                         mint: pk(&ix.accounts[1]),
                         destination: pk(&ix.accounts[2]),
                         owner: pk(&ix.accounts[3]),
-                        multisig_signers: ix.accounts[4..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[4..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::TransferCheckedArgs {
                         amount,
@@ -308,7 +308,7 @@ impl InstructionParser {
                         mint: pk(&ix.accounts[1]),
                         delegate: pk(&ix.accounts[2]),
                         owner: pk(&ix.accounts[3]),
-                        multisig_signers: ix.accounts[4..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[4..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::ApproveCheckedArgs {
                         amount,
@@ -325,7 +325,7 @@ impl InstructionParser {
                         mint: pk(&ix.accounts[0]),
                         account: pk(&ix.accounts[1]),
                         mint_authority: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::MintToCheckedArgs {
                         amount,
@@ -342,7 +342,7 @@ impl InstructionParser {
                         account: pk(&ix.accounts[0]),
                         mint: pk(&ix.accounts[1]),
                         owner: pk(&ix.accounts[2]),
-                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey::new(a.0)).collect(),
                     }),
                     args: Some(crate::BurnCheckedArgs {
                         amount,

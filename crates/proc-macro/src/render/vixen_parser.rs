@@ -74,6 +74,12 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 pub value: Vec<u8>,
             }
 
+            impl PublicKey {
+                pub fn new(value: impl Into<Vec<u8>>) -> Self {
+                    Self { value: value.into() }
+                }
+            }
+
             /// Borsh: deserialize 32 bytes into a PublicKey wrapper (singular required field).
             fn borsh_deserialize_pubkey<R: ::borsh::io::Read>(
                 reader: &mut R,
@@ -82,7 +88,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
 
                 reader.read_exact(&mut buf)?;
 
-                ::core::result::Result::Ok(PublicKey { value: buf.to_vec() })
+                ::core::result::Result::Ok(PublicKey::new(buf))
             }
 
             fn borsh_serialize_pubkey<W: ::borsh::io::Write>(
@@ -104,7 +110,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
 
                         reader.read_exact(&mut buf)?;
 
-                        ::core::result::Result::Ok(::core::option::Option::Some(PublicKey { value: buf.to_vec() }))
+                        ::core::result::Result::Ok(::core::option::Option::Some(PublicKey::new(buf)))
                     }
                     _ => ::core::result::Result::Err(::borsh::io::Error::new(
                         ::borsh::io::ErrorKind::InvalidData,
@@ -140,7 +146,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                     let mut buf = [0u8; 32];
 
                     reader.read_exact(&mut buf)?;
-                    result.push(PublicKey { value: buf.to_vec() });
+                    result.push(PublicKey::new(buf));
                 }
 
                 ::core::result::Result::Ok(result)
@@ -168,7 +174,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                     let mut buf = [0u8; 32];
 
                     reader.read_exact(&mut buf)?;
-                    result.push(PublicKey { value: buf.to_vec() });
+                    result.push(PublicKey::new(buf));
                 }
 
                 ::core::result::Result::Ok(result)

@@ -240,9 +240,7 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::InitializeMint(oneof::InitializeMint {
                     accounts: Some(InitializeMintAccounts {
-                        mint: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
+                        mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                     }),
                 })
             },
@@ -252,12 +250,8 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::UpdateMint(oneof::UpdateMint {
                     accounts: Some(UpdateMintAccounts {
-                        mint: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        authority: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
+                        mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        authority: crate::PublicKey::new(ix.accounts[1].to_vec()),
                     }),
                 })
             },
@@ -267,21 +261,13 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::ConfigureAccount(oneof::ConfigureAccount {
                     accounts: Some(ConfigureAccountAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        mint: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        sysvar: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[3].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        sysvar: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[3].to_vec()),
                         multisig_signers: ix.accounts[4..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -292,15 +278,9 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::ApproveAccount(oneof::ApproveAccount {
                     accounts: Some(ApproveAccountAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        mint: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        authority: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        authority: crate::PublicKey::new(ix.accounts[2].to_vec()),
                     }),
                 })
             },
@@ -310,18 +290,12 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::EmptyAccount(oneof::EmptyAccount {
                     accounts: Some(EmptyAccountAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        sysvar: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        sysvar: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[2].to_vec()),
                         multisig_signers: ix.accounts[3..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -332,18 +306,12 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::Deposit(oneof::Deposit {
                     accounts: Some(DepositAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        mint: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[2].to_vec()),
                         multisig_signers: ix.accounts[3..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -354,21 +322,13 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::Withdraw(oneof::Withdraw {
                     accounts: Some(WithdrawAccounts {
-                        source_account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        mint: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        destination: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[3].to_vec(),
-                        },
+                        source_account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        destination: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[3].to_vec()),
                         multisig_signers: ix.accounts[4..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -379,24 +339,14 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::Transfer(oneof::Transfer {
                     accounts: Some(ConfidentialTransferAccounts {
-                        source_account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        mint: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        destination: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
-                        context_account: crate::PublicKey {
-                            value: ix.accounts[3].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[4].to_vec(),
-                        },
+                        source_account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        destination: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                        context_account: crate::PublicKey::new(ix.accounts[3].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[4].to_vec()),
                         multisig_signers: ix.accounts[5..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -407,15 +357,11 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::ApplyPendingBalance(oneof::ApplyPendingBalance {
                     accounts: Some(ApplyPendingBalanceAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                         multisig_signers: ix.accounts[2..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -426,15 +372,11 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::EnableConfidentialCredits(oneof::EnableConfidentialCredits {
                     accounts: Some(CreditsAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                         multisig_signers: ix.accounts[2..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -445,15 +387,11 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::DisableConfidentialCredits(oneof::DisableConfidentialCredits {
                     accounts: Some(CreditsAccounts {
-                        account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        owner: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                         multisig_signers: ix.accounts[2..]
                             .iter()
-                            .map(|a| crate::PublicKey { value: a.to_vec() })
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
                             .collect(),
                     }),
                 })
@@ -465,15 +403,11 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
                 oneof::Instruction::EnableNonConfidentialCredits(
                     oneof::EnableNonConfidentialCredits {
                         accounts: Some(CreditsAccounts {
-                            account: crate::PublicKey {
-                                value: ix.accounts[0].to_vec(),
-                            },
-                            owner: crate::PublicKey {
-                                value: ix.accounts[1].to_vec(),
-                            },
+                            account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                             multisig_signers: ix.accounts[2..]
                                 .iter()
-                                .map(|a| crate::PublicKey { value: a.to_vec() })
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                         }),
                     },
@@ -486,15 +420,11 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
                 oneof::Instruction::DisableNonConfidentialCredits(
                     oneof::DisableNonConfidentialCredits {
                         accounts: Some(CreditsAccounts {
-                            account: crate::PublicKey {
-                                value: ix.accounts[0].to_vec(),
-                            },
-                            owner: crate::PublicKey {
-                                value: ix.accounts[1].to_vec(),
-                            },
+                            account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                             multisig_signers: ix.accounts[2..]
                                 .iter()
-                                .map(|a| crate::PublicKey { value: a.to_vec() })
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                         }),
                     },
@@ -506,15 +436,9 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
 
                 oneof::Instruction::TransferWithFee(oneof::TransferWithFee {
                     accounts: Some(TransferWithFeeAccounts {
-                        source_account: crate::PublicKey {
-                            value: ix.accounts[0].to_vec(),
-                        },
-                        mint: crate::PublicKey {
-                            value: ix.accounts[1].to_vec(),
-                        },
-                        destination: crate::PublicKey {
-                            value: ix.accounts[2].to_vec(),
-                        },
+                        source_account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        destination: crate::PublicKey::new(ix.accounts[2].to_vec()),
                     }),
                 })
             },
@@ -525,15 +449,9 @@ impl ExtensionInstructionParser for ConfidentialTransferIx {
                 oneof::Instruction::ConfigureAccountWithRegistry(
                     oneof::ConfigureAccountWithRegistry {
                         accounts: Some(ConfigureAccountWithRegistryAccounts {
-                            account: crate::PublicKey {
-                                value: ix.accounts[0].to_vec(),
-                            },
-                            mint: crate::PublicKey {
-                                value: ix.accounts[1].to_vec(),
-                            },
-                            registry: crate::PublicKey {
-                                value: ix.accounts[2].to_vec(),
-                            },
+                            account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                            registry: crate::PublicKey::new(ix.accounts[2].to_vec()),
                         }),
                     },
                 )

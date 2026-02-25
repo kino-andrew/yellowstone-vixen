@@ -7,6 +7,12 @@ pub struct PublicKey {
     pub value: Vec<u8>,
 }
 
+impl PublicKey {
+    pub fn new(value: impl Into<Vec<u8>>) -> Self {
+        Self { value: value.into() }
+    }
+}
+
 #[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]

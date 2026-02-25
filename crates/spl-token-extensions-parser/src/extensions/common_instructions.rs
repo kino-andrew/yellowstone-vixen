@@ -141,7 +141,7 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Initialize(oneof::Initialize {
                             accounts: Some(ExtInitializeAccounts {
-                                mint: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                                mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                             }),
                         })),
                     }
@@ -152,11 +152,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Update(oneof::Update {
                             accounts: Some(UpdateAccounts {
-                                mint: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                                extension_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
+                                mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                                extension_authority: crate::PublicKey::new(ix.accounts[1].to_vec()),
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|a| crate::PublicKey { value: a.to_vec() })
+                                    .map(|a| crate::PublicKey::new(a.to_vec()))
                                     .collect(),
                             }),
                         })),
@@ -172,11 +172,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Enable(oneof::Enable {
                             accounts: Some(EnableAccounts {
-                                account: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                                owner: crate::PublicKey { value: ix.accounts[1].to_vec() },
+                                account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                                owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|a| crate::PublicKey { value: a.to_vec() })
+                                    .map(|a| crate::PublicKey::new(a.to_vec()))
                                     .collect(),
                             }),
                         })),
@@ -188,11 +188,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Disable(oneof::Disable {
                             accounts: Some(DisableAccounts {
-                                account: crate::PublicKey { value: ix.accounts[0].to_vec() },
-                                owner: crate::PublicKey { value: ix.accounts[1].to_vec() },
+                                account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                                owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|a| crate::PublicKey { value: a.to_vec() })
+                                    .map(|a| crate::PublicKey::new(a.to_vec()))
                                     .collect(),
                             }),
                         })),
