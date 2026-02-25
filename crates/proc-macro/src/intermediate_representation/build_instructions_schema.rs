@@ -47,9 +47,9 @@ use crate::intermediate_representation::{
 /// TypeIr {
 ///   name: "OpenPositionAccounts",
 ///   fields: [
-///     { name: "owner",    tag: 1, field_type: PubkeyBytes },
-///     { name: "position", tag: 2, field_type: PubkeyBytes },
-///     { name: "pool",     tag: 3, field_type: PubkeyBytes },
+///     { name: "owner",    tag: 1, field_type: PublicKey },
+///     { name: "position", tag: 2, field_type: PublicKey },
+///     { name: "pool",     tag: 3, field_type: PublicKey },
 ///   ],
 ///   kind: Instruction
 /// }
@@ -108,7 +108,7 @@ pub fn build_instructions_schema(instructions: &[InstructionNode], ir: &mut Sche
 
 ///
 /// Build the three messages for a single instruction:
-///   - `<IxName>Accounts`  — one PubkeyBytes field per account
+///   - `<IxName>Accounts`  — one Pubkey field per account
 ///   - `<IxName>Args`      — instruction arguments (delegates to `build_fields_ir`)
 ///   - `<IxName>`          — wrapper with optional accounts + args
 ///
@@ -127,7 +127,7 @@ fn build_instruction_messages(ix: &InstructionNode, ir: &mut SchemaIr) {
             name: crate::utils::to_snake_case(&acct.name),
             tag: (i + 1) as u32,
             label: LabelIr::Singular,
-            field_type: FieldTypeIr::Scalar(ScalarIr::PubkeyBytes),
+            field_type: FieldTypeIr::Scalar(ScalarIr::PublicKey),
         })
         .collect();
 

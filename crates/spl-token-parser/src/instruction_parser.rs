@@ -4,6 +4,16 @@ use yellowstone_vixen_core::{
 };
 use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
 
+use crate::PublicKey;
+
+fn pk(key: &yellowstone_vixen_core::KeyBytes<32>) -> PublicKey {
+    PublicKey { value: key.0.to_vec() }
+}
+
+fn pk_from_key(key: &spl_token::solana_program::pubkey::Pubkey) -> PublicKey {
+    PublicKey { value: key.to_bytes().to_vec() }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct InstructionParser;
 
@@ -62,10 +72,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::Transfer(crate::instruction::Transfer {
                     accounts: Some(crate::TransferAccounts {
-                        source: ix.accounts[0].to_vec(),
-                        destination: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        source: pk(&ix.accounts[0]),
+                        destination: pk(&ix.accounts[1]),
+                        owner: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::TransferArgs { amount }),
                 })
@@ -76,9 +86,9 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeAccount(crate::instruction::InitializeAccount {
                     accounts: Some(crate::InitializeAccountAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[2].to_vec(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        owner: pk(&ix.accounts[2]),
                     }),
                 })
             },
@@ -97,12 +107,12 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeMint(crate::instruction::InitializeMint {
                     accounts: Some(crate::InitializeMintAccounts {
-                        mint: ix.accounts[0].to_vec(),
+                        mint: pk(&ix.accounts[0]),
                     }),
                     args: Some(crate::InitializeMintArgs {
                         decimals: decimals as u32,
-                        mint_authority: mint_authority.to_bytes().to_vec(),
-                        freeze_authority: freeze_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+                        mint_authority: pk_from_key(&mint_authority),
+                        freeze_authority: freeze_authority.map(|k| PublicKey { value: k.to_bytes().to_vec() }).into(),
                     }),
                 })
             },
@@ -112,11 +122,11 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeAccount2(crate::instruction::InitializeAccount2 {
                     accounts: Some(crate::InitializeAccount2Accounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
                     }),
                     args: Some(crate::InitializeAccount2Args {
-                        owner: owner.to_bytes().to_vec(),
+                        owner: pk_from_key(&owner),
                     }),
                 })
             },
@@ -126,11 +136,11 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeAccount3(crate::instruction::InitializeAccount3 {
                     accounts: Some(crate::InitializeAccount2Accounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
                     }),
                     args: Some(crate::InitializeAccount2Args {
-                        owner: owner.to_bytes().to_vec(),
+                        owner: pk_from_key(&owner),
                     }),
                 })
             },
@@ -140,8 +150,8 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeMultisig(crate::instruction::InitializeMultisig {
                     accounts: Some(crate::InitializeMultisigAccounts {
-                        multisig: ix.accounts[0].to_vec(),
-                        signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        multisig: pk(&ix.accounts[0]),
+                        signers: ix.accounts[2..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::InitializeMultisigArgs { m: m as u32 }),
                 })
@@ -152,8 +162,8 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeMultisig(crate::instruction::InitializeMultisig {
                     accounts: Some(crate::InitializeMultisigAccounts {
-                        multisig: ix.accounts[0].to_vec(),
-                        signers: ix.accounts[1..].iter().map(|pk| pk.to_vec()).collect(),
+                        multisig: pk(&ix.accounts[0]),
+                        signers: ix.accounts[1..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::InitializeMultisigArgs { m: m as u32 }),
                 })
@@ -164,10 +174,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::Approve(crate::instruction::Approve {
                     accounts: Some(crate::ApproveAccounts {
-                        source: ix.accounts[0].to_vec(),
-                        delegate: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        source: pk(&ix.accounts[0]),
+                        delegate: pk(&ix.accounts[1]),
+                        owner: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::ApproveArgs { amount }),
                 })
@@ -178,9 +188,9 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::Revoke(crate::instruction::Revoke {
                     accounts: Some(crate::RevokeAccounts {
-                        source: ix.accounts[0].to_vec(),
-                        owner: ix.accounts[1].to_vec(),
-                        multisig_signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        source: pk(&ix.accounts[0]),
+                        owner: pk(&ix.accounts[1]),
+                        multisig_signers: ix.accounts[2..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                 })
             },
@@ -193,13 +203,13 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::SetAuthority(crate::instruction::SetAuthority {
                     accounts: Some(crate::SetAuthorityAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        current_authority: ix.accounts[1].to_vec(),
-                        multisig_signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: pk(&ix.accounts[0]),
+                        current_authority: pk(&ix.accounts[1]),
+                        multisig_signers: ix.accounts[2..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::SetAuthorityArgs {
                         authority_type: authority_type_to_proto(authority_type),
-                        new_authority: new_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+                        new_authority: new_authority.map(|k| PublicKey { value: k.to_bytes().to_vec() }).into(),
                     }),
                 })
             },
@@ -209,10 +219,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::MintTo(crate::instruction::MintTo {
                     accounts: Some(crate::MintToAccounts {
-                        mint: ix.accounts[0].to_vec(),
-                        account: ix.accounts[1].to_vec(),
-                        mint_authority: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        mint: pk(&ix.accounts[0]),
+                        account: pk(&ix.accounts[1]),
+                        mint_authority: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::MintToArgs { amount }),
                 })
@@ -223,10 +233,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::Burn(crate::instruction::Burn {
                     accounts: Some(crate::BurnAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        owner: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::BurnArgs { amount }),
                 })
@@ -237,10 +247,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::CloseAccount(crate::instruction::CloseAccount {
                     accounts: Some(crate::CloseAccountAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        destination: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: pk(&ix.accounts[0]),
+                        destination: pk(&ix.accounts[1]),
+                        owner: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                 })
             },
@@ -250,10 +260,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::FreezeAccount(crate::instruction::FreezeAccount {
                     accounts: Some(crate::FreezeAccountAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        mint_freeze_authority: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        mint_freeze_authority: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                 })
             },
@@ -263,10 +273,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::ThawAccount(crate::instruction::ThawAccount {
                     accounts: Some(crate::ThawAccountAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        mint_freeze_authority: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        mint_freeze_authority: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                 })
             },
@@ -276,11 +286,11 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::TransferChecked(crate::instruction::TransferChecked {
                     accounts: Some(crate::TransferCheckedAccounts {
-                        source: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        destination: ix.accounts[2].to_vec(),
-                        owner: ix.accounts[3].to_vec(),
-                        multisig_signers: ix.accounts[4..].iter().map(|pk| pk.to_vec()).collect(),
+                        source: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        destination: pk(&ix.accounts[2]),
+                        owner: pk(&ix.accounts[3]),
+                        multisig_signers: ix.accounts[4..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::TransferCheckedArgs {
                         amount,
@@ -294,11 +304,11 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::ApproveChecked(crate::instruction::ApproveChecked {
                     accounts: Some(crate::ApproveCheckedAccounts {
-                        source: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        delegate: ix.accounts[2].to_vec(),
-                        owner: ix.accounts[3].to_vec(),
-                        multisig_signers: ix.accounts[4..].iter().map(|pk| pk.to_vec()).collect(),
+                        source: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        delegate: pk(&ix.accounts[2]),
+                        owner: pk(&ix.accounts[3]),
+                        multisig_signers: ix.accounts[4..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::ApproveCheckedArgs {
                         amount,
@@ -312,10 +322,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::MintToChecked(crate::instruction::MintToChecked {
                     accounts: Some(crate::MintToCheckedAccounts {
-                        mint: ix.accounts[0].to_vec(),
-                        account: ix.accounts[1].to_vec(),
-                        mint_authority: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        mint: pk(&ix.accounts[0]),
+                        account: pk(&ix.accounts[1]),
+                        mint_authority: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::MintToCheckedArgs {
                         amount,
@@ -329,10 +339,10 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::BurnChecked(crate::instruction::BurnChecked {
                     accounts: Some(crate::BurnCheckedAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: pk(&ix.accounts[0]),
+                        mint: pk(&ix.accounts[1]),
+                        owner: pk(&ix.accounts[2]),
+                        multisig_signers: ix.accounts[3..].iter().map(|a| PublicKey { value: a.0.to_vec() }).collect(),
                     }),
                     args: Some(crate::BurnCheckedArgs {
                         amount,
@@ -346,7 +356,7 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::SyncNative(crate::instruction::SyncNative {
                     accounts: Some(crate::SyncNativeAccounts {
-                        account: ix.accounts[0].to_vec(),
+                        account: pk(&ix.accounts[0]),
                     }),
                 })
             },
@@ -356,7 +366,7 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::GetAccountDataSize(crate::instruction::GetAccountDataSize {
                     accounts: Some(crate::GetAccountDataSizeAccounts {
-                        mint: ix.accounts[0].to_vec(),
+                        mint: pk(&ix.accounts[0]),
                     }),
                 })
             },
@@ -366,7 +376,7 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::InitializeImmutableOwner(crate::instruction::InitializeImmutableOwner {
                     accounts: Some(crate::InitializeImmutableOwnerAccounts {
-                        account: ix.accounts[0].to_vec(),
+                        account: pk(&ix.accounts[0]),
                     }),
                 })
             },
@@ -376,7 +386,7 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::AmountToUiAmount(crate::instruction::AmountToUiAmount {
                     accounts: Some(crate::AmountToUiAmountAccounts {
-                        mint: ix.accounts[0].to_vec(),
+                        mint: pk(&ix.accounts[0]),
                     }),
                     args: Some(crate::AmountToUiAmountArgs { amount }),
                 })
@@ -387,7 +397,7 @@ impl InstructionParser {
 
                 crate::instruction::Instruction::UiAmountToAmount(crate::instruction::UiAmountToAmount {
                     accounts: Some(crate::UiAmountToAmountAccounts {
-                        mint: ix.accounts[0].to_vec(),
+                        mint: pk(&ix.accounts[0]),
                     }),
                     args: Some(crate::UiAmountToAmountArgs {
                         ui_amount: ui_amount.into(),

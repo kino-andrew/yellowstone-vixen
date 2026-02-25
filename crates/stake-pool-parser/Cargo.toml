@@ -13,6 +13,7 @@ spl-stake-pool = { workspace = true, features = ["no-entrypoint"] }
 yellowstone-vixen-core = { workspace = true }
 yellowstone-vixen-proc-macro = { workspace = true }
 yellowstone-vixen-parser = { workspace = true }
+yellowstone-vixen-spl-token-parser = { workspace = true }
 yellowstone-vixen-proto = { workspace = true, features = [
   "parser",
 ], optional = true }

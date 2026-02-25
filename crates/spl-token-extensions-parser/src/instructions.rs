@@ -6,40 +6,40 @@ use super::{
     CommonExtensionInstructions, ConfidentialTransferFeeIx, ConfidentialTransferIx, TokenGroupIx,
     TokenMetadataIx, TransferFeeIx,
 };
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CreateNativeMintAccounts {
-    pub mint: PubkeyBytes,
-    pub funding_account: PubkeyBytes,
+    pub mint: PublicKey,
+    pub funding_account: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeMintCloseAuthorityAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
 #[vixen]
-#[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
+#[derive(Clone, PartialEq)]
 pub struct InitializeMintCloseAuthorityArgs {
-    pub close_authority: Option<PubkeyBytes>,
+    pub close_authority: Option<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeNonTransferableMintAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ReallocateAccounts {
-    pub account: PubkeyBytes,
-    pub payer: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub payer: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
@@ -51,22 +51,22 @@ pub struct ReallocateArgs {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializePermanentDelegateAccounts {
-    pub account: PubkeyBytes,
+    pub account: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializePermanentDelegateArgs {
-    pub delegate: PubkeyBytes,
+    pub delegate: Option<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawExcessLamportsAccounts {
-    pub source_account: PubkeyBytes,
-    pub destination_account: PubkeyBytes,
-    pub authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub source_account: PublicKey,
+    pub destination_account: PublicKey,
+    pub authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen(enumeration)]
@@ -118,11 +118,11 @@ impl From<spl_token_2022::instruction::AuthorityType> for AuthorityType {
 }
 
 #[vixen]
-#[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
+#[derive(Clone, PartialEq)]
 pub struct SetAuthorityArgs {
     #[vixen_hint(enumeration = "AuthorityType")]
     pub authority_type: i32,
-    pub new_authority: Option<PubkeyBytes>,
+    pub new_authority: Option<PublicKey>,
 }
 
 #[vixen]
@@ -312,6 +312,6 @@ pub fn set_authority_args_from_spl(
 ) -> SetAuthorityArgs {
     SetAuthorityArgs {
         authority_type: authority_type as i32,
-        new_authority: new_authority.map(|p| p.to_vec()),
+        new_authority: new_authority.map(|p| crate::PublicKey { value: p.0.to_vec() }),
     }
 }

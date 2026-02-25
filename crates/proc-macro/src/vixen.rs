@@ -365,6 +365,7 @@ enum FieldClassification {
     RepeatedBytes,
     RepeatedMessage,
     Message,
+    RequiredMessage,
 }
 
 #[derive(Clone, Copy)]
@@ -393,9 +394,9 @@ fn classify_type(ty: &Type) -> FieldClassification {
         "f64" => FieldClassification::Scalar(ScalarKind::Double),
         "bool" => FieldClassification::Scalar(ScalarKind::Bool),
         "String" => FieldClassification::Scalar(ScalarKind::StringType),
-        "PubkeyBytes" => FieldClassification::Bytes,
         "Option" => classify_option(seg),
         "Vec" => classify_vec(seg),
+        "PublicKey" => FieldClassification::RequiredMessage,
         _ => FieldClassification::Message,
     }
 }
@@ -418,10 +419,9 @@ fn classify_option(seg: &PathSegment) -> FieldClassification {
         "f64" => FieldClassification::OptionalScalar(ScalarKind::Double),
         "bool" => FieldClassification::OptionalScalar(ScalarKind::Bool),
         "String" => FieldClassification::OptionalScalar(ScalarKind::StringType),
-        "PubkeyBytes" => FieldClassification::OptionalBytes,
         "Vec" => {
-            // Option<Vec<u8>> or Option<PubkeyBytes>
-            if is_vec_u8_or_pubkey(inner_seg) {
+            // Option<Vec<u8>>
+            if is_vec_u8(inner_seg) {
                 FieldClassification::OptionalBytes
             } else {
                 FieldClassification::OptionalMessage
@@ -450,10 +450,9 @@ fn classify_vec(seg: &PathSegment) -> FieldClassification {
         "f64" => FieldClassification::RepeatedScalar(ScalarKind::Double),
         "bool" => FieldClassification::RepeatedScalar(ScalarKind::Bool),
         "String" => FieldClassification::RepeatedScalar(ScalarKind::StringType),
-        "PubkeyBytes" => FieldClassification::RepeatedBytes,
         "Vec" => {
             // Vec<Vec<u8>> = repeated bytes
-            if is_vec_u8_or_pubkey(inner_seg) {
+            if is_vec_u8(inner_seg) {
                 FieldClassification::RepeatedBytes
             } else {
                 FieldClassification::RepeatedMessage
@@ -483,6 +482,9 @@ fn prost_annotation(cls: &FieldClassification, tag: u32) -> TokenStream {
         },
         FieldClassification::OptionalMessage | FieldClassification::Message => {
             quote!(message, optional, tag = #tag)
+        },
+        FieldClassification::RequiredMessage => {
+            quote!(message, required, tag = #tag)
         },
         FieldClassification::RepeatedScalar(kind) => {
             let ident = scalar_ident(*kind);
@@ -549,7 +551,7 @@ fn unwrap_generic_arg(seg: &PathSegment) -> Option<&Type> {
     None
 }
 
-fn is_vec_u8_or_pubkey(vec_seg: &PathSegment) -> bool {
+fn is_vec_u8(vec_seg: &PathSegment) -> bool {
     let Some(inner) = unwrap_generic_arg(vec_seg) else {
         return false;
     };
@@ -558,7 +560,7 @@ fn is_vec_u8_or_pubkey(vec_seg: &PathSegment) -> bool {
         return false;
     };
 
-    matches!(inner_seg.ident.to_string().as_str(), "u8" | "PubkeyBytes")
+    matches!(inner_seg.ident.to_string().as_str(), "u8")
 }
 
 /// Extract and remove a `#[vixen_hint(...)]` attribute, returning its inner tokens.

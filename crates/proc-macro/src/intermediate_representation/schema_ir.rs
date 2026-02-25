@@ -81,9 +81,10 @@ pub enum ScalarIr {
     /// fixed byte arrays, etc.
     FixedBytes(usize),
 
-    /// 32-byte pubkey. Same borsh as FixedBytes(32) but uses the `PubkeyBytes`
-    /// type alias in Rust for semantic clarity.
-    PubkeyBytes,
+    /// 32-byte pubkey. Same borsh as FixedBytes(32) but rendered as a
+    /// `PublicKey` message wrapper (`message PublicKey { bytes value = 1; }`)
+    /// instead of raw bytes.
+    PublicKey,
 }
 
 // Enum we need to know what kind of oneof this is for rendering purposes

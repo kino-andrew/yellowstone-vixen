@@ -220,7 +220,7 @@ fn map_type(t: &codama_nodes::TypeNode) -> FieldTypeIr {
     match t {
         T::String(_) | T::SizePrefix(_) => FieldTypeIr::Scalar(ScalarIr::String),
         T::Bytes(_) => FieldTypeIr::Scalar(ScalarIr::Bytes),
-        T::PublicKey(_) => FieldTypeIr::Scalar(ScalarIr::PubkeyBytes),
+        T::PublicKey(_) => FieldTypeIr::Scalar(ScalarIr::PublicKey),
         T::Boolean(_) => FieldTypeIr::Scalar(ScalarIr::Bool),
 
         T::Number(n) => match n.format {

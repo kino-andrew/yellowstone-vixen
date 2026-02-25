@@ -4,42 +4,42 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Result, ResultExt};
 use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::ExtensionInstructionParser;
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeAccounts {
-    pub metadata: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
-    pub mint: PubkeyBytes,
-    pub mint_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub update_authority: PublicKey,
+    pub mint: PublicKey,
+    pub mint_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateFieldAccounts {
-    pub metadata: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub update_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct RemoveKeyAccounts {
-    pub metadata: PubkeyBytes,
-    pub update_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub update_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateAuthorityAccounts {
-    pub metadata: PubkeyBytes,
-    pub current_update_authority: PubkeyBytes,
+    pub metadata: PublicKey,
+    pub current_update_authority: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EmitAccounts {
-    pub metadata: PubkeyBytes,
+    pub metadata: PublicKey,
 }
 
 #[vixen]
@@ -146,10 +146,10 @@ impl ExtensionInstructionParser for TokenMetadataIx {
 
                 oneof::Instruction::Initialize(oneof::Initialize {
                     accounts: Some(InitializeAccounts {
-                        metadata: ix.accounts[0].to_vec(),
-                        update_authority: ix.accounts[1].to_vec(),
-                        mint: ix.accounts[2].to_vec(),
-                        mint_authority: ix.accounts[3].to_vec(),
+                        metadata: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                        update_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
+                        mint: crate::PublicKey { value: ix.accounts[2].to_vec() },
+                        mint_authority: crate::PublicKey { value: ix.accounts[3].to_vec() },
                     }),
                     args: Some(InitializeArgs {
                         raw: ix.data.clone(),
@@ -161,8 +161,8 @@ impl ExtensionInstructionParser for TokenMetadataIx {
 
                 oneof::Instruction::UpdateField(oneof::UpdateField {
                     accounts: Some(UpdateFieldAccounts {
-                        metadata: ix.accounts[0].to_vec(),
-                        update_authority: ix.accounts[1].to_vec(),
+                        metadata: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                        update_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
                     }),
                     args: Some(UpdateFieldArgs {
                         raw: ix.data.clone(),
@@ -174,8 +174,8 @@ impl ExtensionInstructionParser for TokenMetadataIx {
 
                 oneof::Instruction::RemoveKey(oneof::RemoveKey {
                     accounts: Some(RemoveKeyAccounts {
-                        metadata: ix.accounts[0].to_vec(),
-                        update_authority: ix.accounts[1].to_vec(),
+                        metadata: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                        update_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
                     }),
                     args: Some(RemoveKeyArgs {
                         raw: ix.data.clone(),
@@ -187,8 +187,8 @@ impl ExtensionInstructionParser for TokenMetadataIx {
 
                 oneof::Instruction::UpdateAuthority(oneof::UpdateAuthority {
                     accounts: Some(UpdateAuthorityAccounts {
-                        metadata: ix.accounts[0].to_vec(),
-                        current_update_authority: ix.accounts[1].to_vec(),
+                        metadata: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                        current_update_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
                     }),
                     args: Some(UpdateAuthorityArgs {
                         raw: ix.data.clone(),
@@ -200,7 +200,7 @@ impl ExtensionInstructionParser for TokenMetadataIx {
 
                 oneof::Instruction::Emit(oneof::Emit {
                     accounts: Some(EmitAccounts {
-                        metadata: ix.accounts[0].to_vec(),
+                        metadata: crate::PublicKey { value: ix.accounts[0].to_vec() },
                     }),
                     args: Some(EmitArgs {
                         raw: ix.data.clone(),

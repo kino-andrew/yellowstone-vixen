@@ -3,7 +3,7 @@ use yellowstone_vixen_parser::{check_min_accounts_req, Error, Result};
 use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::decode_extension_ix_type;
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 #[vixen(enumeration)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,31 +46,31 @@ impl ExtensionWithCommonInstruction {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtInitializeAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateAccounts {
-    pub mint: PubkeyBytes,
-    pub extension_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub extension_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EnableAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DisableAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
 #[vixen]
@@ -141,7 +141,7 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Initialize(oneof::Initialize {
                             accounts: Some(ExtInitializeAccounts {
-                                mint: ix.accounts[0].to_vec(),
+                                mint: crate::PublicKey { value: ix.accounts[0].to_vec() },
                             }),
                         })),
                     }
@@ -152,11 +152,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Update(oneof::Update {
                             accounts: Some(UpdateAccounts {
-                                mint: ix.accounts[0].to_vec(),
-                                extension_authority: ix.accounts[1].to_vec(),
+                                mint: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                                extension_authority: crate::PublicKey { value: ix.accounts[1].to_vec() },
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|pk| pk.to_vec())
+                                    .map(|a| crate::PublicKey { value: a.to_vec() })
                                     .collect(),
                             }),
                         })),
@@ -172,11 +172,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Enable(oneof::Enable {
                             accounts: Some(EnableAccounts {
-                                account: ix.accounts[0].to_vec(),
-                                owner: ix.accounts[1].to_vec(),
+                                account: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                                owner: crate::PublicKey { value: ix.accounts[1].to_vec() },
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|pk| pk.to_vec())
+                                    .map(|a| crate::PublicKey { value: a.to_vec() })
                                     .collect(),
                             }),
                         })),
@@ -188,11 +188,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Disable(oneof::Disable {
                             accounts: Some(DisableAccounts {
-                                account: ix.accounts[0].to_vec(),
-                                owner: ix.accounts[1].to_vec(),
+                                account: crate::PublicKey { value: ix.accounts[0].to_vec() },
+                                owner: crate::PublicKey { value: ix.accounts[1].to_vec() },
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|pk| pk.to_vec())
+                                    .map(|a| crate::PublicKey { value: a.to_vec() })
                                     .collect(),
                             }),
                         })),

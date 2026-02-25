@@ -6,4 +6,4 @@ pub use account_parser::*;
 pub use instruction_parser::*;
 pub use instructions::*;
 
-pub type PubkeyBytes = Vec<u8>; // expected len = 32
+pub use yellowstone_vixen_spl_token_parser::PublicKey;
