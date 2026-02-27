@@ -1,6 +1,5 @@
+pub use yellowstone_vixen_core::PublicKey;
 use yellowstone_vixen_proc_macro::vixen;
-
-pub type PublicKey = Vec<u8>; // expected len = 32
 
 #[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq)]

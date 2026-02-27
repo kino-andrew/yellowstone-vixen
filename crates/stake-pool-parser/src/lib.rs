@@ -5,5 +5,4 @@ mod instructions;
 pub use account_parser::*;
 pub use instruction_parser::*;
 pub use instructions::*;
-
-pub type PublicKey = Vec<u8>; // expected len = 32
+pub use yellowstone_vixen_core::PublicKey;

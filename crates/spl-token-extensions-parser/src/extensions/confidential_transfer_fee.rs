@@ -136,7 +136,7 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeIx {
                 oneof::Instruction::InitializeConfidentialTransferFeeConfig(
                     oneof::InitializeConfidentialTransferFeeConfig {
                         accounts: Some(InitializeConfidentialTransferFeeConfigAccounts {
-                            mint: ix.accounts[0].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                         }),
                     },
                 )
@@ -148,13 +148,15 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeIx {
                 oneof::Instruction::WithdrawWithheldTokensFromMint(
                     oneof::WithdrawWithheldTokensFromMint {
                         accounts: Some(ConfidentialWithdrawWithheldTokensFromMintAccounts {
-                            mint: ix.accounts[0].to_vec(),
-                            fee_recipient: ix.accounts[1].to_vec(),
-                            sysvar: ix.accounts[2].to_vec(),
-                            withdraw_withheld_authority: ix.accounts[3].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            fee_recipient: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                            sysvar: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                            withdraw_withheld_authority: crate::PublicKey::new(
+                                ix.accounts[3].to_vec(),
+                            ),
                             multisig_signers: ix.accounts[4..]
                                 .iter()
-                                .map(|pk| pk.to_vec())
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                         }),
                     },
@@ -167,13 +169,15 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeIx {
                 oneof::Instruction::WithdrawWithheldTokensFromAccounts(
                     oneof::WithdrawWithheldTokensFromAccounts {
                         accounts: Some(ConfidentialWithdrawWithheldTokensFromAccounts {
-                            mint: ix.accounts[0].to_vec(),
-                            fee_recipient: ix.accounts[1].to_vec(),
-                            sysvar: ix.accounts[2].to_vec(),
-                            withdraw_withheld_authority: ix.accounts[3].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            fee_recipient: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                            sysvar: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                            withdraw_withheld_authority: crate::PublicKey::new(
+                                ix.accounts[3].to_vec(),
+                            ),
                             source_accounts: ix.accounts[4..]
                                 .iter()
-                                .map(|pk| pk.to_vec())
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                             multisig_signers: Vec::new(),
                         }),
@@ -187,10 +191,10 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeIx {
                 oneof::Instruction::HarvestWithheldTokensToMint(
                     oneof::HarvestWithheldTokensToMint {
                         accounts: Some(ConfidentialHarvestWithheldTokensToMintAccounts {
-                            mint: ix.accounts[0].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                             source_accounts: ix.accounts[1..]
                                 .iter()
-                                .map(|pk| pk.to_vec())
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                         }),
                     },
@@ -202,9 +206,14 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeIx {
 
                 oneof::Instruction::EnableHarvestToMint(oneof::EnableHarvestToMint {
                     accounts: Some(EnableHarvestToMintAccounts {
-                        mint: ix.accounts[0].to_vec(),
-                        confidential_transfer_fee_authority: ix.accounts[1].to_vec(),
-                        multisig_signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        confidential_transfer_fee_authority: crate::PublicKey::new(
+                            ix.accounts[1].to_vec(),
+                        ),
+                        multisig_signers: ix.accounts[2..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     }),
                 })
             },
@@ -214,9 +223,14 @@ impl ExtensionInstructionParser for ConfidentialTransferFeeIx {
 
                 oneof::Instruction::DisableHarvestToMint(oneof::DisableHarvestToMint {
                     accounts: Some(DisableHarvestToMintAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        confidential_transfer_fee_authority: ix.accounts[1].to_vec(),
-                        multisig_signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        confidential_transfer_fee_authority: crate::PublicKey::new(
+                            ix.accounts[1].to_vec(),
+                        ),
+                        multisig_signers: ix.accounts[2..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     }),
                 })
             },

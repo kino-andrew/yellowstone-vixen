@@ -90,11 +90,17 @@ pub struct Multisig {
 
 fn spl_to_mint(m: &SplMint) -> Mint {
     Mint {
-        mint_authority: m.mint_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+        mint_authority: m
+            .mint_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
         supply: m.supply,
         decimals: m.decimals as u32,
         is_initialized: m.is_initialized,
-        freeze_authority: m.freeze_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+        freeze_authority: m
+            .freeze_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
     }
 }
 
@@ -108,14 +114,17 @@ fn account_state_to_u32(s: AccountState) -> u32 {
 
 fn spl_to_account(a: &SplAccount) -> Account {
     Account {
-        mint: a.mint.to_bytes().to_vec(),
-        owner: a.owner.to_bytes().to_vec(),
+        mint: PublicKey::new(a.mint.to_bytes()),
+        owner: PublicKey::new(a.owner.to_bytes()),
         amount: a.amount,
-        delegate: a.delegate.map(|pk| pk.to_bytes().to_vec()).into(),
+        delegate: a.delegate.map(|pk| PublicKey::new(pk.to_bytes())).into(),
         state: account_state_to_u32(a.state),
         is_native: a.is_native.into(),
         delegated_amount: a.delegated_amount,
-        close_authority: a.close_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+        close_authority: a
+            .close_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
     }
 }
 
@@ -127,7 +136,7 @@ fn spl_to_multisig(multisig: &SplMultisig) -> Multisig {
     let mut signers = Vec::with_capacity(max);
 
     for i in 0..max {
-        signers.push(multisig.signers[i].to_bytes().to_vec());
+        signers.push(PublicKey::new(multisig.signers[i].to_bytes()));
     }
 
     Multisig {
@@ -261,7 +270,9 @@ impl Parser for AccountParser {
 
 impl ProgramParser for AccountParser {
     #[inline]
-    fn program_id(&self) -> yellowstone_vixen_core::Pubkey { spl_token_2022::ID.to_bytes().into() }
+    fn program_id(&self) -> yellowstone_vixen_core::KeyBytes<32> {
+        spl_token_2022::ID.to_bytes().into()
+    }
 }
 
 #[cfg(test)]

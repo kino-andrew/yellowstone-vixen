@@ -39,6 +39,15 @@ pub fn proto_schema_string(
         }
     }
 
+    // PublicKey wrapper message
+    {
+        writeln!(&mut out, "message PublicKey {{").unwrap();
+        writeln!(&mut out, "  bytes value = 1;").unwrap();
+        writeln!(&mut out, "}}\n    ").unwrap();
+
+        message_count += 1;
+    }
+
     // Oneof parents are rendered separately below — skip them here to avoid duplicates.
     let oneof_parents: HashSet<&str> = schema
         .oneofs
@@ -195,6 +204,6 @@ fn scalar_to_proto(s: &ScalarIr) -> &'static str {
         ScalarIr::String => "string",
         ScalarIr::Bytes => "bytes",
         ScalarIr::FixedBytes(_) => "bytes",
-        ScalarIr::PublicKey => "bytes",
+        ScalarIr::PublicKey => "PublicKey",
     }
 }

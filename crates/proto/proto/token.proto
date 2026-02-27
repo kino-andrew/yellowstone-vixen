@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package vixen.parser.token;
 
+message PublicKey {
+  bytes value = 1;
+}
+
 enum AuthorityType {
   MINT_TOKENS = 0;
   FREEZE_ACCOUNT = 1;
@@ -12,29 +16,29 @@ enum AuthorityType {
 // ── Account state ──────────────────────────────────────────────────
 
 message Mint {
-  optional bytes mint_authority = 1;
+  optional PublicKey mint_authority = 1;
   uint64 supply = 2;
   uint32 decimals = 3;
   bool is_initialized = 4;
-  optional bytes freeze_authority = 5;
+  optional PublicKey freeze_authority = 5;
 }
 
 message TokenAccount {
-  bytes mint = 1;
-  bytes owner = 2;
+  PublicKey mint = 1;
+  PublicKey owner = 2;
   uint64 amount = 3;
-  optional bytes delegate = 4;
+  optional PublicKey delegate = 4;
   uint32 state = 5;
   uint64 delegated_amount = 6;
   optional uint64 is_native = 7;
-  optional bytes close_authority = 8;
+  optional PublicKey close_authority = 8;
 }
 
 message Multisig {
   uint32 m = 1;
   uint32 n = 2;
   bool is_initialized = 3;
-  repeated bytes signers = 4;
+  repeated PublicKey signers = 4;
 }
 
 message TokenProgramState {
@@ -48,134 +52,134 @@ message TokenProgramState {
 // ── Instruction accounts ───────────────────────────────────────────
 
 message TransferAccounts {
-  bytes source = 1;
-  bytes destination = 2;
-  bytes owner = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey source = 1;
+  PublicKey destination = 2;
+  PublicKey owner = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message InitializeMintAccounts {
-  bytes mint = 1;
+  PublicKey mint = 1;
 }
 
 message InitializeAccountAccounts {
-  bytes account = 1;
-  bytes mint = 2;
-  bytes owner = 3;
+  PublicKey account = 1;
+  PublicKey mint = 2;
+  PublicKey owner = 3;
 }
 
 message InitializeAccount2Accounts {
-  bytes account = 1;
-  bytes mint = 2;
+  PublicKey account = 1;
+  PublicKey mint = 2;
 }
 
 message InitializeMultisigAccounts {
-  bytes multisig = 1;
-  repeated bytes signers = 2;
+  PublicKey multisig = 1;
+  repeated PublicKey signers = 2;
 }
 
 message ApproveAccounts {
-  bytes source = 1;
-  bytes delegate = 2;
-  bytes owner = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey source = 1;
+  PublicKey delegate = 2;
+  PublicKey owner = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message RevokeAccounts {
-  bytes source = 1;
-  bytes owner = 2;
-  repeated bytes multisig_signers = 3;
+  PublicKey source = 1;
+  PublicKey owner = 2;
+  repeated PublicKey multisig_signers = 3;
 }
 
 message SetAuthorityAccounts {
-  bytes current_authority = 1;
-  bytes account = 2;
-  repeated bytes multisig_signers = 3;
+  PublicKey current_authority = 1;
+  PublicKey account = 2;
+  repeated PublicKey multisig_signers = 3;
 }
 
 message MintToAccounts {
-  bytes mint = 1;
-  bytes account = 2;
-  bytes mint_authority = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey mint = 1;
+  PublicKey account = 2;
+  PublicKey mint_authority = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message BurnAccounts {
-  bytes account = 1;
-  bytes mint = 2;
-  bytes owner = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey account = 1;
+  PublicKey mint = 2;
+  PublicKey owner = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message CloseAccountAccounts {
-  bytes account = 1;
-  bytes destination = 2;
-  bytes owner = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey account = 1;
+  PublicKey destination = 2;
+  PublicKey owner = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message FreezeAccountAccounts {
-  bytes account = 1;
-  bytes mint = 2;
-  bytes mint_freeze_authority = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey account = 1;
+  PublicKey mint = 2;
+  PublicKey mint_freeze_authority = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message ThawAccountAccounts {
-  bytes account = 1;
-  bytes mint = 2;
-  bytes mint_freeze_authority = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey account = 1;
+  PublicKey mint = 2;
+  PublicKey mint_freeze_authority = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message TransferCheckedAccounts {
-  bytes source = 1;
-  bytes mint = 2;
-  bytes destination = 3;
-  bytes owner = 4;
-  repeated bytes multisig_signers = 5;
+  PublicKey source = 1;
+  PublicKey mint = 2;
+  PublicKey destination = 3;
+  PublicKey owner = 4;
+  repeated PublicKey multisig_signers = 5;
 }
 
 message ApproveCheckedAccounts {
-  bytes source = 1;
-  bytes mint = 2;
-  bytes delegate = 3;
-  bytes owner = 4;
-  repeated bytes multisig_signers = 5;
+  PublicKey source = 1;
+  PublicKey mint = 2;
+  PublicKey delegate = 3;
+  PublicKey owner = 4;
+  repeated PublicKey multisig_signers = 5;
 }
 
 message MintToCheckedAccounts {
-  bytes mint = 1;
-  bytes account = 2;
-  bytes mint_authority = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey mint = 1;
+  PublicKey account = 2;
+  PublicKey mint_authority = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message BurnCheckedAccounts {
-  bytes account = 1;
-  bytes mint = 2;
-  bytes owner = 3;
-  repeated bytes multisig_signers = 4;
+  PublicKey account = 1;
+  PublicKey mint = 2;
+  PublicKey owner = 3;
+  repeated PublicKey multisig_signers = 4;
 }
 
 message SyncNativeAccounts {
-  bytes account = 1;
+  PublicKey account = 1;
 }
 
 message GetAccountDataSizeAccounts {
-  bytes mint = 1;
+  PublicKey mint = 1;
 }
 
 message InitializeImmutableOwnerAccounts {
-  bytes account = 1;
+  PublicKey account = 1;
 }
 
 message AmountToUiAmountAccounts {
-  bytes mint = 1;
+  PublicKey mint = 1;
 }
 
 message UiAmountToAmountAccounts {
-  bytes mint = 1;
+  PublicKey mint = 1;
 }
 
 // ── Instruction args ───────────────────────────────────────────────
@@ -186,12 +190,12 @@ message TransferArgs {
 
 message InitializeMintArgs {
   uint32 decimals = 1;
-  bytes mint_authority = 2;
-  optional bytes freeze_authority = 3;
+  PublicKey mint_authority = 2;
+  optional PublicKey freeze_authority = 3;
 }
 
 message InitializeAccount2Args {
-  bytes owner = 1;
+  PublicKey owner = 1;
 }
 
 message InitializeMultisigArgs {
@@ -204,7 +208,7 @@ message ApproveArgs {
 
 message SetAuthorityArgs {
   AuthorityType authority_type = 1;
-  optional bytes new_authority = 2;
+  optional PublicKey new_authority = 2;
 }
 
 message MintToArgs {

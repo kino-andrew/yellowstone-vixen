@@ -67,8 +67,118 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
         pub mod #program_mod_ident {
             use yellowstone_vixen_parser::prelude::*;
 
-            /// 32 bytes by convention.
-            pub type PublicKey = Vec<u8>;
+            pub use yellowstone_vixen_core::PublicKey;
+
+            /// Borsh: deserialize 32 bytes into a PublicKey wrapper (singular required field).
+            fn borsh_deserialize_pubkey<R: ::borsh::io::Read>(
+                reader: &mut R,
+            ) -> ::core::result::Result<PublicKey, ::borsh::io::Error> {
+                let mut buf = [0u8; 32];
+
+                reader.read_exact(&mut buf)?;
+
+                ::core::result::Result::Ok(PublicKey::new(buf))
+            }
+
+            fn borsh_serialize_pubkey<W: ::borsh::io::Write>(
+                val: &PublicKey,
+                writer: &mut W,
+            ) -> ::core::result::Result<(), ::borsh::io::Error> {
+                writer.write_all(&val.value)
+            }
+
+            fn borsh_deserialize_opt_pubkey<R: ::borsh::io::Read>(
+                reader: &mut R,
+            ) -> ::core::result::Result<::core::option::Option<PublicKey>, ::borsh::io::Error> {
+                let tag: u8 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
+                match tag {
+                    0 => ::core::result::Result::Ok(::core::option::Option::None),
+                    1 => {
+                        let mut buf = [0u8; 32];
+
+                        reader.read_exact(&mut buf)?;
+
+                        ::core::result::Result::Ok(::core::option::Option::Some(PublicKey::new(buf)))
+                    }
+                    _ => ::core::result::Result::Err(::borsh::io::Error::new(
+                        ::borsh::io::ErrorKind::InvalidData,
+                        "invalid option tag for pubkey",
+                    )),
+                }
+            }
+
+            fn borsh_serialize_opt_pubkey<W: ::borsh::io::Write>(
+                val: &::core::option::Option<PublicKey>,
+                writer: &mut W,
+            ) -> ::core::result::Result<(), ::borsh::io::Error> {
+                match val {
+                    ::core::option::Option::Some(pk) => {
+                        ::borsh::BorshSerialize::serialize(&1u8, writer)?;
+
+                        writer.write_all(&pk.value)
+                    }
+                    ::core::option::Option::None => {
+                        ::borsh::BorshSerialize::serialize(&0u8, writer)
+                    }
+                }
+            }
+
+            fn borsh_deserialize_vec_pubkey<R: ::borsh::io::Read>(
+                reader: &mut R,
+            ) -> ::core::result::Result<Vec<PublicKey>, ::borsh::io::Error> {
+                let len: u32 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
+                let mut result = Vec::with_capacity(len as usize);
+
+                for _ in 0..len {
+                    let mut buf = [0u8; 32];
+
+                    reader.read_exact(&mut buf)?;
+                    result.push(PublicKey::new(buf));
+                }
+
+                ::core::result::Result::Ok(result)
+            }
+
+            fn borsh_serialize_vec_pubkey<W: ::borsh::io::Write>(
+                val: &[PublicKey],
+                writer: &mut W,
+            ) -> ::core::result::Result<(), ::borsh::io::Error> {
+                ::borsh::BorshSerialize::serialize(&(val.len() as u32), writer)?;
+
+                for pk in val {
+                    writer.write_all(&pk.value)?;
+                }
+
+                ::core::result::Result::Ok(())
+            }
+
+            fn borsh_deserialize_fixed_array_pubkey<const N: usize, R: ::borsh::io::Read>(
+                reader: &mut R,
+            ) -> ::core::result::Result<Vec<PublicKey>, ::borsh::io::Error> {
+                let mut result = Vec::with_capacity(N);
+
+                for _ in 0..N {
+                    let mut buf = [0u8; 32];
+
+                    reader.read_exact(&mut buf)?;
+                    result.push(PublicKey::new(buf));
+                }
+
+                ::core::result::Result::Ok(result)
+            }
+
+            fn borsh_serialize_fixed_array_pubkey<const N: usize, W: ::borsh::io::Write>(
+                val: &[PublicKey],
+                writer: &mut W,
+            ) -> ::core::result::Result<(), ::borsh::io::Error> {
+                for pk in val {
+                    writer.write_all(&pk.value)?;
+                }
+
+                ::core::result::Result::Ok(())
+            }
 
             /// Borsh: deserialize N fixed bytes into `Vec<u8>`.
             /// On-chain, fixed-size byte fields (pubkeys, u128, fixed arrays) have no
@@ -194,9 +304,11 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<Vec<T>, ::borsh::io::Error> {
                 let mut result = Vec::with_capacity(N);
+
                 for _ in 0..N {
                     result.push(<T as ::borsh::BorshDeserialize>::deserialize_reader(reader)?);
                 }
+
                 ::core::result::Result::Ok(result)
             }
 
@@ -207,6 +319,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 for v in val {
                     <T as ::borsh::BorshSerialize>::serialize(v, writer)?;
                 }
+
                 ::core::result::Result::Ok(())
             }
 
@@ -215,11 +328,15 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<Vec<Vec<u8>>, ::borsh::io::Error> {
                 let mut result = Vec::with_capacity(N);
+
                 for _ in 0..N {
                     let mut buf = [0u8; BYTE_SIZE];
+
                     reader.read_exact(&mut buf)?;
+
                     result.push(buf.to_vec());
                 }
+
                 ::core::result::Result::Ok(result)
             }
 
@@ -230,6 +347,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 for v in val {
                     writer.write_all(v)?;
                 }
+
                 ::core::result::Result::Ok(())
             }
 
@@ -240,11 +358,15 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<Vec<f32>, ::borsh::io::Error> {
                 let mut result = Vec::with_capacity(N);
+
                 for _ in 0..N {
                     let mut buf = [0u8; 4];
+
                     reader.read_exact(&mut buf)?;
+
                     result.push(f32::from_le_bytes(buf));
                 }
+
                 ::core::result::Result::Ok(result)
             }
 
@@ -255,6 +377,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 for v in val {
                     writer.write_all(&v.to_le_bytes())?;
                 }
+
                 ::core::result::Result::Ok(())
             }
 
@@ -262,11 +385,15 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<Vec<f64>, ::borsh::io::Error> {
                 let mut result = Vec::with_capacity(N);
+
                 for _ in 0..N {
                     let mut buf = [0u8; 8];
+
                     reader.read_exact(&mut buf)?;
+
                     result.push(f64::from_le_bytes(buf));
                 }
+
                 ::core::result::Result::Ok(result)
             }
 
@@ -277,6 +404,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 for v in val {
                     writer.write_all(&v.to_le_bytes())?;
                 }
+
                 ::core::result::Result::Ok(())
             }
 
@@ -286,7 +414,9 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<f32, ::borsh::io::Error> {
                 let mut buf = [0u8; 4];
+
                 reader.read_exact(&mut buf)?;
+
                 ::core::result::Result::Ok(f32::from_le_bytes(buf))
             }
 
@@ -301,11 +431,14 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<::core::option::Option<f32>, ::borsh::io::Error> {
                 let tag: u8 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
                 match tag {
                     0 => ::core::result::Result::Ok(::core::option::Option::None),
                     1 => {
                         let mut buf = [0u8; 4];
+
                         reader.read_exact(&mut buf)?;
+
                         ::core::result::Result::Ok(::core::option::Option::Some(f32::from_le_bytes(buf)))
                     }
                     _ => ::core::result::Result::Err(::borsh::io::Error::new(
@@ -334,12 +467,17 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<Vec<f32>, ::borsh::io::Error> {
                 let len: u32 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
                 let mut result = Vec::with_capacity(len as usize);
+
                 for _ in 0..len {
                     let mut buf = [0u8; 4];
+
                     reader.read_exact(&mut buf)?;
+
                     result.push(f32::from_le_bytes(buf));
                 }
+
                 ::core::result::Result::Ok(result)
             }
 
@@ -348,9 +486,11 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 writer: &mut W,
             ) -> ::core::result::Result<(), ::borsh::io::Error> {
                 ::borsh::BorshSerialize::serialize(&(val.len() as u32), writer)?;
+
                 for v in val {
                     writer.write_all(&v.to_le_bytes())?;
                 }
+
                 ::core::result::Result::Ok(())
             }
 
@@ -359,7 +499,9 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<f64, ::borsh::io::Error> {
                 let mut buf = [0u8; 8];
+
                 reader.read_exact(&mut buf)?;
+
                 ::core::result::Result::Ok(f64::from_le_bytes(buf))
             }
 
@@ -374,11 +516,14 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<::core::option::Option<f64>, ::borsh::io::Error> {
                 let tag: u8 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
                 match tag {
                     0 => ::core::result::Result::Ok(::core::option::Option::None),
                     1 => {
                         let mut buf = [0u8; 8];
+
                         reader.read_exact(&mut buf)?;
+
                         ::core::result::Result::Ok(::core::option::Option::Some(f64::from_le_bytes(buf)))
                     }
                     _ => ::core::result::Result::Err(::borsh::io::Error::new(
@@ -395,6 +540,7 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 match val {
                     ::core::option::Option::Some(v) => {
                         ::borsh::BorshSerialize::serialize(&1u8, writer)?;
+
                         writer.write_all(&v.to_le_bytes())
                     }
                     ::core::option::Option::None => {
@@ -407,12 +553,16 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 reader: &mut R,
             ) -> ::core::result::Result<Vec<f64>, ::borsh::io::Error> {
                 let len: u32 = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
                 let mut result = Vec::with_capacity(len as usize);
+
                 for _ in 0..len {
                     let mut buf = [0u8; 8];
+
                     reader.read_exact(&mut buf)?;
                     result.push(f64::from_le_bytes(buf));
                 }
+
                 ::core::result::Result::Ok(result)
             }
 
@@ -421,9 +571,11 @@ pub fn vixen_parser(idl: &RootNode) -> TokenStream {
                 writer: &mut W,
             ) -> ::core::result::Result<(), ::borsh::io::Error> {
                 ::borsh::BorshSerialize::serialize(&(val.len() as u32), writer)?;
+
                 for v in val {
                     writer.write_all(&v.to_le_bytes())?;
                 }
+
                 ::core::result::Result::Ok(())
             }
 
@@ -558,20 +710,23 @@ fn fixed_array_widen_borsh_helpers() -> Vec<TokenStream> {
                 let on_chain_ty: syn::Type = syn::parse_str(on_chain_type).unwrap();
                 let rust_ty: syn::Type = syn::parse_str(rust_type).unwrap();
 
-                let deserialize_fn =
-                    format_ident!("borsh_deserialize_fixed_array_{}", deserialize_suffix);
-                let serialize_fn =
-                    format_ident!("borsh_serialize_fixed_array_{}", serialize_suffix);
+                let (deserialize_fn, serialize_fn) = (
+                    format_ident!("borsh_deserialize_fixed_array_{}", deserialize_suffix),
+                    format_ident!("borsh_serialize_fixed_array_{}", serialize_suffix),
+                );
 
                 quote! {
                     fn #deserialize_fn<const N: usize, R: ::borsh::io::Read>(
                         reader: &mut R,
                     ) -> ::core::result::Result<Vec<#rust_ty>, ::borsh::io::Error> {
                         let mut result = Vec::with_capacity(N);
+
                         for _ in 0..N {
                             let val: #on_chain_ty = ::borsh::BorshDeserialize::deserialize_reader(reader)?;
+
                             result.push(val as #rust_ty);
                         }
+
                         ::core::result::Result::Ok(result)
                     }
 
@@ -582,6 +737,7 @@ fn fixed_array_widen_borsh_helpers() -> Vec<TokenStream> {
                         for &v in val {
                             ::borsh::BorshSerialize::serialize(&(v as #on_chain_ty), writer)?;
                         }
+
                         ::core::result::Result::Ok(())
                     }
                 }

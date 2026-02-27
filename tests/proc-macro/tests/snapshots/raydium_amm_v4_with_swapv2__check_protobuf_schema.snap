@@ -6,12 +6,16 @@ syntax = "proto3";
 
 package raydium_amm;
 
+message PublicKey {
+  bytes value = 1;
+}
+    
 message WithdrawDestToken {
   uint64 withdraw_amount = 1;
   uint64 coin_amount = 2;
   uint64 pc_amount = 3;
-  bytes dest_token_coin = 4;
-  bytes dest_token_pc = 5;
+  PublicKey dest_token_coin = 4;
+  PublicKey dest_token_pc = 5;
 }
     
 message WithdrawQueue {
@@ -44,8 +48,8 @@ message OutPutData {
 }
     
 message AmmConfig {
-  bytes pnl_owner = 1;
-  bytes cancel_owner = 2;
+  PublicKey pnl_owner = 1;
+  PublicKey cancel_owner = 2;
   repeated uint64 pending1 = 3;
   repeated uint64 pending2 = 4;
 }
@@ -128,42 +132,42 @@ message AmmInfo {
   uint64 sys_decimal_value = 16;
   Fees fees = 17;
   OutPutData out_put = 18;
-  bytes token_coin = 19;
-  bytes token_pc = 20;
-  bytes coin_mint = 21;
-  bytes pc_mint = 22;
-  bytes lp_mint = 23;
-  bytes open_orders = 24;
-  bytes market = 25;
-  bytes serum_dex = 26;
-  bytes target_orders = 27;
-  bytes withdraw_queue = 28;
-  bytes token_temp_lp = 29;
-  bytes amm_owner = 30;
+  PublicKey token_coin = 19;
+  PublicKey token_pc = 20;
+  PublicKey coin_mint = 21;
+  PublicKey pc_mint = 22;
+  PublicKey lp_mint = 23;
+  PublicKey open_orders = 24;
+  PublicKey market = 25;
+  PublicKey serum_dex = 26;
+  PublicKey target_orders = 27;
+  PublicKey withdraw_queue = 28;
+  PublicKey token_temp_lp = 29;
+  PublicKey amm_owner = 30;
   uint64 lp_amount = 31;
   uint64 client_order_id = 32;
   repeated uint64 padding = 33;
 }
     
 message InitializeAccounts {
-  bytes token_program = 1;
-  bytes system_program = 2;
-  bytes rent = 3;
-  bytes amm = 4;
-  bytes amm_authority = 5;
-  bytes amm_open_orders = 6;
-  bytes lp_mint_address = 7;
-  bytes coin_mint_address = 8;
-  bytes pc_mint_address = 9;
-  bytes pool_coin_token_account = 10;
-  bytes pool_pc_token_account = 11;
-  bytes pool_withdraw_queue = 12;
-  bytes pool_target_orders_account = 13;
-  bytes user_lp_token_account = 14;
-  bytes pool_temp_lp_token_account = 15;
-  bytes serum_program = 16;
-  bytes serum_market = 17;
-  bytes user_wallet = 18;
+  PublicKey token_program = 1;
+  PublicKey system_program = 2;
+  PublicKey rent = 3;
+  PublicKey amm = 4;
+  PublicKey amm_authority = 5;
+  PublicKey amm_open_orders = 6;
+  PublicKey lp_mint_address = 7;
+  PublicKey coin_mint_address = 8;
+  PublicKey pc_mint_address = 9;
+  PublicKey pool_coin_token_account = 10;
+  PublicKey pool_pc_token_account = 11;
+  PublicKey pool_withdraw_queue = 12;
+  PublicKey pool_target_orders_account = 13;
+  PublicKey user_lp_token_account = 14;
+  PublicKey pool_temp_lp_token_account = 15;
+  PublicKey serum_program = 16;
+  PublicKey serum_market = 17;
+  PublicKey user_wallet = 18;
 }
     
 message InitializeArgs {
@@ -177,27 +181,27 @@ message Initialize {
 }
     
 message Initialize2Accounts {
-  bytes token_program = 1;
-  bytes spl_associated_token_account = 2;
-  bytes system_program = 3;
-  bytes rent = 4;
-  bytes amm = 5;
-  bytes amm_authority = 6;
-  bytes amm_open_orders = 7;
-  bytes lp_mint = 8;
-  bytes coin_mint = 9;
-  bytes pc_mint = 10;
-  bytes pool_coin_token_account = 11;
-  bytes pool_pc_token_account = 12;
-  bytes pool_withdraw_queue = 13;
-  bytes amm_target_orders = 14;
-  bytes pool_temp_lp = 15;
-  bytes serum_program = 16;
-  bytes serum_market = 17;
-  bytes user_wallet = 18;
-  bytes user_token_coin = 19;
-  bytes user_token_pc = 20;
-  bytes user_lp_token_account = 21;
+  PublicKey token_program = 1;
+  PublicKey spl_associated_token_account = 2;
+  PublicKey system_program = 3;
+  PublicKey rent = 4;
+  PublicKey amm = 5;
+  PublicKey amm_authority = 6;
+  PublicKey amm_open_orders = 7;
+  PublicKey lp_mint = 8;
+  PublicKey coin_mint = 9;
+  PublicKey pc_mint = 10;
+  PublicKey pool_coin_token_account = 11;
+  PublicKey pool_pc_token_account = 12;
+  PublicKey pool_withdraw_queue = 13;
+  PublicKey amm_target_orders = 14;
+  PublicKey pool_temp_lp = 15;
+  PublicKey serum_program = 16;
+  PublicKey serum_market = 17;
+  PublicKey user_wallet = 18;
+  PublicKey user_token_coin = 19;
+  PublicKey user_token_pc = 20;
+  PublicKey user_lp_token_account = 21;
 }
     
 message Initialize2Args {
@@ -213,25 +217,25 @@ message Initialize2 {
 }
     
 message MonitorStepAccounts {
-  bytes token_program = 1;
-  bytes rent = 2;
-  bytes clock = 3;
-  bytes amm = 4;
-  bytes amm_authority = 5;
-  bytes amm_open_orders = 6;
-  bytes amm_target_orders = 7;
-  bytes pool_coin_token_account = 8;
-  bytes pool_pc_token_account = 9;
-  bytes pool_withdraw_queue = 10;
-  bytes serum_program = 11;
-  bytes serum_market = 12;
-  bytes serum_coin_vault_account = 13;
-  bytes serum_pc_vault_account = 14;
-  bytes serum_vault_signer = 15;
-  bytes serum_req_q = 16;
-  bytes serum_event_q = 17;
-  bytes serum_bids = 18;
-  bytes serum_asks = 19;
+  PublicKey token_program = 1;
+  PublicKey rent = 2;
+  PublicKey clock = 3;
+  PublicKey amm = 4;
+  PublicKey amm_authority = 5;
+  PublicKey amm_open_orders = 6;
+  PublicKey amm_target_orders = 7;
+  PublicKey pool_coin_token_account = 8;
+  PublicKey pool_pc_token_account = 9;
+  PublicKey pool_withdraw_queue = 10;
+  PublicKey serum_program = 11;
+  PublicKey serum_market = 12;
+  PublicKey serum_coin_vault_account = 13;
+  PublicKey serum_pc_vault_account = 14;
+  PublicKey serum_vault_signer = 15;
+  PublicKey serum_req_q = 16;
+  PublicKey serum_event_q = 17;
+  PublicKey serum_bids = 18;
+  PublicKey serum_asks = 19;
 }
     
 message MonitorStepArgs {
@@ -246,20 +250,20 @@ message MonitorStep {
 }
     
 message DepositAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_open_orders = 4;
-  bytes amm_target_orders = 5;
-  bytes lp_mint_address = 6;
-  bytes pool_coin_token_account = 7;
-  bytes pool_pc_token_account = 8;
-  bytes serum_market = 9;
-  bytes user_coin_token_account = 10;
-  bytes user_pc_token_account = 11;
-  bytes user_lp_token_account = 12;
-  bytes user_owner = 13;
-  bytes serum_event_queue = 14;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey amm_target_orders = 5;
+  PublicKey lp_mint_address = 6;
+  PublicKey pool_coin_token_account = 7;
+  PublicKey pool_pc_token_account = 8;
+  PublicKey serum_market = 9;
+  PublicKey user_coin_token_account = 10;
+  PublicKey user_pc_token_account = 11;
+  PublicKey user_lp_token_account = 12;
+  PublicKey user_owner = 13;
+  PublicKey serum_event_queue = 14;
 }
     
 message DepositArgs {
@@ -274,28 +278,28 @@ message Deposit {
 }
     
 message WithdrawAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_open_orders = 4;
-  bytes amm_target_orders = 5;
-  bytes lp_mint_address = 6;
-  bytes pool_coin_token_account = 7;
-  bytes pool_pc_token_account = 8;
-  bytes pool_withdraw_queue = 9;
-  bytes pool_temp_lp_token_account = 10;
-  bytes serum_program = 11;
-  bytes serum_market = 12;
-  bytes serum_coin_vault_account = 13;
-  bytes serum_pc_vault_account = 14;
-  bytes serum_vault_signer = 15;
-  bytes user_lp_token_account = 16;
-  bytes user_coin_token_account = 17;
-  bytes user_pc_token_account = 18;
-  bytes user_owner = 19;
-  bytes serum_event_q = 20;
-  bytes serum_bids = 21;
-  bytes serum_asks = 22;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey amm_target_orders = 5;
+  PublicKey lp_mint_address = 6;
+  PublicKey pool_coin_token_account = 7;
+  PublicKey pool_pc_token_account = 8;
+  PublicKey pool_withdraw_queue = 9;
+  PublicKey pool_temp_lp_token_account = 10;
+  PublicKey serum_program = 11;
+  PublicKey serum_market = 12;
+  PublicKey serum_coin_vault_account = 13;
+  PublicKey serum_pc_vault_account = 14;
+  PublicKey serum_vault_signer = 15;
+  PublicKey user_lp_token_account = 16;
+  PublicKey user_coin_token_account = 17;
+  PublicKey user_pc_token_account = 18;
+  PublicKey user_owner = 19;
+  PublicKey serum_event_q = 20;
+  PublicKey serum_bids = 21;
+  PublicKey serum_asks = 22;
 }
     
 message WithdrawArgs {
@@ -308,27 +312,27 @@ message Withdraw {
 }
     
 message MigrateToOpenBookAccounts {
-  bytes token_program = 1;
-  bytes system_program = 2;
-  bytes rent = 3;
-  bytes amm = 4;
-  bytes amm_authority = 5;
-  bytes amm_open_orders = 6;
-  bytes amm_token_coin = 7;
-  bytes amm_token_pc = 8;
-  bytes amm_target_orders = 9;
-  bytes serum_program = 10;
-  bytes serum_market = 11;
-  bytes serum_bids = 12;
-  bytes serum_asks = 13;
-  bytes serum_event_queue = 14;
-  bytes serum_coin_vault = 15;
-  bytes serum_pc_vault = 16;
-  bytes serum_vault_signer = 17;
-  bytes new_amm_open_orders = 18;
-  bytes new_serum_program = 19;
-  bytes new_serum_market = 20;
-  bytes admin = 21;
+  PublicKey token_program = 1;
+  PublicKey system_program = 2;
+  PublicKey rent = 3;
+  PublicKey amm = 4;
+  PublicKey amm_authority = 5;
+  PublicKey amm_open_orders = 6;
+  PublicKey amm_token_coin = 7;
+  PublicKey amm_token_pc = 8;
+  PublicKey amm_target_orders = 9;
+  PublicKey serum_program = 10;
+  PublicKey serum_market = 11;
+  PublicKey serum_bids = 12;
+  PublicKey serum_asks = 13;
+  PublicKey serum_event_queue = 14;
+  PublicKey serum_coin_vault = 15;
+  PublicKey serum_pc_vault = 16;
+  PublicKey serum_vault_signer = 17;
+  PublicKey new_amm_open_orders = 18;
+  PublicKey new_serum_program = 19;
+  PublicKey new_serum_market = 20;
+  PublicKey admin = 21;
 }
     
 message MigrateToOpenBookArgs {
@@ -340,28 +344,28 @@ message MigrateToOpenBook {
 }
     
 message SetParamsAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_open_orders = 4;
-  bytes amm_target_orders = 5;
-  bytes amm_coin_vault = 6;
-  bytes amm_pc_vault = 7;
-  bytes serum_program = 8;
-  bytes serum_market = 9;
-  bytes serum_coin_vault = 10;
-  bytes serum_pc_vault = 11;
-  bytes serum_vault_signer = 12;
-  bytes serum_event_queue = 13;
-  bytes serum_bids = 14;
-  bytes serum_asks = 15;
-  bytes amm_admin_account = 16;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey amm_target_orders = 5;
+  PublicKey amm_coin_vault = 6;
+  PublicKey amm_pc_vault = 7;
+  PublicKey serum_program = 8;
+  PublicKey serum_market = 9;
+  PublicKey serum_coin_vault = 10;
+  PublicKey serum_pc_vault = 11;
+  PublicKey serum_vault_signer = 12;
+  PublicKey serum_event_queue = 13;
+  PublicKey serum_bids = 14;
+  PublicKey serum_asks = 15;
+  PublicKey amm_admin_account = 16;
 }
     
 message SetParamsArgs {
   uint32 param = 1;
   optional uint64 value = 2;
-  optional bytes new_pubkey = 3;
+  optional PublicKey new_pubkey = 3;
   optional Fees fees = 4;
   optional LastOrderDistance last_order_distance = 5;
   optional NeedTake need_take_amounts = 6;
@@ -373,23 +377,23 @@ message SetParams {
 }
     
 message WithdrawPnlAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_config = 3;
-  bytes amm_authority = 4;
-  bytes amm_open_orders = 5;
-  bytes pool_coin_token_account = 6;
-  bytes pool_pc_token_account = 7;
-  bytes coin_pnl_token_account = 8;
-  bytes pc_pnl_token_account = 9;
-  bytes pnl_owner_account = 10;
-  bytes amm_target_orders = 11;
-  bytes serum_program = 12;
-  bytes serum_market = 13;
-  bytes serum_event_queue = 14;
-  bytes serum_coin_vault_account = 15;
-  bytes serum_pc_vault_account = 16;
-  bytes serum_vault_signer = 17;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_config = 3;
+  PublicKey amm_authority = 4;
+  PublicKey amm_open_orders = 5;
+  PublicKey pool_coin_token_account = 6;
+  PublicKey pool_pc_token_account = 7;
+  PublicKey coin_pnl_token_account = 8;
+  PublicKey pc_pnl_token_account = 9;
+  PublicKey pnl_owner_account = 10;
+  PublicKey amm_target_orders = 11;
+  PublicKey serum_program = 12;
+  PublicKey serum_market = 13;
+  PublicKey serum_event_queue = 14;
+  PublicKey serum_coin_vault_account = 15;
+  PublicKey serum_pc_vault_account = 16;
+  PublicKey serum_vault_signer = 17;
 }
     
 message WithdrawPnlArgs {
@@ -401,12 +405,12 @@ message WithdrawPnl {
 }
     
 message WithdrawSrmAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_owner_account = 3;
-  bytes amm_authority = 4;
-  bytes srm_token = 5;
-  bytes dest_srm_token = 6;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_owner_account = 3;
+  PublicKey amm_authority = 4;
+  PublicKey srm_token = 5;
+  PublicKey dest_srm_token = 6;
 }
     
 message WithdrawSrmArgs {
@@ -419,24 +423,24 @@ message WithdrawSrm {
 }
     
 message SwapBaseInAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_open_orders = 4;
-  bytes amm_target_orders_deprecated = 5;
-  bytes pool_coin_token_account = 6;
-  bytes pool_pc_token_account = 7;
-  bytes serum_program = 8;
-  bytes serum_market = 9;
-  bytes serum_bids = 10;
-  bytes serum_asks = 11;
-  bytes serum_event_queue = 12;
-  bytes serum_coin_vault_account = 13;
-  bytes serum_pc_vault_account = 14;
-  bytes serum_vault_signer = 15;
-  bytes user_source_token_account = 16;
-  bytes user_destination_token_account = 17;
-  bytes user_source_owner = 18;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey amm_target_orders_deprecated = 5;
+  PublicKey pool_coin_token_account = 6;
+  PublicKey pool_pc_token_account = 7;
+  PublicKey serum_program = 8;
+  PublicKey serum_market = 9;
+  PublicKey serum_bids = 10;
+  PublicKey serum_asks = 11;
+  PublicKey serum_event_queue = 12;
+  PublicKey serum_coin_vault_account = 13;
+  PublicKey serum_pc_vault_account = 14;
+  PublicKey serum_vault_signer = 15;
+  PublicKey user_source_token_account = 16;
+  PublicKey user_destination_token_account = 17;
+  PublicKey user_source_owner = 18;
 }
     
 message SwapBaseInArgs {
@@ -450,20 +454,20 @@ message SwapBaseIn {
 }
     
 message PreInitializeAccounts {
-  bytes token_program = 1;
-  bytes system_program = 2;
-  bytes rent = 3;
-  bytes amm_target_orders = 4;
-  bytes pool_withdraw_queue = 5;
-  bytes amm_authority = 6;
-  bytes lp_mint_address = 7;
-  bytes coin_mint_address = 8;
-  bytes pc_mint_address = 9;
-  bytes pool_coin_token_account = 10;
-  bytes pool_pc_token_account = 11;
-  bytes pool_temp_lp_token_account = 12;
-  bytes serum_market = 13;
-  bytes user_wallet = 14;
+  PublicKey token_program = 1;
+  PublicKey system_program = 2;
+  PublicKey rent = 3;
+  PublicKey amm_target_orders = 4;
+  PublicKey pool_withdraw_queue = 5;
+  PublicKey amm_authority = 6;
+  PublicKey lp_mint_address = 7;
+  PublicKey coin_mint_address = 8;
+  PublicKey pc_mint_address = 9;
+  PublicKey pool_coin_token_account = 10;
+  PublicKey pool_pc_token_account = 11;
+  PublicKey pool_temp_lp_token_account = 12;
+  PublicKey serum_market = 13;
+  PublicKey user_wallet = 14;
 }
     
 message PreInitializeArgs {
@@ -476,24 +480,24 @@ message PreInitialize {
 }
     
 message SwapBaseOutAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_open_orders = 4;
-  bytes amm_target_orders = 5;
-  bytes pool_coin_token_account = 6;
-  bytes pool_pc_token_account = 7;
-  bytes serum_program = 8;
-  bytes serum_market = 9;
-  bytes serum_bids = 10;
-  bytes serum_asks = 11;
-  bytes serum_event_queue = 12;
-  bytes serum_coin_vault_account = 13;
-  bytes serum_pc_vault_account = 14;
-  bytes serum_vault_signer = 15;
-  bytes user_source_token_account = 16;
-  bytes user_destination_token_account = 17;
-  bytes user_source_owner = 18;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey amm_target_orders = 5;
+  PublicKey pool_coin_token_account = 6;
+  PublicKey pool_pc_token_account = 7;
+  PublicKey serum_program = 8;
+  PublicKey serum_market = 9;
+  PublicKey serum_bids = 10;
+  PublicKey serum_asks = 11;
+  PublicKey serum_event_queue = 12;
+  PublicKey serum_coin_vault_account = 13;
+  PublicKey serum_pc_vault_account = 14;
+  PublicKey serum_vault_signer = 15;
+  PublicKey user_source_token_account = 16;
+  PublicKey user_destination_token_account = 17;
+  PublicKey user_source_owner = 18;
 }
     
 message SwapBaseOutArgs {
@@ -507,14 +511,14 @@ message SwapBaseOut {
 }
     
 message SimulateInfoAccounts {
-  bytes amm = 1;
-  bytes amm_authority = 2;
-  bytes amm_open_orders = 3;
-  bytes pool_coin_token_account = 4;
-  bytes pool_pc_token_account = 5;
-  bytes lp_mint_address = 6;
-  bytes serum_market = 7;
-  bytes serum_event_queue = 8;
+  PublicKey amm = 1;
+  PublicKey amm_authority = 2;
+  PublicKey amm_open_orders = 3;
+  PublicKey pool_coin_token_account = 4;
+  PublicKey pool_pc_token_account = 5;
+  PublicKey lp_mint_address = 6;
+  PublicKey serum_market = 7;
+  PublicKey serum_event_queue = 8;
 }
     
 message SimulateInfoArgs {
@@ -529,23 +533,23 @@ message SimulateInfo {
 }
     
 message AdminCancelOrdersAccounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_open_orders = 4;
-  bytes amm_target_orders = 5;
-  bytes pool_coin_token_account = 6;
-  bytes pool_pc_token_account = 7;
-  bytes amm_owner_account = 8;
-  bytes amm_config = 9;
-  bytes serum_program = 10;
-  bytes serum_market = 11;
-  bytes serum_coin_vault_account = 12;
-  bytes serum_pc_vault_account = 13;
-  bytes serum_vault_signer = 14;
-  bytes serum_event_q = 15;
-  bytes serum_bids = 16;
-  bytes serum_asks = 17;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey amm_target_orders = 5;
+  PublicKey pool_coin_token_account = 6;
+  PublicKey pool_pc_token_account = 7;
+  PublicKey amm_owner_account = 8;
+  PublicKey amm_config = 9;
+  PublicKey serum_program = 10;
+  PublicKey serum_market = 11;
+  PublicKey serum_coin_vault_account = 12;
+  PublicKey serum_pc_vault_account = 13;
+  PublicKey serum_vault_signer = 14;
+  PublicKey serum_event_q = 15;
+  PublicKey serum_bids = 16;
+  PublicKey serum_asks = 17;
 }
     
 message AdminCancelOrdersArgs {
@@ -558,11 +562,11 @@ message AdminCancelOrders {
 }
     
 message CreateConfigAccountAccounts {
-  bytes admin = 1;
-  bytes amm_config = 2;
-  bytes owner = 3;
-  bytes system_program = 4;
-  bytes rent = 5;
+  PublicKey admin = 1;
+  PublicKey amm_config = 2;
+  PublicKey owner = 3;
+  PublicKey system_program = 4;
+  PublicKey rent = 5;
 }
     
 message CreateConfigAccountArgs {
@@ -574,13 +578,13 @@ message CreateConfigAccount {
 }
     
 message UpdateConfigAccountAccounts {
-  bytes admin = 1;
-  bytes amm_config = 2;
+  PublicKey admin = 1;
+  PublicKey amm_config = 2;
 }
     
 message UpdateConfigAccountArgs {
   uint32 param = 1;
-  bytes owner = 2;
+  PublicKey owner = 2;
 }
     
 message UpdateConfigAccount {
@@ -589,14 +593,14 @@ message UpdateConfigAccount {
 }
     
 message SwapBaseInV2Accounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_coin_vault = 4;
-  bytes amm_pc_vault = 5;
-  bytes user_source_token_account = 6;
-  bytes user_destination_token_account = 7;
-  bytes user_wallet_account = 8;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_coin_vault = 4;
+  PublicKey amm_pc_vault = 5;
+  PublicKey user_source_token_account = 6;
+  PublicKey user_destination_token_account = 7;
+  PublicKey user_wallet_account = 8;
 }
     
 message SwapBaseInV2Args {
@@ -610,14 +614,14 @@ message SwapBaseInV2 {
 }
     
 message SwapBaseOutV2Accounts {
-  bytes token_program = 1;
-  bytes amm = 2;
-  bytes amm_authority = 3;
-  bytes amm_coin_vault = 4;
-  bytes amm_pc_vault = 5;
-  bytes user_source_token_account = 6;
-  bytes user_destination_token_account = 7;
-  bytes user_wallet_account = 8;
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_coin_vault = 4;
+  PublicKey amm_pc_vault = 5;
+  PublicKey user_source_token_account = 6;
+  PublicKey user_destination_token_account = 7;
+  PublicKey user_wallet_account = 8;
 }
     
 message SwapBaseOutV2Args {

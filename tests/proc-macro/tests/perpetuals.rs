@@ -24,25 +24,25 @@ async fn parse_custody_account() {
     };
 
     let expected = perpetuals::Custody {
-        pool: vec![
-            62, 30, 36, 115, 199, 52, 6, 84, 235, 135, 41, 0, 53, 21, 28, 64, 43, 208, 227,
-            201, 124, 180, 36, 72, 134, 231, 32, 52, 179, 11, 77, 252,
-        ],
-        mint: vec![
-            6, 155, 136, 87, 254, 171, 129, 132, 251, 104, 127, 99, 70, 24, 192, 53, 218,
-            196, 57, 220, 26, 235, 59, 85, 152, 160, 240, 0, 0, 0, 0, 1,
-        ],
-        token_account: vec![
-            155, 188, 50, 161, 141, 135, 28, 7, 53, 93, 210, 81, 97, 36, 21, 196, 32, 76,
-            171, 128, 29, 185, 238, 194, 146, 101, 3, 81, 177, 102, 210, 110,
-        ],
+        pool: perpetuals::PublicKey::new(vec![
+            62, 30, 36, 115, 199, 52, 6, 84, 235, 135, 41, 0, 53, 21, 28, 64, 43, 208, 227, 201,
+            124, 180, 36, 72, 134, 231, 32, 52, 179, 11, 77, 252,
+        ]),
+        mint: perpetuals::PublicKey::new(vec![
+            6, 155, 136, 87, 254, 171, 129, 132, 251, 104, 127, 99, 70, 24, 192, 53, 218, 196, 57,
+            220, 26, 235, 59, 85, 152, 160, 240, 0, 0, 0, 0, 1,
+        ]),
+        token_account: perpetuals::PublicKey::new(vec![
+            155, 188, 50, 161, 141, 135, 28, 7, 53, 93, 210, 81, 97, 36, 21, 196, 32, 76, 171, 128,
+            29, 185, 238, 194, 146, 101, 3, 81, 177, 102, 210, 110,
+        ]),
         decimals: 9,
         is_stable: false,
         oracle: Some(perpetuals::OracleParams {
-            oracle_account: vec![
-                96, 49, 71, 4, 52, 13, 237, 223, 55, 31, 212, 36, 114, 20, 143, 36, 142,
-                157, 26, 109, 26, 94, 178, 172, 58, 205, 139, 127, 213, 214, 178, 67,
-            ],
+            oracle_account: perpetuals::PublicKey::new(vec![
+                96, 49, 71, 4, 52, 13, 237, 223, 55, 31, 212, 36, 114, 20, 143, 36, 142, 157, 26,
+                109, 26, 94, 178, 172, 58, 205, 139, 127, 213, 214, 178, 67,
+            ]),
             oracle_type: Some(perpetuals::OracleType {
                 kind: Some(perpetuals::oracle_type::Kind::Pyth(
                     perpetuals::OracleTypePyth {},
@@ -78,9 +78,7 @@ async fn parse_custody_account() {
             global_short_average_prices: 83_486_086,
         }),
         funding_rate_state: Some(perpetuals::FundingRateState {
-            cumulative_interest_rate: vec![
-                151, 179, 251, 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            ],
+            cumulative_interest_rate: vec![151, 179, 251, 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             last_update: 1_771_834_760,
             hourly_funding_dbps: 0,
         }),
@@ -89,26 +87,82 @@ async fn parse_custody_account() {
         increase_position_bps: 6,
         decrease_position_bps: 6,
         max_position_size_usd: 10_000_000_000_000,
-        doves_oracle: vec![
-            31, 236, 44, 187, 11, 175, 112, 110, 143, 105, 186, 138, 53, 218, 38, 247, 99,
-            111, 71, 194, 119, 3, 29, 140, 62, 4, 86, 16, 146, 217, 76, 97,
-        ],
+        doves_oracle: perpetuals::PublicKey::new(vec![
+            31, 236, 44, 187, 11, 175, 112, 110, 143, 105, 186, 138, 53, 218, 38, 247, 99, 111, 71,
+            194, 119, 3, 29, 140, 62, 4, 86, 16, 146, 217, 76, 97,
+        ]),
         jump_rate_state: Some(perpetuals::JumpRateState {
             min_rate_bps: 1000,
             max_rate_bps: 15000,
             target_rate_bps: 3500,
             target_utilization_rate: 800_000_000,
         }),
-        doves_ag_oracle: vec![
-            216, 42, 235, 57, 188, 70, 146, 145, 46, 181, 242, 170, 224, 18, 127, 36, 173,
-            176, 246, 182, 107, 253, 118, 9, 80, 73, 48, 236, 108, 178, 99, 136,
-        ],
+        doves_ag_oracle: perpetuals::PublicKey::new(vec![
+            216, 42, 235, 57, 188, 70, 146, 145, 46, 181, 242, 170, 224, 18, 127, 36, 173, 176,
+            246, 182, 107, 253, 118, 9, 80, 73, 48, 236, 108, 178, 99, 136,
+        ]),
         price_impact_buffer: Some(perpetuals::PriceImpactBuffer {
             open_interest: vec![
-                0, 0, -3_691_644_661, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 620_487_212, 0,
-                0, 0, 0, 1_936_686_312, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 2_385_457_659, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                7_440_976_097, 0, 0, 0,
+                0,
+                0,
+                -3_691_644_661,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                620_487_212,
+                0,
+                0,
+                0,
+                0,
+                1_936_686_312,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2_385_457_659,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                7_440_976_097,
+                0,
+                0,
+                0,
             ],
             last_updated: 1_771_834_760,
             fee_factor: 1,
@@ -161,26 +215,26 @@ async fn parse_pool_account() {
     let expected = perpetuals::Pool {
         name: "Pool".to_string(),
         custodies: vec![
-            vec![
+            perpetuals::PublicKey::new(vec![
                 103, 89, 93, 216, 70, 192, 7, 242, 104, 150, 242, 174, 211, 27, 167, 181, 95, 209,
                 44, 204, 21, 142, 11, 0, 122, 157, 143, 232, 70, 182, 159, 233,
-            ],
-            vec![
+            ]),
+            perpetuals::PublicKey::new(vec![
                 139, 170, 74, 72, 100, 34, 108, 192, 34, 72, 77, 200, 40, 30, 26, 22, 143, 92, 244,
                 232, 5, 63, 26, 229, 6, 109, 145, 106, 136, 185, 223, 159,
-            ],
-            vec![
+            ]),
+            perpetuals::PublicKey::new(vec![
                 65, 77, 129, 72, 106, 241, 62, 110, 236, 158, 45, 91, 207, 69, 145, 50, 227, 164,
                 102, 71, 9, 182, 109, 56, 208, 100, 119, 145, 36, 198, 206, 62,
-            ],
-            vec![
+            ]),
+            perpetuals::PublicKey::new(vec![
                 222, 232, 11, 52, 19, 162, 211, 16, 128, 98, 107, 146, 108, 56, 175, 52, 190, 209,
                 134, 219, 54, 142, 151, 127, 58, 191, 75, 213, 69, 68, 154, 109,
-            ],
-            vec![
+            ]),
+            perpetuals::PublicKey::new(vec![
                 58, 87, 226, 203, 202, 208, 40, 131, 80, 35, 204, 171, 74, 216, 123, 210, 118, 78,
                 143, 193, 50, 214, 142, 152, 102, 9, 235, 19, 75, 215, 134, 249,
-            ],
+            ]),
         ],
         aum_usd: vec![42, 148, 219, 152, 238, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         limit: Some(perpetuals::Limit {
@@ -245,67 +299,67 @@ async fn parse_decrease_position_with_tpsl_and_close_position_request_2_ix() {
 
         let expected = perpetuals::instruction::DecreasePositionWithTpsl {
             accounts: Some(perpetuals::instruction::DecreasePositionWithTpslAccounts {
-                keeper: vec![
+                keeper: perpetuals::PublicKey::new(vec![
                     238, 103, 24, 154, 146, 36, 183, 11, 249, 126, 171, 22, 248, 91, 126, 66, 80,
                     130, 214, 35, 46, 153, 237, 255, 229, 32, 219, 75, 135, 121, 46, 21,
-                ],
-                owner: vec![
+                ]),
+                owner: perpetuals::PublicKey::new(vec![
                     138, 2, 154, 132, 201, 110, 60, 65, 124, 72, 228, 105, 180, 198, 154, 69, 177,
                     138, 239, 252, 160, 169, 123, 64, 90, 105, 103, 236, 9, 62, 69, 162,
-                ],
-                transfer_authority: vec![
+                ]),
+                transfer_authority: perpetuals::PublicKey::new(vec![
                     141, 38, 83, 12, 155, 36, 127, 146, 136, 234, 206, 55, 84, 75, 38, 56, 128,
                     192, 44, 173, 4, 211, 33, 80, 237, 29, 1, 248, 251, 221, 35, 134,
-                ],
-                perpetuals: vec![
+                ]),
+                perpetuals: perpetuals::PublicKey::new(vec![
                     238, 151, 183, 0, 48, 24, 63, 163, 2, 12, 13, 6, 188, 207, 70, 162, 238, 235,
                     177, 159, 189, 77, 24, 177, 204, 63, 21, 61, 126, 170, 228, 30,
-                ],
-                pool: vec![
+                ]),
+                pool: perpetuals::PublicKey::new(vec![
                     62, 30, 36, 115, 199, 52, 6, 84, 235, 135, 41, 0, 53, 21, 28, 64, 43, 208, 227,
                     201, 124, 180, 36, 72, 134, 231, 32, 52, 179, 11, 77, 252,
-                ],
-                position_request: vec![
+                ]),
+                position_request: perpetuals::PublicKey::new(vec![
                     233, 115, 77, 143, 129, 244, 145, 190, 189, 103, 5, 29, 76, 62, 201, 162, 249,
                     94, 14, 84, 101, 136, 146, 56, 83, 158, 180, 120, 90, 69, 12, 176,
-                ],
-                position_request_ata: vec![
+                ]),
+                position_request_ata: perpetuals::PublicKey::new(vec![
                     29, 156, 57, 200, 92, 59, 244, 71, 93, 107, 142, 243, 97, 105, 117, 15, 130,
                     93, 162, 16, 233, 61, 59, 152, 138, 96, 254, 171, 26, 93, 233, 251,
-                ],
-                position: vec![
+                ]),
+                position: perpetuals::PublicKey::new(vec![
                     21, 27, 48, 86, 199, 205, 70, 175, 49, 243, 96, 1, 44, 35, 84, 21, 63, 30, 153,
                     23, 190, 180, 203, 32, 246, 28, 255, 218, 234, 227, 11, 255,
-                ],
-                custody: vec![
+                ]),
+                custody: perpetuals::PublicKey::new(vec![
                     103, 89, 93, 216, 70, 192, 7, 242, 104, 150, 242, 174, 211, 27, 167, 181, 95,
                     209, 44, 204, 21, 142, 11, 0, 122, 157, 143, 232, 70, 182, 159, 233,
-                ],
-                custody_doves_price_account: vec![
+                ]),
+                custody_doves_price_account: perpetuals::PublicKey::new(vec![
                     216, 42, 235, 57, 188, 70, 146, 145, 46, 181, 242, 170, 224, 18, 127, 36, 173,
                     176, 246, 182, 107, 253, 118, 9, 80, 73, 48, 236, 108, 178, 99, 136,
-                ],
-                collateral_custody: vec![
+                ]),
+                collateral_custody: perpetuals::PublicKey::new(vec![
                     103, 89, 93, 216, 70, 192, 7, 242, 104, 150, 242, 174, 211, 27, 167, 181, 95,
                     209, 44, 204, 21, 142, 11, 0, 122, 157, 143, 232, 70, 182, 159, 233,
-                ],
-                collateral_custody_doves_price_account: vec![
+                ]),
+                collateral_custody_doves_price_account: perpetuals::PublicKey::new(vec![
                     216, 42, 235, 57, 188, 70, 146, 145, 46, 181, 242, 170, 224, 18, 127, 36, 173,
                     176, 246, 182, 107, 253, 118, 9, 80, 73, 48, 236, 108, 178, 99, 136,
-                ],
-                collateral_custody_token_account: vec![
+                ]),
+                collateral_custody_token_account: perpetuals::PublicKey::new(vec![
                     155, 188, 50, 161, 141, 135, 28, 7, 53, 93, 210, 81, 97, 36, 21, 196, 32, 76,
                     171, 128, 29, 185, 238, 194, 146, 101, 3, 81, 177, 102, 210, 110,
-                ],
-                token_program: vec![
+                ]),
+                token_program: perpetuals::PublicKey::new(vec![
                     6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121, 172,
                     28, 180, 133, 237, 95, 91, 55, 145, 58, 140, 245, 133, 126, 255, 0, 169,
-                ],
-                event_authority: vec![
+                ]),
+                event_authority: perpetuals::PublicKey::new(vec![
                     31, 110, 107, 244, 132, 55, 71, 222, 35, 151, 202, 112, 75, 230, 84, 146, 147,
                     148, 134, 231, 7, 116, 227, 98, 240, 124, 71, 211, 219, 57, 210, 145,
-                ],
-                program: perpetuals::PROGRAM_ID.to_vec(),
+                ]),
+                program: perpetuals::PublicKey::new(perpetuals::PROGRAM_ID.to_vec()),
             }),
             args: Some(perpetuals::instruction::DecreasePositionWithTpslArgs {}),
         };
@@ -324,55 +378,55 @@ async fn parse_decrease_position_with_tpsl_and_close_position_request_2_ix() {
 
         let expected = perpetuals::instruction::ClosePositionRequest2 {
             accounts: Some(perpetuals::instruction::ClosePositionRequest2Accounts {
-                keeper: vec![
+                keeper: perpetuals::PublicKey::new(vec![
                     238, 103, 24, 154, 146, 36, 183, 11, 249, 126, 171, 22, 248, 91, 126, 66, 80,
                     130, 214, 35, 46, 153, 237, 255, 229, 32, 219, 75, 135, 121, 46, 21,
-                ],
-                owner: vec![
+                ]),
+                owner: perpetuals::PublicKey::new(vec![
                     138, 2, 154, 132, 201, 110, 60, 65, 124, 72, 228, 105, 180, 198, 154, 69, 177,
                     138, 239, 252, 160, 169, 123, 64, 90, 105, 103, 236, 9, 62, 69, 162,
-                ],
-                owner_ata: vec![
+                ]),
+                owner_ata: perpetuals::PublicKey::new(vec![
                     154, 83, 171, 15, 56, 48, 208, 249, 99, 113, 152, 52, 252, 22, 248, 73, 105,
                     132, 234, 10, 31, 166, 147, 20, 195, 195, 240, 66, 213, 229, 199, 171,
-                ],
-                pool: vec![
+                ]),
+                pool: perpetuals::PublicKey::new(vec![
                     62, 30, 36, 115, 199, 52, 6, 84, 235, 135, 41, 0, 53, 21, 28, 64, 43, 208, 227,
                     201, 124, 180, 36, 72, 134, 231, 32, 52, 179, 11, 77, 252,
-                ],
-                position_request: vec![
+                ]),
+                position_request: perpetuals::PublicKey::new(vec![
                     233, 115, 77, 143, 129, 244, 145, 190, 189, 103, 5, 29, 76, 62, 201, 162, 249,
                     94, 14, 84, 101, 136, 146, 56, 83, 158, 180, 120, 90, 69, 12, 176,
-                ],
-                position_request_ata: vec![
+                ]),
+                position_request_ata: perpetuals::PublicKey::new(vec![
                     29, 156, 57, 200, 92, 59, 244, 71, 93, 107, 142, 243, 97, 105, 117, 15, 130,
                     93, 162, 16, 233, 61, 59, 152, 138, 96, 254, 171, 26, 93, 233, 251,
-                ],
-                position: vec![
+                ]),
+                position: perpetuals::PublicKey::new(vec![
                     21, 27, 48, 86, 199, 205, 70, 175, 49, 243, 96, 1, 44, 35, 84, 21, 63, 30, 153,
                     23, 190, 180, 203, 32, 246, 28, 255, 218, 234, 227, 11, 255,
-                ],
-                mint: vec![
+                ]),
+                mint: perpetuals::PublicKey::new(vec![
                     6, 155, 136, 87, 254, 171, 129, 132, 251, 104, 127, 99, 70, 24, 192, 53, 218,
                     196, 57, 220, 26, 235, 59, 85, 152, 160, 240, 0, 0, 0, 0, 1,
-                ],
-                token_program: vec![
+                ]),
+                token_program: perpetuals::PublicKey::new(vec![
                     6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121, 172,
                     28, 180, 133, 237, 95, 91, 55, 145, 58, 140, 245, 133, 126, 255, 0, 169,
-                ],
-                system_program: vec![
+                ]),
+                system_program: perpetuals::PublicKey::new(vec![
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0,
-                ],
-                associated_token_program: vec![
+                ]),
+                associated_token_program: perpetuals::PublicKey::new(vec![
                     140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131, 11, 90,
                     19, 153, 218, 255, 16, 132, 4, 142, 123, 216, 219, 233, 248, 89,
-                ],
-                event_authority: vec![
+                ]),
+                event_authority: perpetuals::PublicKey::new(vec![
                     31, 110, 107, 244, 132, 55, 71, 222, 35, 151, 202, 112, 75, 230, 84, 146, 147,
                     148, 134, 231, 7, 116, 227, 98, 240, 124, 71, 211, 219, 57, 210, 145,
-                ],
-                program: perpetuals::PROGRAM_ID.to_vec(),
+                ]),
+                program: perpetuals::PublicKey::new(perpetuals::PROGRAM_ID.to_vec()),
             }),
             args: Some(perpetuals::instruction::ClosePositionRequest2Args {}),
         };

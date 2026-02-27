@@ -13,7 +13,16 @@ use yellowstone_vixen_spl_token_parser::{
     instruction::Instruction, InstructionParser, TokenProgram,
 };
 
-fn pk(bytes: &[u8]) -> String { bs58::encode(bytes).into_string() }
+fn pk(pubkey: &yellowstone_vixen_spl_token_parser::PublicKey) -> String {
+    bs58::encode(&pubkey.value).into_string()
+}
+
+fn pk_opt(pubkey: &Option<yellowstone_vixen_spl_token_parser::PublicKey>) -> String {
+    match pubkey {
+        Some(p) => bs58::encode(&p.value).into_string(),
+        None => "None".to_string(),
+    }
+}
 
 /// Handler for SPL Token program instructions
 #[derive(Debug)]
@@ -110,11 +119,7 @@ impl Handler<TokenProgram, InstructionUpdate> for TokenInstructionLogger {
                         mint = %pk(&accounts.mint),
                         decimals = args.decimals,
                         mint_authority = %pk(&args.mint_authority),
-                        freeze_authority = args
-                            .freeze_authority
-                            .as_ref()
-                            .map(|x| pk(x))
-                            .unwrap_or_else(|| "None".to_string()),
+                        freeze_authority = %pk_opt(&args.freeze_authority),
                         "Token mint initialization"
                     );
                 } else {

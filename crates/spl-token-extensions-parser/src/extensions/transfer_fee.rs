@@ -175,11 +175,14 @@ impl ExtensionInstructionParser for TransferFeeIx {
 
                 oneof::Instruction::TransferCheckedWithFee(oneof::TransferCheckedWithFee {
                     accounts: Some(TransferCheckedWithFeeAccounts {
-                        source: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
-                        destination: ix.accounts[2].to_vec(),
-                        owner: ix.accounts[3].to_vec(),
-                        multisig_signers: ix.accounts[4..].iter().map(|pk| pk.to_vec()).collect(),
+                        source: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        destination: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[3].to_vec()),
+                        multisig_signers: ix.accounts[4..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     }),
                     args: Some(TransferCheckedWithFeeArgs {
                         amount,
@@ -200,14 +203,14 @@ impl ExtensionInstructionParser for TransferFeeIx {
                 oneof::Instruction::InitializeTransferFeeConfig(
                     oneof::InitializeTransferFeeConfig {
                         accounts: Some(InitializeTransferFeeConfigAccounts {
-                            mint: ix.accounts[0].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                         }),
                         args: Some(InitializeTransferFeeConfigArgs {
                             transfer_fee_config_authority: transfer_fee_config_authority
-                                .map(|p| p.to_bytes().to_vec())
+                                .map(|p| crate::PublicKey::new(p.to_bytes()))
                                 .into(),
                             withdraw_withheld_authority: withdraw_withheld_authority
-                                .map(|p| p.to_bytes().to_vec())
+                                .map(|p| crate::PublicKey::new(p.to_bytes()))
                                 .into(),
                             transfer_fee_basis_points: transfer_fee_basis_points as u32,
                             maximum_fee,
@@ -222,12 +225,14 @@ impl ExtensionInstructionParser for TransferFeeIx {
                 oneof::Instruction::WithdrawWithheldTokensFromMint(
                     oneof::WithdrawWithheldTokensFromMint {
                         accounts: Some(WithdrawWithheldTokensFromMintAccounts {
-                            mint: ix.accounts[0].to_vec(),
-                            fee_recipient: ix.accounts[1].to_vec(),
-                            withdraw_withheld_authority: ix.accounts[2].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            fee_recipient: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                            withdraw_withheld_authority: crate::PublicKey::new(
+                                ix.accounts[2].to_vec(),
+                            ),
                             multisig_signers: ix.accounts[3..]
                                 .iter()
-                                .map(|pk| pk.to_vec())
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                         }),
                     },
@@ -244,16 +249,18 @@ impl ExtensionInstructionParser for TransferFeeIx {
                 oneof::Instruction::WithdrawWithheldTokensFromAccounts(
                     oneof::WithdrawWithheldTokensFromAccounts {
                         accounts: Some(WithdrawWithheldTokensFromAccountsAccounts {
-                            mint: ix.accounts[0].to_vec(),
-                            fee_recipient: ix.accounts[1].to_vec(),
-                            withdraw_withheld_authority: ix.accounts[2].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            fee_recipient: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                            withdraw_withheld_authority: crate::PublicKey::new(
+                                ix.accounts[2].to_vec(),
+                            ),
                             source_accounts: ix.accounts[3..(3 + n)]
                                 .iter()
-                                .map(|pk| pk.to_vec())
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                             multisig_signers: ix.accounts[(3 + n)..]
                                 .iter()
-                                .map(|pk| pk.to_vec())
+                                .map(|a| crate::PublicKey::new(a.to_vec()))
                                 .collect(),
                         }),
                         args: Some(WithdrawWithheldTokensFromAccountsArgs {
@@ -269,8 +276,8 @@ impl ExtensionInstructionParser for TransferFeeIx {
                 oneof::Instruction::HarvestWithheldTokensToMint(
                     oneof::HarvestWithheldTokensToMint {
                         accounts: Some(HarvestWithheldTokensToMintAccounts {
-                            mint: ix.accounts[0].to_vec(),
-                            mint_fee_acc_owner: ix.accounts[1].to_vec(),
+                            mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                            mint_fee_acc_owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                         }),
                     },
                 )
@@ -284,9 +291,12 @@ impl ExtensionInstructionParser for TransferFeeIx {
 
                 oneof::Instruction::SetTransferFee(oneof::SetTransferFee {
                     accounts: Some(SetTransferFeeAccounts {
-                        mint: ix.accounts[0].to_vec(),
-                        mint_fee_acc_owner: ix.accounts[1].to_vec(),
-                        multisig_signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint_fee_acc_owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        multisig_signers: ix.accounts[2..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     }),
                     args: Some(SetTransferFeeArgs {
                         transfer_fee_basis_points: transfer_fee_basis_points as u32,

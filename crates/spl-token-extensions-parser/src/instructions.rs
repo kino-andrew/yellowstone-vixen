@@ -22,7 +22,7 @@ pub struct InitializeMintCloseAuthorityAccounts {
 }
 
 #[vixen]
-#[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
+#[derive(Clone, PartialEq)]
 pub struct InitializeMintCloseAuthorityArgs {
     pub close_authority: Option<PublicKey>,
 }
@@ -57,7 +57,7 @@ pub struct InitializePermanentDelegateAccounts {
 #[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializePermanentDelegateArgs {
-    pub delegate: PublicKey,
+    pub delegate: Option<PublicKey>,
 }
 
 #[vixen]
@@ -118,7 +118,7 @@ impl From<spl_token_2022::instruction::AuthorityType> for AuthorityType {
 }
 
 #[vixen]
-#[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
+#[derive(Clone, PartialEq)]
 pub struct SetAuthorityArgs {
     #[hint(enumeration = "AuthorityType")]
     pub authority_type: i32,
@@ -308,10 +308,10 @@ pub fn reallocate_args_from_spl(extension_types: Vec<ExtensionType>) -> Realloca
 #[inline]
 pub fn set_authority_args_from_spl(
     authority_type: SplAuthorityType,
-    new_authority: Option<yellowstone_vixen_core::Pubkey>,
+    new_authority: Option<yellowstone_vixen_core::KeyBytes<32>>,
 ) -> SetAuthorityArgs {
     SetAuthorityArgs {
         authority_type: authority_type as i32,
-        new_authority: new_authority.map(|p| p.to_vec()),
+        new_authority: new_authority.map(|p| crate::PublicKey::new(p.0)),
     }
 }

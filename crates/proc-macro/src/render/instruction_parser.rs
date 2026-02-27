@@ -36,7 +36,7 @@ pub fn single_instruction_parser(
             let field_name = format_ident!("{}", crate::utils::to_snake_case(&account.name));
             let error_msg = format!("Account does not exist at index {idx}");
 
-            quote! { #field_name: accounts.get(#idx).ok_or(ParseError::from(#error_msg))?.to_vec() }
+            quote! { #field_name: PublicKey::new(accounts.get(#idx).ok_or(ParseError::from(#error_msg))?.to_vec()) }
         });
 
         quote! { instruction::#accounts_ident { #(#accounts_fields),* } }
@@ -237,7 +237,7 @@ pub fn instruction_parser(
         // Implement the trait for Mock
         impl ::yellowstone_vixen_core::ProgramParser for InstructionParser {
             #[inline]
-            fn program_id(&self) -> yellowstone_vixen_core::Pubkey {
+            fn program_id(&self) -> yellowstone_vixen_core::KeyBytes::<32> {
                 yellowstone_vixen_core::KeyBytes::<32>(PROGRAM_ID)
             }
         }
