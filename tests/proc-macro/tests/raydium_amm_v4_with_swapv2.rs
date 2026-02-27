@@ -15,6 +15,7 @@ fn check_protobuf_schema() {
     insta::assert_snapshot!(raydium_amm::PROTOBUF_SCHEMA);
 }
 
+///
 /// Demonstrates using CustomInstructionParser with a resolver that handles
 /// the 17-account SwapBaseIn variant (where ammTargetOrdersDeprecated is omitted).
 ///
@@ -23,6 +24,7 @@ fn check_protobuf_schema() {
 ///   - `swapBaseInCompact` (17 accounts, without the deprecated account)
 ///
 /// Both share the same discriminator (0x09). The resolver disambiguates by account count.
+///
 #[tokio::test]
 async fn parse_swap_base_in_with_custom_resolver() {
     use yellowstone_vixen_core::ParseError;
@@ -147,4 +149,35 @@ async fn parse_swap_base_in_with_custom_resolver() {
     };
 
     assert_eq!(swap, &expected);
+}
+
+///
+/// The default InstructionParser now automatically disambiguates instructions
+/// sharing a discriminator when they have different account counts.
+///
+/// For raydium_amm, `swapBaseIn` (18 accounts) and `swapBaseInCompact` (17 accounts)
+/// both share discriminator 0x09. The default resolver picks the right one by checking
+/// `accounts.len() >= 18` first, then falling back to `swapBaseInCompact`.
+///
+#[tokio::test]
+async fn parse_swap_base_in_with_default_parser() {
+    let parser = raydium_amm::InstructionParser;
+
+    let ixs = tx_fixture!(
+        "3J7xWK1gZTyk6GQJUopbP34Z1GxRSN1dLEmq3PyUrbMVYjkjfvMSLNRDVDggVrneJJGt1cdXsgfRUGYnavP75XQR",
+        &parser
+    );
+
+    // This transaction has 17 accounts — the default resolver should route
+    // to SwapBaseInCompact automatically.
+    let swap = ixs
+        .iter()
+        .find_map(|ix| match ix.as_ref()?.instruction.as_ref()? {
+            raydium_amm::instruction::Instruction::SwapBaseInCompact(s) => Some(s),
+            _ => None,
+        })
+        .expect("default parser should resolve SwapBaseInCompact by account count");
+
+    assert!(swap.accounts.is_some());
+    assert!(swap.args.is_some());
 }

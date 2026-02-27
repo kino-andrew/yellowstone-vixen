@@ -5,6 +5,68 @@ use codama_nodes::{
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
+/// A key that identifies a discriminator for collision detection.
+/// Instructions with the same key will match the same discriminator check.
+#[derive(PartialEq, Eq, Clone)]
+enum DiscriminatorKey {
+    Constant { offset: usize, value: u64 },
+    Field { offset: usize, bytes: Vec<u8> },
+    Size { size: usize },
+}
+
+/// Decode discriminator bytes from a codama [`BytesValueNode`](codama_nodes::BytesValueNode).
+fn decode_discriminator_field_bytes(bytes: &codama_nodes::BytesValueNode) -> Vec<u8> {
+    match bytes.encoding {
+        codama_nodes::BytesEncoding::Base16 => {
+            let padded = crate::utils::pad_hex(&bytes.data);
+            hex::decode(&padded).expect("decode base16")
+        },
+        codama_nodes::BytesEncoding::Base58 => {
+            bs58::decode(&bytes.data).into_vec().expect("decode base58")
+        },
+        codama_nodes::BytesEncoding::Base64 => STANDARD.decode(&bytes.data).expect("decode base64"),
+        codama_nodes::BytesEncoding::Utf8 => bytes.data.as_bytes().to_vec(),
+    }
+}
+
+/// Extract a comparable discriminator key from an instruction for collision detection.
+fn extract_discriminator_key(
+    instruction: &codama_nodes::InstructionNode,
+) -> Option<DiscriminatorKey> {
+    let discriminator = instruction.discriminators.first()?;
+
+    match discriminator {
+        DiscriminatorNode::Constant(node) => {
+            let ValueNode::Number(nn) = node.constant.value.as_ref() else {
+                return None;
+            };
+            let Number::UnsignedInteger(value) = nn.number else {
+                return None;
+            };
+            Some(DiscriminatorKey::Constant {
+                offset: node.offset,
+                value,
+            })
+        },
+        DiscriminatorNode::Field(node) => {
+            let field = instruction.arguments.iter().find(|f| f.name == node.name)?;
+            let TypeNode::FixedSize(_) = &field.r#type else {
+                return None;
+            };
+            let default_value = field.default_value.as_ref()?;
+            let InstructionInputValueNode::Bytes(bytes) = default_value else {
+                return None;
+            };
+            let discriminator_bytes = decode_discriminator_field_bytes(bytes);
+            Some(DiscriminatorKey::Field {
+                offset: node.offset,
+                bytes: discriminator_bytes,
+            })
+        },
+        DiscriminatorNode::Size(node) => Some(DiscriminatorKey::Size { size: node.size }),
+    }
+}
+
 /// Information extracted from a discriminator that's needed by both the match arm and helper fn.
 struct DiscriminatorInfo {
     /// TokenStream for the args expression inside the helper fn body.
@@ -80,20 +142,7 @@ fn extract_discriminator_info(
                 return None;
             };
 
-            let discriminator_bytes: Vec<u8> = match bytes.encoding {
-                codama_nodes::BytesEncoding::Base16 => {
-                    let padded = crate::utils::pad_hex(&bytes.data);
-
-                    hex::decode(&padded).expect("decode base16")
-                },
-                codama_nodes::BytesEncoding::Base58 => {
-                    bs58::decode(&bytes.data).into_vec().expect("decode base58")
-                },
-                codama_nodes::BytesEncoding::Base64 => {
-                    STANDARD.decode(&bytes.data).expect("decode base64")
-                },
-                codama_nodes::BytesEncoding::Utf8 => bytes.data.as_bytes().to_vec(),
-            };
+            let discriminator_bytes = decode_discriminator_field_bytes(bytes);
 
             let args_expr = if has_args {
                 quote! {
@@ -246,6 +295,81 @@ fn single_instruction_match_arm(
     })
 }
 
+///
+/// Generate a match arm for a group of instructions sharing the same discriminator.
+///
+/// Disambiguates by account count: instructions with unique account counts are resolved
+/// automatically (highest count first). Instructions sharing both discriminator and account
+/// count produce a runtime error directing the user to [`CustomInstructionParser`].
+///
+fn collision_group_match_arm(instructions: &[&codama_nodes::InstructionNode]) -> TokenStream {
+    // Use the first instruction to get the shared discriminator check.
+    let first = instructions[0];
+
+    let args_ident = format_ident!("{}Args", crate::utils::to_pascal_case(&first.name));
+
+    let has_args = !first.arguments.is_empty();
+
+    let info = extract_discriminator_info(first, &args_ident, has_args)
+        .expect("collision group should have valid discriminator");
+
+    let check = info.check;
+
+    // Group by account count (BTreeMap gives us sorted keys).
+    let mut by_count: std::collections::BTreeMap<usize, Vec<&codama_nodes::InstructionNode>> =
+        std::collections::BTreeMap::new();
+
+    for ix in instructions {
+        by_count.entry(ix.accounts.len()).or_default().push(ix);
+    }
+
+    let mut inner_arms = Vec::new();
+    let mut ambiguous: Vec<String> = Vec::new();
+
+    // Iterate from highest to lowest account count.
+    for (&count, ixs) in by_count.iter().rev() {
+        if ixs.len() == 1 {
+            let ix_name_snake = crate::utils::to_snake_case(&ixs[0].name);
+
+            let fn_ident = format_ident!("parse_{}", ix_name_snake);
+
+            inner_arms.push(quote! {
+                if accounts.len() >= #count {
+                    return #fn_ident(accounts, data);
+                }
+            });
+        } else {
+            for ix in ixs {
+                ambiguous.push(ix.name.to_string());
+            }
+        }
+    }
+
+    let fallback = if !ambiguous.is_empty() {
+        let names = ambiguous.join(", ");
+
+        let msg = format!(
+            "Ambiguous instruction: variants [{names}] share the same discriminator and account \
+             count. Use CustomInstructionParser to disambiguate."
+        );
+
+        quote! {
+            return Err(ParseError::from(#msg));
+        }
+    } else {
+        quote! {}
+    };
+
+    quote! {
+        if {
+            #check
+        } {
+            #(#inner_arms)*
+            #fallback
+        }
+    }
+}
+
 pub fn instruction_parser(
     program_name_camel: &CamelCaseString,
     instructions: &[codama_nodes::InstructionNode],
@@ -262,18 +386,41 @@ pub fn instruction_parser(
         .filter_map(|ix| single_instruction_helper_fn(ix, &wrapper_ident))
         .collect();
 
-    // 2. Discriminator match arms (delegating to helpers)
-    let match_arms: Vec<TokenStream> = instructions
+    // 2. Group instructions by discriminator for collision detection,
+    //    then generate match arms per group.
+    let mut groups: Vec<(DiscriminatorKey, Vec<&codama_nodes::InstructionNode>)> = Vec::new();
+
+    for ix in instructions {
+        if let Some(key) = extract_discriminator_key(ix) {
+            if let Some(group) = groups.iter_mut().find(|(k, _)| k == &key) {
+                group.1.push(ix);
+            } else {
+                groups.push((key, vec![ix]));
+            }
+        }
+    }
+
+    let match_arms: Vec<TokenStream> = groups
         .iter()
-        .filter_map(single_instruction_match_arm)
+        .filter_map(|(_, ixs)| {
+            if ixs.len() == 1 {
+                single_instruction_match_arm(ixs[0])
+            } else {
+                Some(collision_group_match_arm(ixs))
+            }
+        })
         .collect();
 
     quote! {
+        //
         // Per-instruction parse helper functions.
         // Each parses a specific instruction variant from raw accounts and data,
         // without checking the discriminator.
+        //
+
         #(#helper_fns)*
 
+        ///
         /// Default instruction resolution using discriminator matching.
         ///
         /// Tries each instruction's discriminator in order and delegates to
@@ -281,6 +428,7 @@ pub fn instruction_parser(
         ///
         /// Call this from a custom [`InstructionResolver`] to handle
         /// non-ambiguous instructions while overriding specific ones.
+        ///
         pub fn resolve_instruction_default(
             accounts: &[::yellowstone_vixen_core::KeyBytes<32>],
             data: &[u8],
@@ -290,7 +438,8 @@ pub fn instruction_parser(
             Err(ParseError::Filtered)
         }
 
-        /// Trait for customizing instruction resolution logic.
+        ///
+        ///  Trait for customizing instruction resolution logic.
         ///
         /// Implement this trait to handle programs where multiple instruction
         /// variants share the same discriminator and need runtime disambiguation
@@ -298,6 +447,7 @@ pub fn instruction_parser(
         ///
         /// Use with [`CustomInstructionParser`] to plug your resolver into the
         /// Vixen parser pipeline.
+        ///
         pub trait InstructionResolver: Send + Sync + std::fmt::Debug + Copy + 'static {
             fn resolve(
                 &self,
@@ -306,6 +456,7 @@ pub fn instruction_parser(
             ) -> ParseResult<#wrapper_ident>;
         }
 
+        ///
         /// Instruction parser with a custom resolver for ambiguous discriminators.
         ///
         /// Use this instead of [`InstructionParser`] when you need to override
@@ -330,6 +481,7 @@ pub fn instruction_parser(
         ///
         /// let parser = program::CustomInstructionParser(MyResolver);
         /// ```
+        ///
         #[derive(Debug, Copy, Clone)]
         pub struct CustomInstructionParser<R: InstructionResolver>(pub R);
 
