@@ -6,6 +6,10 @@ syntax = "proto3";
 
 package dynamic_bonding_curve;
 
+message PublicKey {
+  bytes value = 1;
+}
+    
 message BaseFeeConfig {
   uint64 cliff_fee_numerator = 1;
   uint64 second_factor = 2;
@@ -77,49 +81,49 @@ message DynamicFeeParameters {
 }
     
 message EvtClaimCreatorTradingFee {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 token_base_amount = 2;
   uint64 token_quote_amount = 3;
 }
     
 message EvtClaimPoolCreationFee {
-  bytes pool = 1;
-  bytes receiver = 2;
+  PublicKey pool = 1;
+  PublicKey receiver = 2;
   uint64 creation_fee = 3;
 }
     
 message EvtClaimProtocolFee {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 token_base_amount = 2;
   uint64 token_quote_amount = 3;
 }
     
 message EvtClaimProtocolLiquidityMigrationFee {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 token_base_amount = 2;
   uint64 token_quote_amount = 3;
 }
     
 message EvtClaimTradingFee {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 token_base_amount = 2;
   uint64 token_quote_amount = 3;
 }
     
 message EvtCloseClaimFeeOperator {
-  bytes claim_fee_operator = 1;
-  bytes operator = 2;
+  PublicKey claim_fee_operator = 1;
+  PublicKey operator = 2;
 }
     
 message EvtCreateClaimFeeOperator {
-  bytes operator = 1;
+  PublicKey operator = 1;
 }
     
 message EvtCreateConfig {
-  bytes config = 1;
-  bytes quote_mint = 2;
-  bytes fee_claimer = 3;
-  bytes owner = 4;
+  PublicKey config = 1;
+  PublicKey quote_mint = 2;
+  PublicKey fee_claimer = 3;
+  PublicKey owner = 4;
   PoolFeeParameters pool_fees = 5;
   uint32 collect_fee_mode = 6;
   uint32 migration_option = 7;
@@ -143,63 +147,63 @@ message EvtCreateConfig {
 }
     
 message EvtCreateConfigV2 {
-  bytes config = 1;
-  bytes quote_mint = 2;
-  bytes fee_claimer = 3;
-  bytes leftover_receiver = 4;
+  PublicKey config = 1;
+  PublicKey quote_mint = 2;
+  PublicKey fee_claimer = 3;
+  PublicKey leftover_receiver = 4;
   ConfigParameters config_parameters = 5;
 }
     
 message EvtCreateMeteoraMigrationMetadata {
-  bytes virtual_pool = 1;
+  PublicKey virtual_pool = 1;
 }
     
 message EvtCreatorWithdrawSurplus {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 surplus_amount = 2;
 }
     
 message EvtCurveComplete {
-  bytes pool = 1;
-  bytes config = 2;
+  PublicKey pool = 1;
+  PublicKey config = 2;
   uint64 base_reserve = 3;
   uint64 quote_reserve = 4;
 }
     
 message EvtInitializePool {
-  bytes pool = 1;
-  bytes config = 2;
-  bytes creator = 3;
-  bytes base_mint = 4;
+  PublicKey pool = 1;
+  PublicKey config = 2;
+  PublicKey creator = 3;
+  PublicKey base_mint = 4;
   uint32 pool_type = 5;
   uint64 activation_point = 6;
 }
     
 message EvtPartnerClaimPoolCreationFee {
-  bytes pool = 1;
-  bytes partner = 2;
+  PublicKey pool = 1;
+  PublicKey partner = 2;
   uint64 creation_fee = 3;
-  bytes fee_receiver = 4;
+  PublicKey fee_receiver = 4;
 }
     
 message EvtPartnerMetadata {
-  bytes partner_metadata = 1;
-  bytes fee_claimer = 2;
+  PublicKey partner_metadata = 1;
+  PublicKey fee_claimer = 2;
 }
     
 message EvtPartnerWithdrawMigrationFee {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 fee = 2;
 }
     
 message EvtPartnerWithdrawSurplus {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 surplus_amount = 2;
 }
     
 message EvtSwap {
-  bytes pool = 1;
-  bytes config = 2;
+  PublicKey pool = 1;
+  PublicKey config = 2;
   uint32 trade_direction = 3;
   bool has_referral = 4;
   SwapParameters params = 5;
@@ -209,8 +213,8 @@ message EvtSwap {
 }
     
 message EvtSwap2 {
-  bytes pool = 1;
-  bytes config = 2;
+  PublicKey pool = 1;
+  PublicKey config = 2;
   uint32 trade_direction = 3;
   bool has_referral = 4;
   SwapParameters2 swap_parameters = 5;
@@ -221,24 +225,24 @@ message EvtSwap2 {
 }
     
 message EvtUpdatePoolCreator {
-  bytes pool = 1;
-  bytes creator = 2;
-  bytes new_creator = 3;
+  PublicKey pool = 1;
+  PublicKey creator = 2;
+  PublicKey new_creator = 3;
 }
     
 message EvtVirtualPoolMetadata {
-  bytes virtual_pool_metadata = 1;
-  bytes virtual_pool = 2;
+  PublicKey virtual_pool_metadata = 1;
+  PublicKey virtual_pool = 2;
 }
     
 message EvtWithdrawLeftover {
-  bytes pool = 1;
-  bytes leftover_receiver = 2;
+  PublicKey pool = 1;
+  PublicKey leftover_receiver = 2;
   uint64 leftover_amount = 3;
 }
     
 message EvtWithdrawMigrationFee {
-  bytes pool = 1;
+  PublicKey pool = 1;
   uint64 fee = 2;
   uint32 flag = 3;
 }
@@ -381,24 +385,24 @@ message VolatilityTracker {
 }
     
 message ClaimFeeOperator {
-  bytes operator = 1;
+  PublicKey operator = 1;
   bytes padding = 2;
 }
     
 message Config {
   PoolFees pool_fees = 1;
   uint64 activation_duration = 2;
-  bytes vault_config_key = 3;
-  bytes pool_creator_authority = 4;
+  PublicKey vault_config_key = 3;
+  PublicKey pool_creator_authority = 4;
   uint32 activation_type = 5;
   uint64 partner_fee_numerator = 6;
   bytes padding = 7;
 }
     
 message LockEscrow {
-  bytes pool = 1;
-  bytes owner = 2;
-  bytes escrow_vault = 3;
+  PublicKey pool = 1;
+  PublicKey owner = 2;
+  PublicKey escrow_vault = 3;
   uint32 bump = 4;
   uint64 total_locked_amount = 5;
   bytes lp_per_token = 6;
@@ -408,10 +412,10 @@ message LockEscrow {
 }
     
 message MeteoraDammMigrationMetadata {
-  bytes virtual_pool = 1;
+  PublicKey virtual_pool = 1;
   bytes padding0 = 2;
-  bytes partner = 3;
-  bytes lp_mint = 4;
+  PublicKey partner = 3;
+  PublicKey lp_mint = 4;
   uint64 partner_locked_liquidity = 5;
   uint64 partner_liquidity = 6;
   uint64 creator_locked_liquidity = 7;
@@ -425,7 +429,7 @@ message MeteoraDammMigrationMetadata {
 }
     
 message PartnerMetadata {
-  bytes fee_claimer = 1;
+  PublicKey fee_claimer = 1;
   repeated bytes padding = 2;
   string name = 3;
   string website = 4;
@@ -433,9 +437,9 @@ message PartnerMetadata {
 }
     
 message PoolConfig {
-  bytes quote_mint = 1;
-  bytes fee_claimer = 2;
-  bytes leftover_receiver = 3;
+  PublicKey quote_mint = 1;
+  PublicKey fee_claimer = 2;
+  PublicKey leftover_receiver = 3;
   PoolFeesConfig pool_fees = 4;
   LiquidityVestingInfo partner_liquidity_vesting_info = 5;
   LiquidityVestingInfo creator_liquidity_vesting_info = 6;
@@ -480,11 +484,11 @@ message PoolConfig {
     
 message VirtualPool {
   VolatilityTracker volatility_tracker = 1;
-  bytes config = 2;
-  bytes creator = 3;
-  bytes base_mint = 4;
-  bytes base_vault = 5;
-  bytes quote_vault = 6;
+  PublicKey config = 2;
+  PublicKey creator = 3;
+  PublicKey base_mint = 4;
+  PublicKey base_vault = 5;
+  PublicKey quote_vault = 6;
   uint64 base_reserve = 7;
   uint64 quote_reserve = 8;
   uint64 protocol_base_fee = 9;
@@ -517,7 +521,7 @@ message VirtualPool {
 }
     
 message VirtualPoolMetadata {
-  bytes virtual_pool = 1;
+  PublicKey virtual_pool = 1;
   repeated bytes padding = 2;
   string name = 3;
   string website = 4;
@@ -525,19 +529,19 @@ message VirtualPoolMetadata {
 }
     
 message ClaimCreatorTradingFeeAccounts {
-  bytes pool_authority = 1;
-  bytes pool = 2;
-  bytes token_a_account = 3;
-  bytes token_b_account = 4;
-  bytes base_vault = 5;
-  bytes quote_vault = 6;
-  bytes base_mint = 7;
-  bytes quote_mint = 8;
-  bytes creator = 9;
-  bytes token_base_program = 10;
-  bytes token_quote_program = 11;
-  bytes event_authority = 12;
-  bytes program = 13;
+  PublicKey pool_authority = 1;
+  PublicKey pool = 2;
+  PublicKey token_a_account = 3;
+  PublicKey token_b_account = 4;
+  PublicKey base_vault = 5;
+  PublicKey quote_vault = 6;
+  PublicKey base_mint = 7;
+  PublicKey quote_mint = 8;
+  PublicKey creator = 9;
+  PublicKey token_base_program = 10;
+  PublicKey token_quote_program = 11;
+  PublicKey event_authority = 12;
+  PublicKey program = 13;
 }
     
 message ClaimCreatorTradingFeeArgs {
@@ -551,12 +555,12 @@ message ClaimCreatorTradingFee {
 }
     
 message ClaimPartnerPoolCreationFeeAccounts {
-  bytes config = 1;
-  bytes pool = 2;
-  bytes fee_claimer = 3;
-  bytes fee_receiver = 4;
-  bytes event_authority = 5;
-  bytes program = 6;
+  PublicKey config = 1;
+  PublicKey pool = 2;
+  PublicKey fee_claimer = 3;
+  PublicKey fee_receiver = 4;
+  PublicKey event_authority = 5;
+  PublicKey program = 6;
 }
     
 message ClaimPartnerPoolCreationFeeArgs {
@@ -568,21 +572,21 @@ message ClaimPartnerPoolCreationFee {
 }
     
 message ClaimProtocolFeeAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes pool = 3;
-  bytes base_vault = 4;
-  bytes quote_vault = 5;
-  bytes base_mint = 6;
-  bytes quote_mint = 7;
-  bytes token_base_account = 8;
-  bytes token_quote_account = 9;
-  bytes claim_fee_operator = 10;
-  bytes signer = 11;
-  bytes token_base_program = 12;
-  bytes token_quote_program = 13;
-  bytes event_authority = 14;
-  bytes program = 15;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey pool = 3;
+  PublicKey base_vault = 4;
+  PublicKey quote_vault = 5;
+  PublicKey base_mint = 6;
+  PublicKey quote_mint = 7;
+  PublicKey token_base_account = 8;
+  PublicKey token_quote_account = 9;
+  PublicKey claim_fee_operator = 10;
+  PublicKey signer = 11;
+  PublicKey token_base_program = 12;
+  PublicKey token_quote_program = 13;
+  PublicKey event_authority = 14;
+  PublicKey program = 15;
 }
     
 message ClaimProtocolFeeArgs {
@@ -596,13 +600,13 @@ message ClaimProtocolFee {
 }
     
 message ClaimProtocolPoolCreationFeeAccounts {
-  bytes config = 1;
-  bytes pool = 2;
-  bytes claim_fee_operator = 3;
-  bytes signer = 4;
-  bytes treasury = 5;
-  bytes event_authority = 6;
-  bytes program = 7;
+  PublicKey config = 1;
+  PublicKey pool = 2;
+  PublicKey claim_fee_operator = 3;
+  PublicKey signer = 4;
+  PublicKey treasury = 5;
+  PublicKey event_authority = 6;
+  PublicKey program = 7;
 }
     
 message ClaimProtocolPoolCreationFeeArgs {
@@ -614,20 +618,20 @@ message ClaimProtocolPoolCreationFee {
 }
     
 message ClaimTradingFeeAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes pool = 3;
-  bytes token_a_account = 4;
-  bytes token_b_account = 5;
-  bytes base_vault = 6;
-  bytes quote_vault = 7;
-  bytes base_mint = 8;
-  bytes quote_mint = 9;
-  bytes fee_claimer = 10;
-  bytes token_base_program = 11;
-  bytes token_quote_program = 12;
-  bytes event_authority = 13;
-  bytes program = 14;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey pool = 3;
+  PublicKey token_a_account = 4;
+  PublicKey token_b_account = 5;
+  PublicKey base_vault = 6;
+  PublicKey quote_vault = 7;
+  PublicKey base_mint = 8;
+  PublicKey quote_mint = 9;
+  PublicKey fee_claimer = 10;
+  PublicKey token_base_program = 11;
+  PublicKey token_quote_program = 12;
+  PublicKey event_authority = 13;
+  PublicKey program = 14;
 }
     
 message ClaimTradingFeeArgs {
@@ -641,11 +645,11 @@ message ClaimTradingFee {
 }
     
 message CloseClaimProtocolFeeOperatorAccounts {
-  bytes claim_fee_operator = 1;
-  bytes rent_receiver = 2;
-  bytes signer = 3;
-  bytes event_authority = 4;
-  bytes program = 5;
+  PublicKey claim_fee_operator = 1;
+  PublicKey rent_receiver = 2;
+  PublicKey signer = 3;
+  PublicKey event_authority = 4;
+  PublicKey program = 5;
 }
     
 message CloseClaimProtocolFeeOperatorArgs {
@@ -657,13 +661,13 @@ message CloseClaimProtocolFeeOperator {
 }
     
 message CreateClaimProtocolFeeOperatorAccounts {
-  bytes claim_fee_operator = 1;
-  bytes operator = 2;
-  bytes signer = 3;
-  bytes payer = 4;
-  bytes system_program = 5;
-  bytes event_authority = 6;
-  bytes program = 7;
+  PublicKey claim_fee_operator = 1;
+  PublicKey operator = 2;
+  PublicKey signer = 3;
+  PublicKey payer = 4;
+  PublicKey system_program = 5;
+  PublicKey event_authority = 6;
+  PublicKey program = 7;
 }
     
 message CreateClaimProtocolFeeOperatorArgs {
@@ -675,14 +679,14 @@ message CreateClaimProtocolFeeOperator {
 }
     
 message CreateConfigAccounts {
-  bytes config = 1;
-  bytes fee_claimer = 2;
-  bytes leftover_receiver = 3;
-  bytes quote_mint = 4;
-  bytes payer = 5;
-  bytes system_program = 6;
-  bytes event_authority = 7;
-  bytes program = 8;
+  PublicKey config = 1;
+  PublicKey fee_claimer = 2;
+  PublicKey leftover_receiver = 3;
+  PublicKey quote_mint = 4;
+  PublicKey payer = 5;
+  PublicKey system_program = 6;
+  PublicKey event_authority = 7;
+  PublicKey program = 8;
 }
     
 message CreateConfigArgs {
@@ -695,20 +699,20 @@ message CreateConfig {
 }
     
 message CreateLockerAccounts {
-  bytes virtual_pool = 1;
-  bytes config = 2;
-  bytes pool_authority = 3;
-  bytes base_vault = 4;
-  bytes base_mint = 5;
-  bytes base = 6;
-  bytes creator = 7;
-  bytes escrow = 8;
-  bytes escrow_token = 9;
-  bytes payer = 10;
-  bytes token_program = 11;
-  bytes locker_program = 12;
-  bytes locker_event_authority = 13;
-  bytes system_program = 14;
+  PublicKey virtual_pool = 1;
+  PublicKey config = 2;
+  PublicKey pool_authority = 3;
+  PublicKey base_vault = 4;
+  PublicKey base_mint = 5;
+  PublicKey base = 6;
+  PublicKey creator = 7;
+  PublicKey escrow = 8;
+  PublicKey escrow_token = 9;
+  PublicKey payer = 10;
+  PublicKey token_program = 11;
+  PublicKey locker_program = 12;
+  PublicKey locker_event_authority = 13;
+  PublicKey system_program = 14;
 }
     
 message CreateLockerArgs {
@@ -720,12 +724,12 @@ message CreateLocker {
 }
     
 message CreatePartnerMetadataAccounts {
-  bytes partner_metadata = 1;
-  bytes payer = 2;
-  bytes fee_claimer = 3;
-  bytes system_program = 4;
-  bytes event_authority = 5;
-  bytes program = 6;
+  PublicKey partner_metadata = 1;
+  PublicKey payer = 2;
+  PublicKey fee_claimer = 3;
+  PublicKey system_program = 4;
+  PublicKey event_authority = 5;
+  PublicKey program = 6;
 }
     
 message CreatePartnerMetadataArgs {
@@ -741,13 +745,13 @@ message CreatePartnerMetadata {
 }
     
 message CreateVirtualPoolMetadataAccounts {
-  bytes virtual_pool = 1;
-  bytes virtual_pool_metadata = 2;
-  bytes creator = 3;
-  bytes payer = 4;
-  bytes system_program = 5;
-  bytes event_authority = 6;
-  bytes program = 7;
+  PublicKey virtual_pool = 1;
+  PublicKey virtual_pool_metadata = 2;
+  PublicKey creator = 3;
+  PublicKey payer = 4;
+  PublicKey system_program = 5;
+  PublicKey event_authority = 6;
+  PublicKey program = 7;
 }
     
 message CreateVirtualPoolMetadataArgs {
@@ -763,16 +767,16 @@ message CreateVirtualPoolMetadata {
 }
     
 message CreatorWithdrawSurplusAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes virtual_pool = 3;
-  bytes token_quote_account = 4;
-  bytes quote_vault = 5;
-  bytes quote_mint = 6;
-  bytes creator = 7;
-  bytes token_quote_program = 8;
-  bytes event_authority = 9;
-  bytes program = 10;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey virtual_pool = 3;
+  PublicKey token_quote_account = 4;
+  PublicKey quote_vault = 5;
+  PublicKey quote_mint = 6;
+  PublicKey creator = 7;
+  PublicKey token_quote_program = 8;
+  PublicKey event_authority = 9;
+  PublicKey program = 10;
 }
     
 message CreatorWithdrawSurplusArgs {
@@ -784,22 +788,22 @@ message CreatorWithdrawSurplus {
 }
     
 message InitializeVirtualPoolWithSplTokenAccounts {
-  bytes config = 1;
-  bytes pool_authority = 2;
-  bytes creator = 3;
-  bytes base_mint = 4;
-  bytes quote_mint = 5;
-  bytes pool = 6;
-  bytes base_vault = 7;
-  bytes quote_vault = 8;
-  bytes mint_metadata = 9;
-  bytes metadata_program = 10;
-  bytes payer = 11;
-  bytes token_quote_program = 12;
-  bytes token_program = 13;
-  bytes system_program = 14;
-  bytes event_authority = 15;
-  bytes program = 16;
+  PublicKey config = 1;
+  PublicKey pool_authority = 2;
+  PublicKey creator = 3;
+  PublicKey base_mint = 4;
+  PublicKey quote_mint = 5;
+  PublicKey pool = 6;
+  PublicKey base_vault = 7;
+  PublicKey quote_vault = 8;
+  PublicKey mint_metadata = 9;
+  PublicKey metadata_program = 10;
+  PublicKey payer = 11;
+  PublicKey token_quote_program = 12;
+  PublicKey token_program = 13;
+  PublicKey system_program = 14;
+  PublicKey event_authority = 15;
+  PublicKey program = 16;
 }
     
 message InitializeVirtualPoolWithSplTokenArgs {
@@ -812,20 +816,20 @@ message InitializeVirtualPoolWithSplToken {
 }
     
 message InitializeVirtualPoolWithToken2022Accounts {
-  bytes config = 1;
-  bytes pool_authority = 2;
-  bytes creator = 3;
-  bytes base_mint = 4;
-  bytes quote_mint = 5;
-  bytes pool = 6;
-  bytes base_vault = 7;
-  bytes quote_vault = 8;
-  bytes payer = 9;
-  bytes token_quote_program = 10;
-  bytes token_program = 11;
-  bytes system_program = 12;
-  bytes event_authority = 13;
-  bytes program = 14;
+  PublicKey config = 1;
+  PublicKey pool_authority = 2;
+  PublicKey creator = 3;
+  PublicKey base_mint = 4;
+  PublicKey quote_mint = 5;
+  PublicKey pool = 6;
+  PublicKey base_vault = 7;
+  PublicKey quote_vault = 8;
+  PublicKey payer = 9;
+  PublicKey token_quote_program = 10;
+  PublicKey token_program = 11;
+  PublicKey system_program = 12;
+  PublicKey event_authority = 13;
+  PublicKey program = 14;
 }
     
 message InitializeVirtualPoolWithToken2022Args {
@@ -838,37 +842,37 @@ message InitializeVirtualPoolWithToken2022 {
 }
     
 message MigrateMeteoraDammAccounts {
-  bytes virtual_pool = 1;
-  bytes migration_metadata = 2;
-  bytes config = 3;
-  bytes pool_authority = 4;
-  bytes pool = 5;
-  bytes damm_config = 6;
-  bytes lp_mint = 7;
-  bytes token_a_mint = 8;
-  bytes token_b_mint = 9;
-  bytes a_vault = 10;
-  bytes b_vault = 11;
-  bytes a_token_vault = 12;
-  bytes b_token_vault = 13;
-  bytes a_vault_lp_mint = 14;
-  bytes b_vault_lp_mint = 15;
-  bytes a_vault_lp = 16;
-  bytes b_vault_lp = 17;
-  bytes base_vault = 18;
-  bytes quote_vault = 19;
-  bytes virtual_pool_lp = 20;
-  bytes protocol_token_a_fee = 21;
-  bytes protocol_token_b_fee = 22;
-  bytes payer = 23;
-  bytes rent = 24;
-  bytes mint_metadata = 25;
-  bytes metadata_program = 26;
-  bytes amm_program = 27;
-  bytes vault_program = 28;
-  bytes token_program = 29;
-  bytes associated_token_program = 30;
-  bytes system_program = 31;
+  PublicKey virtual_pool = 1;
+  PublicKey migration_metadata = 2;
+  PublicKey config = 3;
+  PublicKey pool_authority = 4;
+  PublicKey pool = 5;
+  PublicKey damm_config = 6;
+  PublicKey lp_mint = 7;
+  PublicKey token_a_mint = 8;
+  PublicKey token_b_mint = 9;
+  PublicKey a_vault = 10;
+  PublicKey b_vault = 11;
+  PublicKey a_token_vault = 12;
+  PublicKey b_token_vault = 13;
+  PublicKey a_vault_lp_mint = 14;
+  PublicKey b_vault_lp_mint = 15;
+  PublicKey a_vault_lp = 16;
+  PublicKey b_vault_lp = 17;
+  PublicKey base_vault = 18;
+  PublicKey quote_vault = 19;
+  PublicKey virtual_pool_lp = 20;
+  PublicKey protocol_token_a_fee = 21;
+  PublicKey protocol_token_b_fee = 22;
+  PublicKey payer = 23;
+  PublicKey rent = 24;
+  PublicKey mint_metadata = 25;
+  PublicKey metadata_program = 26;
+  PublicKey amm_program = 27;
+  PublicKey vault_program = 28;
+  PublicKey token_program = 29;
+  PublicKey associated_token_program = 30;
+  PublicKey system_program = 31;
 }
     
 message MigrateMeteoraDammArgs {
@@ -880,15 +884,15 @@ message MigrateMeteoraDamm {
 }
     
 message MigrateMeteoraDammClaimLpTokenAccounts {
-  bytes virtual_pool = 1;
-  bytes migration_metadata = 2;
-  bytes pool_authority = 3;
-  bytes lp_mint = 4;
-  bytes source_token = 5;
-  bytes destination_token = 6;
-  bytes owner = 7;
-  bytes sender = 8;
-  bytes token_program = 9;
+  PublicKey virtual_pool = 1;
+  PublicKey migration_metadata = 2;
+  PublicKey pool_authority = 3;
+  PublicKey lp_mint = 4;
+  PublicKey source_token = 5;
+  PublicKey destination_token = 6;
+  PublicKey owner = 7;
+  PublicKey sender = 8;
+  PublicKey token_program = 9;
 }
     
 message MigrateMeteoraDammClaimLpTokenArgs {
@@ -900,23 +904,23 @@ message MigrateMeteoraDammClaimLpToken {
 }
     
 message MigrateMeteoraDammLockLpTokenAccounts {
-  bytes virtual_pool = 1;
-  bytes migration_metadata = 2;
-  bytes pool_authority = 3;
-  bytes pool = 4;
-  bytes lp_mint = 5;
-  bytes lock_escrow = 6;
-  bytes owner = 7;
-  bytes source_tokens = 8;
-  bytes escrow_vault = 9;
-  bytes amm_program = 10;
-  bytes a_vault = 11;
-  bytes b_vault = 12;
-  bytes a_vault_lp = 13;
-  bytes b_vault_lp = 14;
-  bytes a_vault_lp_mint = 15;
-  bytes b_vault_lp_mint = 16;
-  bytes token_program = 17;
+  PublicKey virtual_pool = 1;
+  PublicKey migration_metadata = 2;
+  PublicKey pool_authority = 3;
+  PublicKey pool = 4;
+  PublicKey lp_mint = 5;
+  PublicKey lock_escrow = 6;
+  PublicKey owner = 7;
+  PublicKey source_tokens = 8;
+  PublicKey escrow_vault = 9;
+  PublicKey amm_program = 10;
+  PublicKey a_vault = 11;
+  PublicKey b_vault = 12;
+  PublicKey a_vault_lp = 13;
+  PublicKey b_vault_lp = 14;
+  PublicKey a_vault_lp_mint = 15;
+  PublicKey b_vault_lp_mint = 16;
+  PublicKey token_program = 17;
 }
     
 message MigrateMeteoraDammLockLpTokenArgs {
@@ -928,31 +932,31 @@ message MigrateMeteoraDammLockLpToken {
 }
     
 message MigrationDammV2Accounts {
-  bytes virtual_pool = 1;
-  bytes migration_metadata = 2;
-  bytes config = 3;
-  bytes pool_authority = 4;
-  bytes pool = 5;
-  bytes first_position_nft_mint = 6;
-  bytes first_position_nft_account = 7;
-  bytes first_position = 8;
-  bytes second_position_nft_mint = 9;
-  bytes second_position_nft_account = 10;
-  bytes second_position = 11;
-  bytes damm_pool_authority = 12;
-  bytes amm_program = 13;
-  bytes base_mint = 14;
-  bytes quote_mint = 15;
-  bytes token_a_vault = 16;
-  bytes token_b_vault = 17;
-  bytes base_vault = 18;
-  bytes quote_vault = 19;
-  bytes payer = 20;
-  bytes token_base_program = 21;
-  bytes token_quote_program = 22;
-  bytes token2022_program = 23;
-  bytes damm_event_authority = 24;
-  bytes system_program = 25;
+  PublicKey virtual_pool = 1;
+  PublicKey migration_metadata = 2;
+  PublicKey config = 3;
+  PublicKey pool_authority = 4;
+  PublicKey pool = 5;
+  PublicKey first_position_nft_mint = 6;
+  PublicKey first_position_nft_account = 7;
+  PublicKey first_position = 8;
+  PublicKey second_position_nft_mint = 9;
+  PublicKey second_position_nft_account = 10;
+  PublicKey second_position = 11;
+  PublicKey damm_pool_authority = 12;
+  PublicKey amm_program = 13;
+  PublicKey base_mint = 14;
+  PublicKey quote_mint = 15;
+  PublicKey token_a_vault = 16;
+  PublicKey token_b_vault = 17;
+  PublicKey base_vault = 18;
+  PublicKey quote_vault = 19;
+  PublicKey payer = 20;
+  PublicKey token_base_program = 21;
+  PublicKey token_quote_program = 22;
+  PublicKey token2022_program = 23;
+  PublicKey damm_event_authority = 24;
+  PublicKey system_program = 25;
 }
     
 message MigrationDammV2Args {
@@ -964,13 +968,13 @@ message MigrationDammV2 {
 }
     
 message MigrationDammV2CreateMetadataAccounts {
-  bytes virtual_pool = 1;
-  bytes config = 2;
-  bytes migration_metadata = 3;
-  bytes payer = 4;
-  bytes system_program = 5;
-  bytes event_authority = 6;
-  bytes program = 7;
+  PublicKey virtual_pool = 1;
+  PublicKey config = 2;
+  PublicKey migration_metadata = 3;
+  PublicKey payer = 4;
+  PublicKey system_program = 5;
+  PublicKey event_authority = 6;
+  PublicKey program = 7;
 }
     
 message MigrationDammV2CreateMetadataArgs {
@@ -982,13 +986,13 @@ message MigrationDammV2CreateMetadata {
 }
     
 message MigrationMeteoraDammCreateMetadataAccounts {
-  bytes virtual_pool = 1;
-  bytes config = 2;
-  bytes migration_metadata = 3;
-  bytes payer = 4;
-  bytes system_program = 5;
-  bytes event_authority = 6;
-  bytes program = 7;
+  PublicKey virtual_pool = 1;
+  PublicKey config = 2;
+  PublicKey migration_metadata = 3;
+  PublicKey payer = 4;
+  PublicKey system_program = 5;
+  PublicKey event_authority = 6;
+  PublicKey program = 7;
 }
     
 message MigrationMeteoraDammCreateMetadataArgs {
@@ -1000,16 +1004,16 @@ message MigrationMeteoraDammCreateMetadata {
 }
     
 message PartnerWithdrawSurplusAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes virtual_pool = 3;
-  bytes token_quote_account = 4;
-  bytes quote_vault = 5;
-  bytes quote_mint = 6;
-  bytes fee_claimer = 7;
-  bytes token_quote_program = 8;
-  bytes event_authority = 9;
-  bytes program = 10;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey virtual_pool = 3;
+  PublicKey token_quote_account = 4;
+  PublicKey quote_vault = 5;
+  PublicKey quote_mint = 6;
+  PublicKey fee_claimer = 7;
+  PublicKey token_quote_program = 8;
+  PublicKey event_authority = 9;
+  PublicKey program = 10;
 }
     
 message PartnerWithdrawSurplusArgs {
@@ -1021,21 +1025,21 @@ message PartnerWithdrawSurplus {
 }
     
 message SwapAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes pool = 3;
-  bytes input_token_account = 4;
-  bytes output_token_account = 5;
-  bytes base_vault = 6;
-  bytes quote_vault = 7;
-  bytes base_mint = 8;
-  bytes quote_mint = 9;
-  bytes payer = 10;
-  bytes token_base_program = 11;
-  bytes token_quote_program = 12;
-  bytes referral_token_account = 13;
-  bytes event_authority = 14;
-  bytes program = 15;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey pool = 3;
+  PublicKey input_token_account = 4;
+  PublicKey output_token_account = 5;
+  PublicKey base_vault = 6;
+  PublicKey quote_vault = 7;
+  PublicKey base_mint = 8;
+  PublicKey quote_mint = 9;
+  PublicKey payer = 10;
+  PublicKey token_base_program = 11;
+  PublicKey token_quote_program = 12;
+  PublicKey referral_token_account = 13;
+  PublicKey event_authority = 14;
+  PublicKey program = 15;
 }
     
 message SwapArgs {
@@ -1048,21 +1052,21 @@ message Swap {
 }
     
 message Swap2Accounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes pool = 3;
-  bytes input_token_account = 4;
-  bytes output_token_account = 5;
-  bytes base_vault = 6;
-  bytes quote_vault = 7;
-  bytes base_mint = 8;
-  bytes quote_mint = 9;
-  bytes payer = 10;
-  bytes token_base_program = 11;
-  bytes token_quote_program = 12;
-  bytes referral_token_account = 13;
-  bytes event_authority = 14;
-  bytes program = 15;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey pool = 3;
+  PublicKey input_token_account = 4;
+  PublicKey output_token_account = 5;
+  PublicKey base_vault = 6;
+  PublicKey quote_vault = 7;
+  PublicKey base_mint = 8;
+  PublicKey quote_mint = 9;
+  PublicKey payer = 10;
+  PublicKey token_base_program = 11;
+  PublicKey token_quote_program = 12;
+  PublicKey referral_token_account = 13;
+  PublicKey event_authority = 14;
+  PublicKey program = 15;
 }
     
 message Swap2Args {
@@ -1075,12 +1079,12 @@ message Swap2 {
 }
     
 message TransferPoolCreatorAccounts {
-  bytes virtual_pool = 1;
-  bytes config = 2;
-  bytes creator = 3;
-  bytes new_creator = 4;
-  bytes event_authority = 5;
-  bytes program = 6;
+  PublicKey virtual_pool = 1;
+  PublicKey config = 2;
+  PublicKey creator = 3;
+  PublicKey new_creator = 4;
+  PublicKey event_authority = 5;
+  PublicKey program = 6;
 }
     
 message TransferPoolCreatorArgs {
@@ -1092,16 +1096,16 @@ message TransferPoolCreator {
 }
     
 message WithdrawLeftoverAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes virtual_pool = 3;
-  bytes token_base_account = 4;
-  bytes base_vault = 5;
-  bytes base_mint = 6;
-  bytes leftover_receiver = 7;
-  bytes token_base_program = 8;
-  bytes event_authority = 9;
-  bytes program = 10;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey virtual_pool = 3;
+  PublicKey token_base_account = 4;
+  PublicKey base_vault = 5;
+  PublicKey base_mint = 6;
+  PublicKey leftover_receiver = 7;
+  PublicKey token_base_program = 8;
+  PublicKey event_authority = 9;
+  PublicKey program = 10;
 }
     
 message WithdrawLeftoverArgs {
@@ -1113,16 +1117,16 @@ message WithdrawLeftover {
 }
     
 message WithdrawMigrationFeeAccounts {
-  bytes pool_authority = 1;
-  bytes config = 2;
-  bytes virtual_pool = 3;
-  bytes token_quote_account = 4;
-  bytes quote_vault = 5;
-  bytes quote_mint = 6;
-  bytes sender = 7;
-  bytes token_quote_program = 8;
-  bytes event_authority = 9;
-  bytes program = 10;
+  PublicKey pool_authority = 1;
+  PublicKey config = 2;
+  PublicKey virtual_pool = 3;
+  PublicKey token_quote_account = 4;
+  PublicKey quote_vault = 5;
+  PublicKey quote_mint = 6;
+  PublicKey sender = 7;
+  PublicKey token_quote_program = 8;
+  PublicKey event_authority = 9;
+  PublicKey program = 10;
 }
     
 message WithdrawMigrationFeeArgs {

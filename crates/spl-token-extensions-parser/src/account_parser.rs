@@ -7,21 +7,21 @@ use spl_token_2022::{
     state::{Account as SplAccount, AccountState, Mint as SplMint, Multisig as SplMultisig},
 };
 use yellowstone_vixen_core::{AccountUpdate, ParseResult, Parser, Prefilter, ProgramParser};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenExtensionState {
-    #[vixen_proto_hint(oneof = "account::Account", tags = "1, 2, 3")]
+    #[hint(oneof = "account::Account", tags = "1, 2, 3")]
     pub account: Option<account::Account>,
 }
 
 pub mod account {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Account {
         ExtendedTokenAccount(super::ExtendedTokenAccount),
@@ -30,7 +30,7 @@ pub mod account {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtensionData {
     /// `spl_token_2022::extension::ExtensionType` as i32
@@ -40,61 +40,67 @@ pub struct ExtensionData {
     pub data: Vec<u8>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtendedMint {
     pub base_account: Option<Mint>,
     pub extensions: Vec<ExtensionData>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtendedTokenAccount {
     pub base_account: Option<Account>,
     pub extensions: Vec<ExtensionData>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Mint {
-    pub mint_authority: Option<PubkeyBytes>,
+    pub mint_authority: Option<PublicKey>,
     pub supply: u64,
     pub decimals: u32,
     pub is_initialized: bool,
-    pub freeze_authority: Option<PubkeyBytes>,
+    pub freeze_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Account {
-    pub mint: PubkeyBytes,
-    pub owner: PubkeyBytes,
+    pub mint: PublicKey,
+    pub owner: PublicKey,
     pub amount: u64,
-    pub delegate: Option<PubkeyBytes>,
+    pub delegate: Option<PublicKey>,
     /// `spl_token_2022::state::AccountState` as u32
     pub state: u32,
     /// If native: rent-exempt reserve lamports (same semantics as spl-token)
     pub is_native: Option<u64>,
     pub delegated_amount: u64,
-    pub close_authority: Option<PubkeyBytes>,
+    pub close_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Multisig {
     pub m: u32,
     pub n: u32,
     pub is_initialized: bool,
-    pub signers: Vec<PubkeyBytes>,
+    pub signers: Vec<PublicKey>,
 }
 
-fn mint_to_proto(m: &SplMint) -> Mint {
+fn spl_to_mint(m: &SplMint) -> Mint {
     Mint {
-        mint_authority: m.mint_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+        mint_authority: m
+            .mint_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
         supply: m.supply,
         decimals: m.decimals as u32,
         is_initialized: m.is_initialized,
-        freeze_authority: m.freeze_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+        freeze_authority: m
+            .freeze_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
     }
 }
 
@@ -106,20 +112,23 @@ fn account_state_to_u32(s: AccountState) -> u32 {
     }
 }
 
-fn account_to_proto(a: &SplAccount) -> Account {
+fn spl_to_account(a: &SplAccount) -> Account {
     Account {
-        mint: a.mint.to_bytes().to_vec(),
-        owner: a.owner.to_bytes().to_vec(),
+        mint: PublicKey::new(a.mint.to_bytes()),
+        owner: PublicKey::new(a.owner.to_bytes()),
         amount: a.amount,
-        delegate: a.delegate.map(|pk| pk.to_bytes().to_vec()).into(),
+        delegate: a.delegate.map(|pk| PublicKey::new(pk.to_bytes())).into(),
         state: account_state_to_u32(a.state),
         is_native: a.is_native.into(),
         delegated_amount: a.delegated_amount,
-        close_authority: a.close_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+        close_authority: a
+            .close_authority
+            .map(|pk| PublicKey::new(pk.to_bytes()))
+            .into(),
     }
 }
 
-fn multisig_to_proto(multisig: &SplMultisig) -> Multisig {
+fn spl_to_multisig(multisig: &SplMultisig) -> Multisig {
     // Multisig has fixed signers array; keep only the first `n` signers
     let n = multisig.n as usize;
     let max = multisig.signers.len().min(n);
@@ -127,7 +136,7 @@ fn multisig_to_proto(multisig: &SplMultisig) -> Multisig {
     let mut signers = Vec::with_capacity(max);
 
     for i in 0..max {
-        signers.push(multisig.signers[i].to_bytes().to_vec());
+        signers.push(PublicKey::new(multisig.signers[i].to_bytes()));
     }
 
     Multisig {
@@ -208,7 +217,7 @@ impl TokenExtensionState {
 
                 Ok(TokenExtensionState {
                     account: Some(account::Account::ExtendedMint(ExtendedMint {
-                        base_account: Some(mint_to_proto(&unpacked.base)),
+                        base_account: Some(spl_to_mint(&unpacked.base)),
                         extensions,
                     })),
                 })
@@ -220,7 +229,7 @@ impl TokenExtensionState {
                 Ok(TokenExtensionState {
                     account: Some(account::Account::ExtendedTokenAccount(
                         ExtendedTokenAccount {
-                            base_account: Some(account_to_proto(&unpacked.base)),
+                            base_account: Some(spl_to_account(&unpacked.base)),
                             extensions,
                         },
                     )),
@@ -230,9 +239,7 @@ impl TokenExtensionState {
                 let multisig = SplMultisig::unpack(data_bytes)?;
 
                 Ok(TokenExtensionState {
-                    account: Some(account::Account::Multisig(multisig_to_proto(
-                        &multisig,
-                    ))),
+                    account: Some(account::Account::Multisig(spl_to_multisig(&multisig))),
                 })
             },
         }
@@ -263,7 +270,9 @@ impl Parser for AccountParser {
 
 impl ProgramParser for AccountParser {
     #[inline]
-    fn program_id(&self) -> yellowstone_vixen_core::Pubkey { spl_token_2022::ID.to_bytes().into() }
+    fn program_id(&self) -> yellowstone_vixen_core::KeyBytes<32> {
+        spl_token_2022::ID.to_bytes().into()
+    }
 }
 
 #[cfg(test)]

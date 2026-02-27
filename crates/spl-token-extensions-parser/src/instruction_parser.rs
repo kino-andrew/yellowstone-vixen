@@ -45,7 +45,9 @@ impl Parser for InstructionParser {
 }
 
 impl ProgramParser for InstructionParser {
-    fn program_id(&self) -> yellowstone_vixen_core::Pubkey { spl_token_2022::ID.to_bytes().into() }
+    fn program_id(&self) -> yellowstone_vixen_core::KeyBytes<32> {
+        spl_token_2022::ID.to_bytes().into()
+    }
 }
 
 impl InstructionParser {
@@ -76,21 +78,25 @@ impl InstructionParser {
                 SplTokenInstruction::ConfidentialTransferExtension => {
                     let parsed = ConfidentialTransferIx::try_parse(ix)?;
 
-                    Ok(envelope!(crate::instruction::Instruction::ConfidentialTransfer(
-                        crate::instruction::ConfidentialTransfer {
-                            instruction: Some(parsed),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::ConfidentialTransfer(
+                            crate::instruction::ConfidentialTransfer {
+                                instruction: Some(parsed),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::ConfidentialTransferFeeExtension => {
                     let parsed = ConfidentialTransferFeeIx::try_parse(ix)?;
 
-                    Ok(envelope!(crate::instruction::Instruction::ConfidentialTransferFee(
-                        crate::instruction::ConfidentialTransferFee {
-                            instruction: Some(parsed),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::ConfidentialTransferFee(
+                            crate::instruction::ConfidentialTransferFee {
+                                instruction: Some(parsed),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::CpiGuardExtension => {
@@ -112,11 +118,13 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope!(crate::instruction::Instruction::DefaultAccountState(
-                        crate::instruction::DefaultAccountState {
-                            instruction: Some(parsed),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::DefaultAccountState(
+                            crate::instruction::DefaultAccountState {
+                                instruction: Some(parsed),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::InterestBearingMintExtension => {
@@ -125,11 +133,13 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope!(crate::instruction::Instruction::InterestBearingMint(
-                        crate::instruction::InterestBearingMint {
-                            instruction: Some(parsed),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::InterestBearingMint(
+                            crate::instruction::InterestBearingMint {
+                                instruction: Some(parsed),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::MemoTransferExtension => {
@@ -151,11 +161,13 @@ impl InstructionParser {
                         ix,
                     )?;
 
-                    Ok(envelope!(crate::instruction::Instruction::GroupMemberPointer(
-                        crate::instruction::GroupMemberPointer {
-                            instruction: Some(parsed),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::GroupMemberPointer(
+                            crate::instruction::GroupMemberPointer {
+                                instruction: Some(parsed),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::GroupPointerExtension => {
@@ -203,16 +215,20 @@ impl InstructionParser {
                 } => {
                     check_min_accounts_req(accounts_len, 2)?;
 
-                    // IMPORTANT: ix.accounts are Pubkey (bytes), and your proto structs want Vec<u8>
                     let accounts = SetAuthorityAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        current_authority: ix.accounts[1].to_vec(),
-                        multisig_signers: ix.accounts[2..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        current_authority: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        multisig_signers: ix.accounts[2..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     };
 
                     let args = SetAuthorityArgs {
                         authority_type: AuthorityType::from(authority_type) as i32,
-                        new_authority: new_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+                        new_authority: new_authority
+                            .map(|pk| crate::PublicKey::new(pk.to_bytes()))
+                            .into(),
                     };
 
                     Ok(envelope!(crate::instruction::Instruction::SetAuthority(
@@ -227,58 +243,69 @@ impl InstructionParser {
                     check_min_accounts_req(accounts_len, 2)?;
 
                     let accounts = CreateNativeMintAccounts {
-                        funding_account: ix.accounts[0].to_vec(),
-                        mint: ix.accounts[1].to_vec(),
+                        funding_account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        mint: crate::PublicKey::new(ix.accounts[1].to_vec()),
                     };
 
-                    Ok(envelope!(crate::instruction::Instruction::CreateNativeMint(
-                        crate::instruction::CreateNativeMint {
-                            accounts: Some(accounts),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::CreateNativeMint(
+                            crate::instruction::CreateNativeMint {
+                                accounts: Some(accounts),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::InitializeMintCloseAuthority { close_authority } => {
                     check_min_accounts_req(accounts_len, 1)?;
 
                     let accounts = InitializeMintCloseAuthorityAccounts {
-                        mint: ix.accounts[0].to_vec(),
+                        mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                     };
 
                     let args = InitializeMintCloseAuthorityArgs {
-                        close_authority: close_authority.map(|pk| pk.to_bytes().to_vec()).into(),
+                        close_authority: close_authority
+                            .map(|pk| crate::PublicKey::new(pk.to_bytes()))
+                            .into(),
                     };
 
-                    Ok(envelope!(crate::instruction::Instruction::InitializeMintCloseAuthority(
-                        crate::instruction::InitializeMintCloseAuthority {
-                            accounts: Some(accounts),
-                            args: Some(args),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::InitializeMintCloseAuthority(
+                            crate::instruction::InitializeMintCloseAuthority {
+                                accounts: Some(accounts),
+                                args: Some(args),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::InitializeNonTransferableMint => {
                     check_min_accounts_req(accounts_len, 1)?;
 
                     let accounts = InitializeNonTransferableMintAccounts {
-                        mint: ix.accounts[0].to_vec(),
+                        mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                     };
 
-                    Ok(envelope!(crate::instruction::Instruction::InitializeNonTransferableMint(
-                        crate::instruction::InitializeNonTransferableMint {
-                            accounts: Some(accounts),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::InitializeNonTransferableMint(
+                            crate::instruction::InitializeNonTransferableMint {
+                                accounts: Some(accounts),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::Reallocate { extension_types } => {
                     check_min_accounts_req(accounts_len, 4)?;
 
                     let accounts = ReallocateAccounts {
-                        account: ix.accounts[0].to_vec(),
-                        payer: ix.accounts[1].to_vec(),
-                        owner: ix.accounts[3].to_vec(),
-                        multisig_signers: ix.accounts[4..].iter().map(|pk| pk.to_vec()).collect(),
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        payer: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        owner: crate::PublicKey::new(ix.accounts[3].to_vec()),
+                        multisig_signers: ix.accounts[4..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     };
 
                     let args = ReallocateArgs {
@@ -297,36 +324,43 @@ impl InstructionParser {
                     check_min_accounts_req(accounts_len, 1)?;
 
                     let accounts = InitializePermanentDelegateAccounts {
-                        account: ix.accounts[0].to_vec(),
+                        account: crate::PublicKey::new(ix.accounts[0].to_vec()),
                     };
 
                     let args = InitializePermanentDelegateArgs {
-                        delegate: delegate.to_bytes().to_vec(),
+                        delegate: Some(crate::PublicKey::new(delegate.to_bytes())),
                     };
 
-                    Ok(envelope!(crate::instruction::Instruction::InitializePermanentDelegate(
-                        crate::instruction::InitializePermanentDelegate {
-                            accounts: Some(accounts),
-                            args: Some(args),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::InitializePermanentDelegate(
+                            crate::instruction::InitializePermanentDelegate {
+                                accounts: Some(accounts),
+                                args: Some(args),
+                            },
+                        )
+                    ))
                 },
 
                 SplTokenInstruction::WithdrawExcessLamports => {
                     check_min_accounts_req(accounts_len, 3)?;
 
                     let accounts = WithdrawExcessLamportsAccounts {
-                        source_account: ix.accounts[0].to_vec(),
-                        destination_account: ix.accounts[1].to_vec(),
-                        authority: ix.accounts[2].to_vec(),
-                        multisig_signers: ix.accounts[3..].iter().map(|pk| pk.to_vec()).collect(),
+                        source_account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                        destination_account: crate::PublicKey::new(ix.accounts[1].to_vec()),
+                        authority: crate::PublicKey::new(ix.accounts[2].to_vec()),
+                        multisig_signers: ix.accounts[3..]
+                            .iter()
+                            .map(|a| crate::PublicKey::new(a.to_vec()))
+                            .collect(),
                     };
 
-                    Ok(envelope!(crate::instruction::Instruction::WithdrawExcessLamports(
-                        crate::instruction::WithdrawExcessLamports {
-                            accounts: Some(accounts),
-                        },
-                    )))
+                    Ok(envelope!(
+                        crate::instruction::Instruction::WithdrawExcessLamports(
+                            crate::instruction::WithdrawExcessLamports {
+                                accounts: Some(accounts),
+                            },
+                        )
+                    ))
                 },
 
                 // Anything else: fallback to SPL token parser

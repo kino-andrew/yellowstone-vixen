@@ -6,18 +6,22 @@ syntax = "proto3";
 
 package order_engine;
 
+message PublicKey {
+  bytes value = 1;
+}
+    
 message FillAccounts {
-  bytes taker = 1;
-  bytes maker = 2;
-  bytes taker_input_mint_token_account = 3;
-  bytes maker_input_mint_token_account = 4;
-  bytes taker_output_mint_token_account = 5;
-  bytes maker_output_mint_token_account = 6;
-  bytes input_mint = 7;
-  bytes input_token_program = 8;
-  bytes output_mint = 9;
-  bytes output_token_program = 10;
-  bytes system_program = 11;
+  PublicKey taker = 1;
+  PublicKey maker = 2;
+  PublicKey taker_input_mint_token_account = 3;
+  PublicKey maker_input_mint_token_account = 4;
+  PublicKey taker_output_mint_token_account = 5;
+  PublicKey maker_output_mint_token_account = 6;
+  PublicKey input_mint = 7;
+  PublicKey input_token_program = 8;
+  PublicKey output_mint = 9;
+  PublicKey output_token_program = 10;
+  PublicKey system_program = 11;
 }
     
 message FillArgs {

@@ -1,11 +1,11 @@
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct StakePoolProgram {
-    #[vixen_proto_hint(
+    #[hint(
         oneof = "stake_pool_program::Instruction",
         tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, \
                 23, 24, 25, 26"
@@ -14,9 +14,9 @@ pub struct StakePoolProgram {
 }
 
 pub mod stake_pool_program {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Instruction {
         Initialize(super::InitializeInstruction),
@@ -48,14 +48,14 @@ pub mod stake_pool_program {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Fee {
     pub numerator: u64,
     pub denominator: u64,
 }
 
-#[vixen_proto(enumeration)]
+#[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(i32)]
 pub enum PreferredValidatorType {
@@ -63,7 +63,7 @@ pub enum PreferredValidatorType {
     Withdraw = 1,
 }
 
-#[vixen_proto(enumeration)]
+#[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(i32)]
 pub enum FundingType {
@@ -72,7 +72,7 @@ pub enum FundingType {
     SolWithdraw = 2,
 }
 
-#[vixen_proto(enumeration)]
+#[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(i32)]
 pub enum FeeKind {
@@ -85,20 +85,20 @@ pub enum FeeKind {
     SolWithdrawal = 6,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct FeeType {
-    #[vixen_proto_hint(enumeration = "FeeKind")]
+    #[hint(enumeration = "FeeKind")]
     pub kind: i32,
 
-    #[vixen_proto_hint(oneof = "fee_type::Value", tags = "2, 3")]
+    #[hint(oneof = "fee_type::Value", tags = "2, 3")]
     pub value: Option<fee_type::Value>,
 }
 
 pub mod fee_type {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Value {
         Fee(super::Fee),
@@ -107,22 +107,22 @@ pub mod fee_type {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub manager: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub manager_pool_account: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub deposit_authority: Option<PubkeyBytes>,
+    pub stake_pool: PublicKey,
+    pub manager: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub pool_mint: PublicKey,
+    pub manager_pool_account: PublicKey,
+    pub token_program: PublicKey,
+    pub deposit_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeArgs {
     pub fee: Option<Fee>,
@@ -132,407 +132,407 @@ pub struct InitializeArgs {
     pub max_validators: u32,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeInstruction {
     pub accounts: Option<InitializeAccounts>,
     pub args: Option<InitializeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct AddValidatorToPoolAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub funder: PubkeyBytes,
-    pub stake_pool_withdraw: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub stake: PubkeyBytes,
-    pub validator: PubkeyBytes,
-    pub rent: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub stake_config: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub funder: PublicKey,
+    pub stake_pool_withdraw: PublicKey,
+    pub validator_list: PublicKey,
+    pub stake: PublicKey,
+    pub validator: PublicKey,
+    pub rent: PublicKey,
+    pub clock: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub stake_config: PublicKey,
+    pub system_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct AddValidatorToPoolArgs {
     pub raw_validator_seed: u32,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct AddValidatorToPoolInstruction {
     pub accounts: Option<AddValidatorToPoolAccounts>,
     pub args: Option<AddValidatorToPoolArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct RemoveValidatorFromPoolAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub stake_account: PubkeyBytes,
-    pub transient_stake_account: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw: PublicKey,
+    pub validator_list: PublicKey,
+    pub stake_account: PublicKey,
+    pub transient_stake_account: PublicKey,
+    pub clock: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct RemoveValidatorFromPoolInstruction {
     pub accounts: Option<RemoveValidatorFromPoolAccounts>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseValidatorStakeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub validator_stake: PubkeyBytes,
-    pub transient_stake: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub rent: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list: PublicKey,
+    pub validator_stake: PublicKey,
+    pub transient_stake: PublicKey,
+    pub clock: PublicKey,
+    pub rent: PublicKey,
+    pub system_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseValidatorStakeArgs {
     pub lamports: u64,
     pub transient_stake_seed: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseValidatorStakeInstruction {
     pub accounts: Option<DecreaseValidatorStakeAccounts>,
     pub args: Option<DecreaseValidatorStakeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct IncreaseValidatorStakeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub transient_stake: PubkeyBytes,
-    pub validator_stake: PubkeyBytes,
-    pub validator: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub rent: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub stake_config: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub transient_stake: PublicKey,
+    pub validator_stake: PublicKey,
+    pub validator: PublicKey,
+    pub clock: PublicKey,
+    pub rent: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub stake_config: PublicKey,
+    pub system_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct IncreaseValidatorStakeArgs {
     pub lamports: u64,
     pub transient_stake_seed: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct IncreaseValidatorStakeInstruction {
     pub accounts: Option<IncreaseValidatorStakeAccounts>,
     pub args: Option<IncreaseValidatorStakeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetPreferredValidatorAccounts {
-    pub stake_pool_address: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub validator_list_address: PubkeyBytes,
+    pub stake_pool_address: PublicKey,
+    pub staker: PublicKey,
+    pub validator_list_address: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetPreferredValidatorArgs {
-    #[vixen_proto_hint(enumeration = "PreferredValidatorType")]
+    #[hint(enumeration = "PreferredValidatorType")]
     pub validator_type: i32,
-    pub validator_vote_address: Option<PubkeyBytes>,
+    pub validator_vote_address: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetPreferredValidatorInstruction {
     pub accounts: Option<SetPreferredValidatorAccounts>,
     pub args: Option<SetPreferredValidatorArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateValidatorListBalanceAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list_address: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list_address: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub clock: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateValidatorListBalanceArgs {
     pub start_index: u32,
     pub no_merge: bool,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateValidatorListBalanceInstruction {
     pub accounts: Option<UpdateValidatorListBalanceAccounts>,
     pub args: Option<UpdateValidatorListBalanceArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateStakePoolBalanceAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub withdraw_authority: PubkeyBytes,
-    pub validator_list_storage: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub stake_pool_mint: PubkeyBytes,
-    pub token_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub withdraw_authority: PublicKey,
+    pub validator_list_storage: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub stake_pool_mint: PublicKey,
+    pub token_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateStakePoolBalanceInstruction {
     pub accounts: Option<UpdateStakePoolBalanceAccounts>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CleanupRemovedValidatorEntriesAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub validator_list_storage: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub validator_list_storage: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CleanupRemovedValidatorEntriesInstruction {
     pub accounts: Option<CleanupRemovedValidatorEntriesAccounts>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositStakeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub validator_list_storage: PubkeyBytes,
-    pub stake_pool_deposit_authority: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub deposit_stake_address: PubkeyBytes,
-    pub validator_stake_account: PubkeyBytes,
-    pub reserve_stake_account: PubkeyBytes,
-    pub pool_tokens_to: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub referrer_pool_tokens_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub validator_list_storage: PublicKey,
+    pub stake_pool_deposit_authority: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub deposit_stake_address: PublicKey,
+    pub validator_stake_account: PublicKey,
+    pub reserve_stake_account: PublicKey,
+    pub pool_tokens_to: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub referrer_pool_tokens_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub clock: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub token_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositStakeInstruction {
     pub accounts: Option<DepositStakeAccounts>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawStakeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub validator_list_storage: PubkeyBytes,
-    pub stake_pool_withdraw: PubkeyBytes,
-    pub stake_to_split: PubkeyBytes,
-    pub stake_to_receive: PubkeyBytes,
-    pub user_stake_authority: PubkeyBytes,
-    pub user_transfer_authority: PubkeyBytes,
-    pub user_pool_token_account: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub validator_list_storage: PublicKey,
+    pub stake_pool_withdraw: PublicKey,
+    pub stake_to_split: PublicKey,
+    pub stake_to_receive: PublicKey,
+    pub user_stake_authority: PublicKey,
+    pub user_transfer_authority: PublicKey,
+    pub user_pool_token_account: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub clock: PublicKey,
+    pub token_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawStakeArgs {
     pub amount: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawStakeInstruction {
     pub accounts: Option<WithdrawStakeAccounts>,
     pub args: Option<WithdrawStakeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetManagerAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub manager: PubkeyBytes,
-    pub new_manager: PubkeyBytes,
-    pub new_fee_receiver: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub manager: PublicKey,
+    pub new_manager: PublicKey,
+    pub new_fee_receiver: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetManagerInstruction {
     pub accounts: Option<SetManagerAccounts>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFeeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub manager: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub manager: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFeeArgs {
     pub fee: Option<FeeType>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFeeInstruction {
     pub accounts: Option<SetFeeAccounts>,
     pub args: Option<SetFeeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetStakerAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub set_staker_authority: PubkeyBytes,
-    pub new_staker: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub set_staker_authority: PublicKey,
+    pub new_staker: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetStakerInstruction {
     pub accounts: Option<SetStakerAccounts>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositSolAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub reserve_stake_account: PubkeyBytes,
-    pub lamports_from: PubkeyBytes,
-    pub pool_tokens_to: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub referrer_pool_tokens_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub deposit_authority: Option<PubkeyBytes>,
+    pub stake_pool: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub reserve_stake_account: PublicKey,
+    pub lamports_from: PublicKey,
+    pub pool_tokens_to: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub referrer_pool_tokens_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub system_program: PublicKey,
+    pub token_program: PublicKey,
+    pub deposit_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositSolArgs {
     pub amount: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositSolInstruction {
     pub accounts: Option<DepositSolAccounts>,
     pub args: Option<DepositSolArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFundingAuthorityAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub manager: PubkeyBytes,
-    pub auth: Option<PubkeyBytes>,
+    pub stake_pool: PublicKey,
+    pub manager: PublicKey,
+    pub auth: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFundingAuthorityArgs {
-    #[vixen_proto_hint(enumeration = "FundingType")]
+    #[hint(enumeration = "FundingType")]
     pub funding_type: i32,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct SetFundingAuthorityInstruction {
     pub accounts: Option<SetFundingAuthorityAccounts>,
     pub args: Option<SetFundingAuthorityArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawSolAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub user_transfer_authority: PubkeyBytes,
-    pub pool_tokens_from: PubkeyBytes,
-    pub reserve_stake_account: PubkeyBytes,
-    pub lamports_to: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub sol_withdraw_authority: Option<PubkeyBytes>,
+    pub stake_pool: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub user_transfer_authority: PublicKey,
+    pub pool_tokens_from: PublicKey,
+    pub reserve_stake_account: PublicKey,
+    pub lamports_to: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub clock: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub stake_program: PublicKey,
+    pub token_program: PublicKey,
+    pub sol_withdraw_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawSolArgs {
     pub amount: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawSolInstruction {
     pub accounts: Option<WithdrawSolAccounts>,
     pub args: Option<WithdrawSolArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CreateTokenMetadataAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub manager: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub payer: PubkeyBytes,
-    pub token_metadata: PubkeyBytes,
-    pub mpl_token_metadata: PubkeyBytes,
-    pub system_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub manager: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub pool_mint: PublicKey,
+    pub payer: PublicKey,
+    pub token_metadata: PublicKey,
+    pub mpl_token_metadata: PublicKey,
+    pub system_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CreateTokenMetadataArgs {
     pub name: String,
@@ -540,24 +540,24 @@ pub struct CreateTokenMetadataArgs {
     pub uri: String,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CreateTokenMetadataInstruction {
     pub accounts: Option<CreateTokenMetadataAccounts>,
     pub args: Option<CreateTokenMetadataArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateTokenMetadataAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub manager: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub token_metadata: PubkeyBytes,
-    pub mpl_token_metadata: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub manager: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub token_metadata: PublicKey,
+    pub mpl_token_metadata: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateTokenMetadataArgs {
     pub name: String,
@@ -565,33 +565,33 @@ pub struct UpdateTokenMetadataArgs {
     pub uri: String,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateTokenMetadataInstruction {
     pub accounts: Option<UpdateTokenMetadataAccounts>,
     pub args: Option<UpdateTokenMetadataArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct IncreaseAdditionalValidatorStakeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub ephemeral_stake: PubkeyBytes,
-    pub transient_stake: PubkeyBytes,
-    pub validator_stake: PubkeyBytes,
-    pub validator: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub stake_history: PubkeyBytes,
-    pub stake_config: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub ephemeral_stake: PublicKey,
+    pub transient_stake: PublicKey,
+    pub validator_stake: PublicKey,
+    pub validator: PublicKey,
+    pub clock: PublicKey,
+    pub stake_history: PublicKey,
+    pub stake_config: PublicKey,
+    pub system_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct IncreaseAdditionalValidatorStakeArgs {
     pub lamports: u64,
@@ -599,31 +599,31 @@ pub struct IncreaseAdditionalValidatorStakeArgs {
     pub ephemeral_stake_seed: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct IncreaseAdditionalValidatorStakeInstruction {
     pub accounts: Option<IncreaseAdditionalValidatorStakeAccounts>,
     pub args: Option<IncreaseAdditionalValidatorStakeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseAdditionalValidatorStakeAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub validator_stake: PubkeyBytes,
-    pub ephemeral_stake: PubkeyBytes,
-    pub transient_stake: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub stake_history: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub validator_stake: PublicKey,
+    pub ephemeral_stake: PublicKey,
+    pub transient_stake: PublicKey,
+    pub clock: PublicKey,
+    pub stake_history: PublicKey,
+    pub system_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseAdditionalValidatorStakeArgs {
     pub lamports: u64,
@@ -631,164 +631,164 @@ pub struct DecreaseAdditionalValidatorStakeArgs {
     pub ephemeral_stake_seed: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseAdditionalValidatorStakeInstruction {
     pub accounts: Option<DecreaseAdditionalValidatorStakeAccounts>,
     pub args: Option<DecreaseAdditionalValidatorStakeArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseValidatorStakeWithReserveAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub staker: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub validator_list: PubkeyBytes,
-    pub reserve_stake: PubkeyBytes,
-    pub validator_stake: PubkeyBytes,
-    pub transient_stake: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub stake_history: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub staker: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub validator_list: PublicKey,
+    pub reserve_stake: PublicKey,
+    pub validator_stake: PublicKey,
+    pub transient_stake: PublicKey,
+    pub clock: PublicKey,
+    pub stake_history: PublicKey,
+    pub system_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseValidatorStakeWithReserveArgs {
     pub lamports: u64,
     pub transient_stake_seed: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DecreaseValidatorStakeWithReserveInstruction {
     pub accounts: Option<DecreaseValidatorStakeWithReserveAccounts>,
     pub args: Option<DecreaseValidatorStakeWithReserveArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositStakeWithSlippageAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub validator_list_storage: PubkeyBytes,
-    pub stake_pool_deposit_authority: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub deposit_stake_address: PubkeyBytes,
-    pub validator_stake_account: PubkeyBytes,
-    pub reserve_stake_account: PubkeyBytes,
-    pub pool_tokens_to: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub referrer_pool_tokens_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub validator_list_storage: PublicKey,
+    pub stake_pool_deposit_authority: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub deposit_stake_address: PublicKey,
+    pub validator_stake_account: PublicKey,
+    pub reserve_stake_account: PublicKey,
+    pub pool_tokens_to: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub referrer_pool_tokens_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub clock: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub token_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositStakeWithSlippageArgs {
     pub minimum_pool_tokens_out: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositStakeWithSlippageInstruction {
     pub accounts: Option<DepositStakeWithSlippageAccounts>,
     pub args: Option<DepositStakeWithSlippageArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawStakeWithSlippageAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub validator_list_storage: PubkeyBytes,
-    pub stake_pool_withdraw: PubkeyBytes,
-    pub stake_to_split: PubkeyBytes,
-    pub stake_to_receive: PubkeyBytes,
-    pub user_stake_authority: PubkeyBytes,
-    pub user_transfer_authority: PubkeyBytes,
-    pub user_pool_token_account: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
+    pub stake_pool: PublicKey,
+    pub validator_list_storage: PublicKey,
+    pub stake_pool_withdraw: PublicKey,
+    pub stake_to_split: PublicKey,
+    pub stake_to_receive: PublicKey,
+    pub user_stake_authority: PublicKey,
+    pub user_transfer_authority: PublicKey,
+    pub user_pool_token_account: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub clock: PublicKey,
+    pub token_program: PublicKey,
+    pub stake_program: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawStakeWithSlippageArgs {
     pub pool_tokens_in: u64,
     pub minimum_lamports_out: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawStakeWithSlippageInstruction {
     pub accounts: Option<WithdrawStakeWithSlippageAccounts>,
     pub args: Option<WithdrawStakeWithSlippageArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositSolWithSlippageAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub reserve_stake_account: PubkeyBytes,
-    pub lamports_from: PubkeyBytes,
-    pub pool_tokens_to: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub referrer_pool_tokens_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub system_program: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub deposit_authority: Option<PubkeyBytes>,
+    pub stake_pool: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub reserve_stake_account: PublicKey,
+    pub lamports_from: PublicKey,
+    pub pool_tokens_to: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub referrer_pool_tokens_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub system_program: PublicKey,
+    pub token_program: PublicKey,
+    pub deposit_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositSolWithSlippageArgs {
     pub lamports_in: u64,
     pub minimum_pool_tokens_out: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DepositSolWithSlippageInstruction {
     pub accounts: Option<DepositSolWithSlippageAccounts>,
     pub args: Option<DepositSolWithSlippageArgs>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawSolWithSlippageAccounts {
-    pub stake_pool: PubkeyBytes,
-    pub stake_pool_withdraw_authority: PubkeyBytes,
-    pub user_transfer_authority: PubkeyBytes,
-    pub pool_tokens_from: PubkeyBytes,
-    pub reserve_stake_account: PubkeyBytes,
-    pub lamports_to: PubkeyBytes,
-    pub manager_fee_account: PubkeyBytes,
-    pub pool_mint: PubkeyBytes,
-    pub clock: PubkeyBytes,
-    pub sysvar_stake_history: PubkeyBytes,
-    pub stake_program: PubkeyBytes,
-    pub token_program: PubkeyBytes,
-    pub sol_withdraw_authority: Option<PubkeyBytes>,
+    pub stake_pool: PublicKey,
+    pub stake_pool_withdraw_authority: PublicKey,
+    pub user_transfer_authority: PublicKey,
+    pub pool_tokens_from: PublicKey,
+    pub reserve_stake_account: PublicKey,
+    pub lamports_to: PublicKey,
+    pub manager_fee_account: PublicKey,
+    pub pool_mint: PublicKey,
+    pub clock: PublicKey,
+    pub sysvar_stake_history: PublicKey,
+    pub stake_program: PublicKey,
+    pub token_program: PublicKey,
+    pub sol_withdraw_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawSolWithSlippageArgs {
     pub pool_tokens_in: u64,
     pub minimum_lamports_out: u64,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawSolWithSlippageInstruction {
     pub accounts: Option<WithdrawSolWithSlippageAccounts>,

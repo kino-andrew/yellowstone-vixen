@@ -9,7 +9,7 @@ yellowstone-vixen-mock = { workspace = true }
 
 # required by macro expansion
 yellowstone-vixen-parser = { workspace = true }
-yellowstone-vixen-core = { workspace = true }
+yellowstone-vixen-core = { workspace = true, features = ["proto"] }
 yellowstone-vixen = { workspace = true }
 
 prost = { workspace = true }

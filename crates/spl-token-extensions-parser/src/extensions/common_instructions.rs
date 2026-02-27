@@ -1,11 +1,11 @@
 use yellowstone_vixen_core::instruction::InstructionUpdate;
 use yellowstone_vixen_parser::{check_min_accounts_req, Error, Result};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
 use super::extension::decode_extension_ix_type;
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
-#[vixen_proto(enumeration)]
+#[vixen(enumeration)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
 pub enum ExtensionWithCommonInstruction {
@@ -43,43 +43,43 @@ impl ExtensionWithCommonInstruction {
     }
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ExtInitializeAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct UpdateAccounts {
-    pub mint: PubkeyBytes,
-    pub extension_authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub mint: PublicKey,
+    pub extension_authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct EnableAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct DisableAccounts {
-    pub account: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CommonExtensionInstructions {
-    #[vixen_proto_hint(enumeration = "ExtensionWithCommonInstruction")]
+    #[hint(enumeration = "ExtensionWithCommonInstruction")]
     pub extension: i32,
 
-    #[vixen_proto_hint(
+    #[hint(
         oneof = "common_extension_instructions::Instruction",
         tags = "2, 3, 4, 5"
     )]
@@ -87,33 +87,33 @@ pub struct CommonExtensionInstructions {
 }
 
 pub mod common_extension_instructions {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Initialize {
         pub accounts: Option<super::ExtInitializeAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Update {
         pub accounts: Option<super::UpdateAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Enable {
         pub accounts: Option<super::EnableAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Disable {
         pub accounts: Option<super::DisableAccounts>,
     }
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Instruction {
         Initialize(Initialize),
@@ -141,7 +141,7 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Initialize(oneof::Initialize {
                             accounts: Some(ExtInitializeAccounts {
-                                mint: ix.accounts[0].to_vec(),
+                                mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
                             }),
                         })),
                     }
@@ -152,11 +152,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Update(oneof::Update {
                             accounts: Some(UpdateAccounts {
-                                mint: ix.accounts[0].to_vec(),
-                                extension_authority: ix.accounts[1].to_vec(),
+                                mint: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                                extension_authority: crate::PublicKey::new(ix.accounts[1].to_vec()),
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|pk| pk.to_vec())
+                                    .map(|a| crate::PublicKey::new(a.to_vec()))
                                     .collect(),
                             }),
                         })),
@@ -172,11 +172,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Enable(oneof::Enable {
                             accounts: Some(EnableAccounts {
-                                account: ix.accounts[0].to_vec(),
-                                owner: ix.accounts[1].to_vec(),
+                                account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                                owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|pk| pk.to_vec())
+                                    .map(|a| crate::PublicKey::new(a.to_vec()))
                                     .collect(),
                             }),
                         })),
@@ -188,11 +188,11 @@ impl CommonExtensionInstructions {
                         extension: extension as i32,
                         instruction: Some(oneof::Instruction::Disable(oneof::Disable {
                             accounts: Some(DisableAccounts {
-                                account: ix.accounts[0].to_vec(),
-                                owner: ix.accounts[1].to_vec(),
+                                account: crate::PublicKey::new(ix.accounts[0].to_vec()),
+                                owner: crate::PublicKey::new(ix.accounts[1].to_vec()),
                                 multisig_signers: ix.accounts[2..]
                                     .iter()
-                                    .map(|pk| pk.to_vec())
+                                    .map(|a| crate::PublicKey::new(a.to_vec()))
                                     .collect(),
                             }),
                         })),

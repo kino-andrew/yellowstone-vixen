@@ -399,6 +399,9 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
     let in_module = local_names.is_some();
     let path_prefix = if in_module { "super::" } else { "" };
 
+    // PublicKey is rendered as a message type (PublicKey wrapper), not a scalar.
+    let is_pubkey = matches!(&f.field_type, FieldTypeIr::Scalar(ScalarIr::PublicKey));
+
     // Custom borsh attrs for fields whose on-chain encoding differs from the Rust type
     let borsh_attr = {
         let fixed = fixed_bytes_borsh_attrs(&f.label, &f.field_type, path_prefix);
@@ -426,6 +429,8 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
 
     // Singular Message fields: on-chain the struct is required (no Option tag byte),
     // but prost requires `Option<T>` for message fields.
+    // Note: PublicKey singular fields use their own borsh_deserialize_pubkey helper
+    // which returns PublicKey directly (required), so they don't need required_msg_attr.
     let required_msg_attr = if matches!(
         (&f.label, &f.field_type),
         (LabelIr::Singular, FieldTypeIr::Message(_))
@@ -473,6 +478,11 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
 
                 quote! { #required_msg_attr pub #name: ::core::option::Option<#ty> }
             },
+            (LabelIr::Singular, _) if is_pubkey => {
+                let (_, rust_type) = map_ir_type_to_prost(&f.field_type, in_module);
+
+                quote! { #borsh_attr pub #name: #rust_type }
+            },
             (LabelIr::Singular, field_type) => {
                 let (_, rust_type) = map_ir_type_to_prost(field_type, in_module);
 
@@ -512,6 +522,16 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
             }
         },
 
+        (LabelIr::Singular, _) if is_pubkey => {
+            let (_, rust_type) = map_ir_type_to_prost(&f.field_type, in_module);
+
+            quote! {
+                #[prost(message, required, tag = #tag)]
+                #borsh_attr
+                pub #name: #rust_type
+            }
+        },
+
         (LabelIr::Singular, field_type) => {
             let (prost_type, rust_type) = map_ir_type_to_prost(field_type, in_module);
 
@@ -528,6 +548,16 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
             quote! {
                 #[prost(message, optional, tag = #tag)]
                 pub #name: ::core::option::Option<#ty>
+            }
+        },
+
+        (LabelIr::Optional, _) if is_pubkey => {
+            let (_, rust_type) = map_ir_type_to_prost(&f.field_type, in_module);
+
+            quote! {
+                #[prost(message, optional, tag = #tag)]
+                #borsh_attr
+                pub #name: ::core::option::Option<#rust_type>
             }
         },
 
@@ -551,6 +581,16 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
             }
         },
 
+        (LabelIr::Repeated | LabelIr::FixedArray(_), _) if is_pubkey => {
+            let (_, rust_type) = map_ir_type_to_prost(&f.field_type, in_module);
+
+            quote! {
+                #[prost(message, repeated, tag = #tag)]
+                #borsh_attr
+                pub #name: Vec<#rust_type>
+            }
+        },
+
         (LabelIr::Repeated | LabelIr::FixedArray(_), field_type) => {
             let (prost_type, rust_type) = map_ir_type_to_prost(field_type, in_module);
 
@@ -565,17 +605,24 @@ pub fn render_field(f: &FieldIr, local_names: Option<&HashSet<&str>>) -> TokenSt
 
 ///
 /// Returns `#[borsh(deserialize_with = "...", serialize_with = "...")]` for fixed-size byte fields
-/// (PubkeyBytes and FixedBytes), or an empty TokenStream for all other field types.
+/// (Pubkey and FixedBytes), or an empty TokenStream for all other field types.
 ///
 fn fixed_bytes_borsh_attrs(
     label: &LabelIr,
     field_type: &FieldTypeIr,
     path_prefix: &str,
 ) -> TokenStream {
-    let size: usize = match field_type {
-        FieldTypeIr::Scalar(ScalarIr::PubkeyBytes) => 32,
-        FieldTypeIr::Scalar(ScalarIr::FixedBytes(n)) => *n,
+    match field_type {
+        FieldTypeIr::Scalar(ScalarIr::PublicKey) => {
+            return pubkey_borsh_attrs(label, path_prefix);
+        },
+        FieldTypeIr::Scalar(ScalarIr::FixedBytes(_)) => {},
         _ => return quote! {},
+    }
+
+    let size = match field_type {
+        FieldTypeIr::Scalar(ScalarIr::FixedBytes(n)) => *n,
+        _ => unreachable!(),
     };
 
     let (deserialize_path, serialize_path) = (
@@ -645,6 +692,38 @@ fn fixed_bytes_borsh_attrs(
 
             quote! { #[borsh(deserialize_with = #d, serialize_with = #s)] }
         },
+    }
+}
+
+/// Returns borsh attrs for Pubkey fields, routing to Pubkey-wrapping helpers.
+fn pubkey_borsh_attrs(label: &LabelIr, path_prefix: &str) -> TokenStream {
+    let (d, s) = match label {
+        LabelIr::Singular => (
+            format!("{path_prefix}borsh_deserialize_pubkey"),
+            format!("{path_prefix}borsh_serialize_pubkey"),
+        ),
+        LabelIr::Optional => (
+            format!("{path_prefix}borsh_deserialize_opt_pubkey"),
+            format!("{path_prefix}borsh_serialize_opt_pubkey"),
+        ),
+        LabelIr::Repeated => (
+            format!("{path_prefix}borsh_deserialize_vec_pubkey"),
+            format!("{path_prefix}borsh_serialize_vec_pubkey"),
+        ),
+        LabelIr::FixedArray(n) => (
+            format!("{path_prefix}borsh_deserialize_fixed_array_pubkey::<{n}, _>"),
+            format!("{path_prefix}borsh_serialize_fixed_array_pubkey::<{n}, _>"),
+        ),
+    };
+
+    let d_lit = LitStr::new(&d, Span::call_site());
+    let s_lit = LitStr::new(&s, Span::call_site());
+
+    quote! {
+        #[borsh(
+            deserialize_with = #d_lit,
+            serialize_with = #s_lit
+        )]
     }
 }
 
@@ -760,7 +839,7 @@ fn fixed_array_default_borsh_attrs(label: &LabelIr, path_prefix: &str) -> TokenS
     }
 }
 
-/// Return (prost_type, rust_type). When `in_module`, `PubkeyBytes` gets a `super::` prefix.
+/// Return (prost_type, rust_type). When `in_module`, `PublicKey` gets a `super::` prefix.
 fn map_ir_type_to_prost(field_type: &FieldTypeIr, in_module: bool) -> (TokenStream, TokenStream) {
     match field_type {
         FieldTypeIr::Scalar(s) => match s {
@@ -776,11 +855,11 @@ fn map_ir_type_to_prost(field_type: &FieldTypeIr, in_module: bool) -> (TokenStre
             ScalarIr::String => (quote!(string), quote!(String)),
             ScalarIr::Bytes => (quote!(bytes = "vec"), quote!(Vec<u8>)),
             ScalarIr::FixedBytes(_) => (quote!(bytes = "vec"), quote!(Vec<u8>)),
-            ScalarIr::PubkeyBytes => {
+            ScalarIr::PublicKey => {
                 if in_module {
-                    (quote!(bytes = "vec"), quote!(super::PubkeyBytes))
+                    (quote!(message), quote!(super::PublicKey))
                 } else {
-                    (quote!(bytes = "vec"), quote!(PubkeyBytes))
+                    (quote!(message), quote!(PublicKey))
                 }
             },
         },

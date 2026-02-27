@@ -6,6 +6,10 @@ syntax = "proto3";
 
 package perpetuals;
 
+message PublicKey {
+  bytes value = 1;
+}
+    
 message PriceImpactBuffer {
   repeated int64 open_interest = 1;
   int64 last_updated = 2;
@@ -66,7 +70,7 @@ message Price {
 }
     
 message OracleParams {
-  bytes oracle_account = 1;
+  PublicKey oracle_account = 1;
   OracleType oracle_type = 2;
   uint64 buffer = 3;
   uint32 max_price_age_sec = 4;
@@ -178,9 +182,9 @@ message SideShort {
 }
     
 message BorrowPosition {
-  bytes owner = 1;
-  bytes pool = 2;
-  bytes custody = 3;
+  PublicKey owner = 1;
+  PublicKey pool = 2;
+  PublicKey custody = 3;
   int64 open_time = 4;
   int64 update_time = 5;
   bytes borrow_size = 6;
@@ -191,9 +195,9 @@ message BorrowPosition {
 }
     
 message Custody {
-  bytes pool = 1;
-  bytes mint = 2;
-  bytes token_account = 3;
+  PublicKey pool = 1;
+  PublicKey mint = 2;
+  PublicKey token_account = 3;
   uint32 decimals = 4;
   bool is_stable = 5;
   OracleParams oracle = 6;
@@ -207,9 +211,9 @@ message Custody {
   uint64 increase_position_bps = 14;
   uint64 decrease_position_bps = 15;
   uint64 max_position_size_usd = 16;
-  bytes doves_oracle = 17;
+  PublicKey doves_oracle = 17;
   JumpRateState jump_rate_state = 18;
-  bytes doves_ag_oracle = 19;
+  PublicKey doves_ag_oracle = 19;
   PriceImpactBuffer price_impact_buffer = 20;
   BorrowLendParams borrow_lend_parameters = 21;
   FundingRateState borrows_funding_rate_state = 22;
@@ -230,8 +234,8 @@ message Custody {
     
 message Perpetuals {
   Permissions permissions = 1;
-  repeated bytes pools = 2;
-  bytes admin = 3;
+  repeated PublicKey pools = 2;
+  PublicKey admin = 3;
   uint32 transfer_authority_bump = 4;
   uint32 perpetuals_bump = 5;
   int64 inception_time = 6;
@@ -239,7 +243,7 @@ message Perpetuals {
     
 message Pool {
   string name = 1;
-  repeated bytes custodies = 2;
+  repeated PublicKey custodies = 2;
   bytes aum_usd = 3;
   Limit limit = 4;
   Fees fees = 5;
@@ -257,11 +261,11 @@ message Pool {
 }
     
 message PositionRequest {
-  bytes owner = 1;
-  bytes pool = 2;
-  bytes custody = 3;
-  bytes position = 4;
-  bytes mint = 5;
+  PublicKey owner = 1;
+  PublicKey pool = 2;
+  PublicKey custody = 3;
+  PublicKey position = 4;
+  PublicKey mint = 5;
   int64 open_time = 6;
   int64 update_time = 7;
   uint64 size_usd_delta = 8;
@@ -278,14 +282,14 @@ message PositionRequest {
   bool executed = 19;
   uint64 counter = 20;
   uint32 bump = 21;
-  optional bytes referral = 22;
+  optional PublicKey referral = 22;
 }
     
 message Position {
-  bytes owner = 1;
-  bytes pool = 2;
-  bytes custody = 3;
-  bytes collateral_custody = 4;
+  PublicKey owner = 1;
+  PublicKey pool = 2;
+  PublicKey custody = 3;
+  PublicKey collateral_custody = 4;
   int64 open_time = 5;
   int64 update_time = 6;
   Side side = 7;
@@ -299,8 +303,8 @@ message Position {
 }
     
 message StakeInfo {
-  bytes pool = 1;
-  bytes stake_account = 2;
+  PublicKey pool = 1;
+  PublicKey stake_account = 2;
   uint64 current_staked_amount_lamports = 3;
   uint64 total_staking_rewards_lamports = 4;
   int64 last_updated_at = 5;
@@ -310,19 +314,19 @@ message StakeInfo {
 }
     
 message TokenLedger {
-  bytes token_account = 1;
+  PublicKey token_account = 1;
   uint64 amount = 2;
 }
     
 message InitAccounts {
-  bytes upgrade_authority = 1;
-  bytes admin = 2;
-  bytes transfer_authority = 3;
-  bytes perpetuals = 4;
-  bytes perpetuals_program = 5;
-  bytes perpetuals_program_data = 6;
-  bytes system_program = 7;
-  bytes token_program = 8;
+  PublicKey upgrade_authority = 1;
+  PublicKey admin = 2;
+  PublicKey transfer_authority = 3;
+  PublicKey perpetuals = 4;
+  PublicKey perpetuals_program = 5;
+  PublicKey perpetuals_program_data = 6;
+  PublicKey system_program = 7;
+  PublicKey token_program = 8;
 }
     
 message InitArgs {
@@ -341,14 +345,14 @@ message Init {
 }
     
 message AddPoolAccounts {
-  bytes admin = 1;
-  bytes transfer_authority = 2;
-  bytes perpetuals = 3;
-  bytes pool = 4;
-  bytes lp_token_mint = 5;
-  bytes system_program = 6;
-  bytes token_program = 7;
-  bytes rent = 8;
+  PublicKey admin = 1;
+  PublicKey transfer_authority = 2;
+  PublicKey perpetuals = 3;
+  PublicKey pool = 4;
+  PublicKey lp_token_mint = 5;
+  PublicKey system_program = 6;
+  PublicKey token_program = 7;
+  PublicKey rent = 8;
 }
     
 message AddPoolArgs {
@@ -364,16 +368,16 @@ message AddPool {
 }
     
 message AddCustodyAccounts {
-  bytes admin = 1;
-  bytes transfer_authority = 2;
-  bytes perpetuals = 3;
-  bytes pool = 4;
-  bytes custody = 5;
-  bytes custody_token_account = 6;
-  bytes custody_token_mint = 7;
-  bytes system_program = 8;
-  bytes token_program = 9;
-  bytes rent = 10;
+  PublicKey admin = 1;
+  PublicKey transfer_authority = 2;
+  PublicKey perpetuals = 3;
+  PublicKey pool = 4;
+  PublicKey custody = 5;
+  PublicKey custody_token_account = 6;
+  PublicKey custody_token_mint = 7;
+  PublicKey system_program = 8;
+  PublicKey token_program = 9;
+  PublicKey rent = 10;
 }
     
 message AddCustodyArgs {
@@ -385,14 +389,14 @@ message AddCustodyArgs {
   uint64 target_ratio_bps = 6;
   uint64 increase_position_bps = 7;
   uint64 decrease_position_bps = 8;
-  bytes doves_oracle = 9;
+  PublicKey doves_oracle = 9;
   uint64 max_position_size_usd = 10;
   JumpRateState jump_rate = 11;
   uint64 price_impact_fee_factor = 12;
   float price_impact_exponent = 13;
   uint64 delta_imbalance_threshold_decimal = 14;
   uint64 max_fee_bps = 15;
-  bytes doves_ag_oracle = 16;
+  PublicKey doves_ag_oracle = 16;
 }
     
 message AddCustody {
@@ -401,9 +405,9 @@ message AddCustody {
 }
     
 message SetCustodyConfigAccounts {
-  bytes admin = 1;
-  bytes perpetuals = 2;
-  bytes custody = 3;
+  PublicKey admin = 1;
+  PublicKey perpetuals = 2;
+  PublicKey custody = 3;
 }
     
 message SetCustodyConfigArgs {
@@ -414,14 +418,14 @@ message SetCustodyConfigArgs {
   uint64 target_ratio_bps = 5;
   uint64 increase_position_bps = 6;
   uint64 decrease_position_bps = 7;
-  bytes doves_oracle = 8;
+  PublicKey doves_oracle = 8;
   uint64 max_position_size_usd = 9;
   JumpRateState jump_rate = 10;
   uint64 price_impact_fee_factor = 11;
   float price_impact_exponent = 12;
   uint64 delta_imbalance_threshold_decimal = 13;
   uint64 max_fee_bps = 14;
-  bytes doves_ag_oracle = 15;
+  PublicKey doves_ag_oracle = 15;
   BorrowLendParams borrow_lend_parameters = 16;
   uint64 borrow_hourly_funding_dbps = 17;
   uint64 borrow_limit_in_token_amount = 18;
@@ -440,9 +444,9 @@ message SetCustodyConfig {
 }
     
 message SetPoolConfigAccounts {
-  bytes admin = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
+  PublicKey admin = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
 }
     
 message SetPoolConfigArgs {
@@ -461,8 +465,8 @@ message SetPoolConfig {
 }
     
 message SetPerpetualsConfigAccounts {
-  bytes admin = 1;
-  bytes perpetuals = 2;
+  PublicKey admin = 1;
+  PublicKey perpetuals = 2;
 }
     
 message SetPerpetualsConfigArgs {
@@ -475,9 +479,9 @@ message SetPerpetualsConfig {
 }
     
 message TransferAdminAccounts {
-  bytes admin = 1;
-  bytes new_admin = 2;
-  bytes perpetuals = 3;
+  PublicKey admin = 1;
+  PublicKey new_admin = 2;
+  PublicKey perpetuals = 3;
 }
     
 message TransferAdminArgs {
@@ -489,16 +493,16 @@ message TransferAdmin {
 }
     
 message WithdrawFees2Accounts {
-  bytes keeper = 1;
-  bytes transfer_authority = 2;
-  bytes perpetuals = 3;
-  bytes pool = 4;
-  bytes custody = 5;
-  bytes custody_token_account = 6;
-  bytes custody_doves_price_account = 7;
-  bytes custody_pythnet_price_account = 8;
-  bytes receiving_token_account = 9;
-  bytes token_program = 10;
+  PublicKey keeper = 1;
+  PublicKey transfer_authority = 2;
+  PublicKey perpetuals = 3;
+  PublicKey pool = 4;
+  PublicKey custody = 5;
+  PublicKey custody_token_account = 6;
+  PublicKey custody_doves_price_account = 7;
+  PublicKey custody_pythnet_price_account = 8;
+  PublicKey receiving_token_account = 9;
+  PublicKey token_program = 10;
 }
     
 message WithdrawFees2Args {
@@ -510,15 +514,15 @@ message WithdrawFees2 {
 }
     
 message CreateTokenMetadataAccounts {
-  bytes admin = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes transfer_authority = 4;
-  bytes metadata = 5;
-  bytes lp_token_mint = 6;
-  bytes token_metadata_program = 7;
-  bytes system_program = 8;
-  bytes rent = 9;
+  PublicKey admin = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey transfer_authority = 4;
+  PublicKey metadata = 5;
+  PublicKey lp_token_mint = 6;
+  PublicKey token_metadata_program = 7;
+  PublicKey system_program = 8;
+  PublicKey rent = 9;
 }
     
 message CreateTokenMetadataArgs {
@@ -533,9 +537,9 @@ message CreateTokenMetadata {
 }
     
 message CreateTokenLedgerAccounts {
-  bytes token_ledger = 1;
-  bytes payer = 2;
-  bytes system_program = 3;
+  PublicKey token_ledger = 1;
+  PublicKey payer = 2;
+  PublicKey system_program = 3;
 }
     
 message CreateTokenLedgerArgs {
@@ -547,10 +551,10 @@ message CreateTokenLedger {
 }
     
 message ReallocCustodyAccounts {
-  bytes keeper = 1;
-  bytes custody = 2;
-  bytes system_program = 3;
-  bytes rent = 4;
+  PublicKey keeper = 1;
+  PublicKey custody = 2;
+  PublicKey system_program = 3;
+  PublicKey rent = 4;
 }
     
 message ReallocCustodyArgs {
@@ -562,10 +566,10 @@ message ReallocCustody {
 }
     
 message ReallocPoolAccounts {
-  bytes keeper = 1;
-  bytes pool = 2;
-  bytes system_program = 3;
-  bytes rent = 4;
+  PublicKey keeper = 1;
+  PublicKey pool = 2;
+  PublicKey system_program = 3;
+  PublicKey rent = 4;
 }
     
 message ReallocPoolArgs {
@@ -577,24 +581,24 @@ message ReallocPool {
 }
     
 message CreateAndDelegateStakeAccountAccounts {
-  bytes keeper = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes custody_token_account = 5;
-  bytes transfer_authority = 6;
-  bytes stake_account = 7;
-  bytes stake_info = 8;
-  bytes validator_vote_account = 9;
-  bytes stake_config = 10;
-  bytes wsol_mint = 11;
-  bytes temp_wsol_account = 12;
-  bytes rent = 13;
-  bytes clock = 14;
-  bytes stake_history = 15;
-  bytes stake_program = 16;
-  bytes system_program = 17;
-  bytes token_program = 18;
+  PublicKey keeper = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey custody_token_account = 5;
+  PublicKey transfer_authority = 6;
+  PublicKey stake_account = 7;
+  PublicKey stake_info = 8;
+  PublicKey validator_vote_account = 9;
+  PublicKey stake_config = 10;
+  PublicKey wsol_mint = 11;
+  PublicKey temp_wsol_account = 12;
+  PublicKey rent = 13;
+  PublicKey clock = 14;
+  PublicKey stake_history = 15;
+  PublicKey stake_program = 16;
+  PublicKey system_program = 17;
+  PublicKey token_program = 18;
 }
     
 message CreateAndDelegateStakeAccountArgs {
@@ -608,15 +612,15 @@ message CreateAndDelegateStakeAccount {
 }
     
 message UnstakeAccounts {
-  bytes operator = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes transfer_authority = 5;
-  bytes stake_account = 6;
-  bytes stake_info = 7;
-  bytes clock = 8;
-  bytes stake_program = 9;
+  PublicKey operator = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey stake_account = 6;
+  PublicKey stake_info = 7;
+  PublicKey clock = 8;
+  PublicKey stake_program = 9;
 }
     
 message UnstakeArgs {
@@ -628,19 +632,19 @@ message Unstake {
 }
     
 message WithdrawStakeAccounts {
-  bytes keeper = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes custody_token_account = 5;
-  bytes transfer_authority = 6;
-  bytes stake_account = 7;
-  bytes stake_info = 8;
-  bytes clock = 9;
-  bytes stake_history = 10;
-  bytes stake_program = 11;
-  bytes system_program = 12;
-  bytes token_program = 13;
+  PublicKey keeper = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey custody_token_account = 5;
+  PublicKey transfer_authority = 6;
+  PublicKey stake_account = 7;
+  PublicKey stake_info = 8;
+  PublicKey clock = 9;
+  PublicKey stake_history = 10;
+  PublicKey stake_program = 11;
+  PublicKey system_program = 12;
+  PublicKey token_program = 13;
 }
     
 message WithdrawStakeArgs {
@@ -652,12 +656,12 @@ message WithdrawStake {
 }
     
 message RedeemStakeAccounts {
-  bytes keeper = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes stake_account = 5;
-  bytes stake_info = 6;
+  PublicKey keeper = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey stake_account = 5;
+  PublicKey stake_info = 6;
 }
     
 message RedeemStakeArgs {
@@ -669,8 +673,8 @@ message RedeemStake {
 }
     
 message OperatorSetCustodyConfigAccounts {
-  bytes operator = 1;
-  bytes custody = 2;
+  PublicKey operator = 1;
+  PublicKey custody = 2;
 }
     
 message OperatorSetCustodyConfigArgs {
@@ -703,8 +707,8 @@ message OperatorSetCustodyConfig {
 }
     
 message OperatorSetPoolConfigAccounts {
-  bytes operator = 1;
-  bytes pool = 2;
+  PublicKey operator = 1;
+  PublicKey pool = 2;
 }
     
 message OperatorSetPoolConfigArgs {
@@ -722,12 +726,12 @@ message OperatorSetPoolConfig {
 }
     
 message TestInitAccounts {
-  bytes upgrade_authority = 1;
-  bytes admin = 2;
-  bytes transfer_authority = 3;
-  bytes perpetuals = 4;
-  bytes system_program = 5;
-  bytes token_program = 6;
+  PublicKey upgrade_authority = 1;
+  PublicKey admin = 2;
+  PublicKey transfer_authority = 3;
+  PublicKey perpetuals = 4;
+  PublicKey system_program = 5;
+  PublicKey token_program = 6;
 }
     
 message TestInitArgs {
@@ -746,8 +750,8 @@ message TestInit {
 }
     
 message SetTestTimeAccounts {
-  bytes admin = 1;
-  bytes perpetuals = 2;
+  PublicKey admin = 1;
+  PublicKey perpetuals = 2;
 }
     
 message SetTestTimeArgs {
@@ -760,9 +764,9 @@ message SetTestTime {
 }
     
 message SetTokenLedgerAccounts {
-  bytes token_ledger = 1;
-  bytes token_account = 2;
-  bytes token_program = 3;
+  PublicKey token_ledger = 1;
+  PublicKey token_account = 2;
+  PublicKey token_program = 3;
 }
     
 message SetTokenLedgerArgs {
@@ -774,23 +778,23 @@ message SetTokenLedger {
 }
     
 message Swap2Accounts {
-  bytes owner = 1;
-  bytes funding_account = 2;
-  bytes receiving_account = 3;
-  bytes transfer_authority = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes receiving_custody = 7;
-  bytes receiving_custody_doves_price_account = 8;
-  bytes receiving_custody_pythnet_price_account = 9;
-  bytes receiving_custody_token_account = 10;
-  bytes dispensing_custody = 11;
-  bytes dispensing_custody_doves_price_account = 12;
-  bytes dispensing_custody_pythnet_price_account = 13;
-  bytes dispensing_custody_token_account = 14;
-  bytes token_program = 15;
-  bytes event_authority = 16;
-  bytes program = 17;
+  PublicKey owner = 1;
+  PublicKey funding_account = 2;
+  PublicKey receiving_account = 3;
+  PublicKey transfer_authority = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey receiving_custody = 7;
+  PublicKey receiving_custody_doves_price_account = 8;
+  PublicKey receiving_custody_pythnet_price_account = 9;
+  PublicKey receiving_custody_token_account = 10;
+  PublicKey dispensing_custody = 11;
+  PublicKey dispensing_custody_doves_price_account = 12;
+  PublicKey dispensing_custody_pythnet_price_account = 13;
+  PublicKey dispensing_custody_token_account = 14;
+  PublicKey token_program = 15;
+  PublicKey event_authority = 16;
+  PublicKey program = 17;
 }
     
 message Swap2Args {
@@ -804,23 +808,23 @@ message Swap2 {
 }
     
 message SwapWithTokenLedgerAccounts {
-  bytes owner = 1;
-  bytes funding_account = 2;
-  bytes receiving_account = 3;
-  bytes transfer_authority = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes receiving_custody = 7;
-  bytes receiving_custody_doves_price_account = 8;
-  bytes receiving_custody_token_account = 9;
-  bytes dispensing_custody = 10;
-  bytes dispensing_custody_doves_price_account = 11;
-  bytes dispensing_custody_token_account = 12;
-  bytes token_ledger = 13;
-  bytes token_program = 14;
-  bytes instruction = 15;
-  bytes event_authority = 16;
-  bytes program = 17;
+  PublicKey owner = 1;
+  PublicKey funding_account = 2;
+  PublicKey receiving_account = 3;
+  PublicKey transfer_authority = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey receiving_custody = 7;
+  PublicKey receiving_custody_doves_price_account = 8;
+  PublicKey receiving_custody_token_account = 9;
+  PublicKey dispensing_custody = 10;
+  PublicKey dispensing_custody_doves_price_account = 11;
+  PublicKey dispensing_custody_token_account = 12;
+  PublicKey token_ledger = 13;
+  PublicKey token_program = 14;
+  PublicKey instruction = 15;
+  PublicKey event_authority = 16;
+  PublicKey program = 17;
 }
     
 message SwapWithTokenLedgerArgs {
@@ -833,22 +837,22 @@ message SwapWithTokenLedger {
 }
     
 message InstantIncreasePositionPreSwapAccounts {
-  bytes owner = 1;
-  bytes funding_account = 2;
-  bytes receiving_account = 3;
-  bytes transfer_authority = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes receiving_custody = 7;
-  bytes receiving_custody_doves_price_account = 8;
-  bytes receiving_custody_token_account = 9;
-  bytes dispensing_custody = 10;
-  bytes dispensing_custody_doves_price_account = 11;
-  bytes dispensing_custody_token_account = 12;
-  bytes token_program = 13;
-  bytes instruction = 14;
-  bytes event_authority = 15;
-  bytes program = 16;
+  PublicKey owner = 1;
+  PublicKey funding_account = 2;
+  PublicKey receiving_account = 3;
+  PublicKey transfer_authority = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey receiving_custody = 7;
+  PublicKey receiving_custody_doves_price_account = 8;
+  PublicKey receiving_custody_token_account = 9;
+  PublicKey dispensing_custody = 10;
+  PublicKey dispensing_custody_doves_price_account = 11;
+  PublicKey dispensing_custody_token_account = 12;
+  PublicKey token_program = 13;
+  PublicKey instruction = 14;
+  PublicKey event_authority = 15;
+  PublicKey program = 16;
 }
     
 message InstantIncreasePositionPreSwapArgs {
@@ -862,20 +866,20 @@ message InstantIncreasePositionPreSwap {
 }
     
 message AddLiquidity2Accounts {
-  bytes owner = 1;
-  bytes funding_account = 2;
-  bytes lp_token_account = 3;
-  bytes transfer_authority = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes custody = 7;
-  bytes custody_doves_price_account = 8;
-  bytes custody_pythnet_price_account = 9;
-  bytes custody_token_account = 10;
-  bytes lp_token_mint = 11;
-  bytes token_program = 12;
-  bytes event_authority = 13;
-  bytes program = 14;
+  PublicKey owner = 1;
+  PublicKey funding_account = 2;
+  PublicKey lp_token_account = 3;
+  PublicKey transfer_authority = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey custody = 7;
+  PublicKey custody_doves_price_account = 8;
+  PublicKey custody_pythnet_price_account = 9;
+  PublicKey custody_token_account = 10;
+  PublicKey lp_token_mint = 11;
+  PublicKey token_program = 12;
+  PublicKey event_authority = 13;
+  PublicKey program = 14;
 }
     
 message AddLiquidity2Args {
@@ -890,20 +894,20 @@ message AddLiquidity2 {
 }
     
 message RemoveLiquidity2Accounts {
-  bytes owner = 1;
-  bytes receiving_account = 2;
-  bytes lp_token_account = 3;
-  bytes transfer_authority = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes custody = 7;
-  bytes custody_doves_price_account = 8;
-  bytes custody_pythnet_price_account = 9;
-  bytes custody_token_account = 10;
-  bytes lp_token_mint = 11;
-  bytes token_program = 12;
-  bytes event_authority = 13;
-  bytes program = 14;
+  PublicKey owner = 1;
+  PublicKey receiving_account = 2;
+  PublicKey lp_token_account = 3;
+  PublicKey transfer_authority = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey custody = 7;
+  PublicKey custody_doves_price_account = 8;
+  PublicKey custody_pythnet_price_account = 9;
+  PublicKey custody_token_account = 10;
+  PublicKey lp_token_mint = 11;
+  PublicKey token_program = 12;
+  PublicKey event_authority = 13;
+  PublicKey program = 14;
 }
     
 message RemoveLiquidity2Args {
@@ -917,22 +921,22 @@ message RemoveLiquidity2 {
 }
     
 message CreateIncreasePositionMarketRequestAccounts {
-  bytes owner = 1;
-  bytes funding_account = 2;
-  bytes perpetuals = 3;
-  bytes pool = 4;
-  bytes position = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes custody = 8;
-  bytes collateral_custody = 9;
-  bytes input_mint = 10;
-  bytes referral = 11;
-  bytes token_program = 12;
-  bytes associated_token_program = 13;
-  bytes system_program = 14;
-  bytes event_authority = 15;
-  bytes program = 16;
+  PublicKey owner = 1;
+  PublicKey funding_account = 2;
+  PublicKey perpetuals = 3;
+  PublicKey pool = 4;
+  PublicKey position = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey custody = 8;
+  PublicKey collateral_custody = 9;
+  PublicKey input_mint = 10;
+  PublicKey referral = 11;
+  PublicKey token_program = 12;
+  PublicKey associated_token_program = 13;
+  PublicKey system_program = 14;
+  PublicKey event_authority = 15;
+  PublicKey program = 16;
 }
     
 message CreateIncreasePositionMarketRequestArgs {
@@ -950,24 +954,24 @@ message CreateIncreasePositionMarketRequest {
 }
     
 message CreateDecreasePositionRequest2Accounts {
-  bytes owner = 1;
-  bytes receiving_account = 2;
-  bytes perpetuals = 3;
-  bytes pool = 4;
-  bytes position = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes custody = 8;
-  bytes custody_doves_price_account = 9;
-  bytes custody_pythnet_price_account = 10;
-  bytes collateral_custody = 11;
-  bytes desired_mint = 12;
-  bytes referral = 13;
-  bytes token_program = 14;
-  bytes associated_token_program = 15;
-  bytes system_program = 16;
-  bytes event_authority = 17;
-  bytes program = 18;
+  PublicKey owner = 1;
+  PublicKey receiving_account = 2;
+  PublicKey perpetuals = 3;
+  PublicKey pool = 4;
+  PublicKey position = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey custody = 8;
+  PublicKey custody_doves_price_account = 9;
+  PublicKey custody_pythnet_price_account = 10;
+  PublicKey collateral_custody = 11;
+  PublicKey desired_mint = 12;
+  PublicKey referral = 13;
+  PublicKey token_program = 14;
+  PublicKey associated_token_program = 15;
+  PublicKey system_program = 16;
+  PublicKey event_authority = 17;
+  PublicKey program = 18;
 }
     
 message CreateDecreasePositionRequest2Args {
@@ -988,22 +992,22 @@ message CreateDecreasePositionRequest2 {
 }
     
 message CreateDecreasePositionMarketRequestAccounts {
-  bytes owner = 1;
-  bytes receiving_account = 2;
-  bytes perpetuals = 3;
-  bytes pool = 4;
-  bytes position = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes custody = 8;
-  bytes collateral_custody = 9;
-  bytes desired_mint = 10;
-  bytes referral = 11;
-  bytes token_program = 12;
-  bytes associated_token_program = 13;
-  bytes system_program = 14;
-  bytes event_authority = 15;
-  bytes program = 16;
+  PublicKey owner = 1;
+  PublicKey receiving_account = 2;
+  PublicKey perpetuals = 3;
+  PublicKey pool = 4;
+  PublicKey position = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey custody = 8;
+  PublicKey collateral_custody = 9;
+  PublicKey desired_mint = 10;
+  PublicKey referral = 11;
+  PublicKey token_program = 12;
+  PublicKey associated_token_program = 13;
+  PublicKey system_program = 14;
+  PublicKey event_authority = 15;
+  PublicKey program = 16;
 }
     
 message CreateDecreasePositionMarketRequestArgs {
@@ -1021,14 +1025,14 @@ message CreateDecreasePositionMarketRequest {
 }
     
 message UpdateDecreasePositionRequest2Accounts {
-  bytes owner = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes position = 4;
-  bytes position_request = 5;
-  bytes custody = 6;
-  bytes custody_doves_price_account = 7;
-  bytes custody_pythnet_price_account = 8;
+  PublicKey owner = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey position = 4;
+  PublicKey position_request = 5;
+  PublicKey custody = 6;
+  PublicKey custody_doves_price_account = 7;
+  PublicKey custody_pythnet_price_account = 8;
 }
     
 message UpdateDecreasePositionRequest2Args {
@@ -1042,19 +1046,19 @@ message UpdateDecreasePositionRequest2 {
 }
     
 message ClosePositionRequest2Accounts {
-  bytes keeper = 1;
-  bytes owner = 2;
-  bytes owner_ata = 3;
-  bytes pool = 4;
-  bytes position_request = 5;
-  bytes position_request_ata = 6;
-  bytes position = 7;
-  bytes mint = 8;
-  bytes token_program = 9;
-  bytes system_program = 10;
-  bytes associated_token_program = 11;
-  bytes event_authority = 12;
-  bytes program = 13;
+  PublicKey keeper = 1;
+  PublicKey owner = 2;
+  PublicKey owner_ata = 3;
+  PublicKey pool = 4;
+  PublicKey position_request = 5;
+  PublicKey position_request_ata = 6;
+  PublicKey position = 7;
+  PublicKey mint = 8;
+  PublicKey token_program = 9;
+  PublicKey system_program = 10;
+  PublicKey associated_token_program = 11;
+  PublicKey event_authority = 12;
+  PublicKey program = 13;
 }
     
 message ClosePositionRequest2Args {
@@ -1066,20 +1070,20 @@ message ClosePositionRequest2 {
 }
     
 message ClosePositionRequest3Accounts {
-  bytes keeper = 1;
-  bytes owner = 2;
-  bytes owner_ata = 3;
-  bytes pool = 4;
-  bytes position_request = 5;
-  bytes position_request_ata = 6;
-  bytes position = 7;
-  bytes custody = 8;
-  bytes mint = 9;
-  bytes token_program = 10;
-  bytes system_program = 11;
-  bytes associated_token_program = 12;
-  bytes event_authority = 13;
-  bytes program = 14;
+  PublicKey keeper = 1;
+  PublicKey owner = 2;
+  PublicKey owner_ata = 3;
+  PublicKey pool = 4;
+  PublicKey position_request = 5;
+  PublicKey position_request_ata = 6;
+  PublicKey position = 7;
+  PublicKey custody = 8;
+  PublicKey mint = 9;
+  PublicKey token_program = 10;
+  PublicKey system_program = 11;
+  PublicKey associated_token_program = 12;
+  PublicKey event_authority = 13;
+  PublicKey program = 14;
 }
     
 message ClosePositionRequest3Args {
@@ -1091,22 +1095,22 @@ message ClosePositionRequest3 {
 }
     
 message IncreasePosition4Accounts {
-  bytes keeper = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes position_request = 4;
-  bytes position_request_ata = 5;
-  bytes position = 6;
-  bytes custody = 7;
-  bytes custody_doves_price_account = 8;
-  bytes custody_pythnet_price_account = 9;
-  bytes collateral_custody = 10;
-  bytes collateral_custody_doves_price_account = 11;
-  bytes collateral_custody_pythnet_price_account = 12;
-  bytes collateral_custody_token_account = 13;
-  bytes token_program = 14;
-  bytes event_authority = 15;
-  bytes program = 16;
+  PublicKey keeper = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey position_request = 4;
+  PublicKey position_request_ata = 5;
+  PublicKey position = 6;
+  PublicKey custody = 7;
+  PublicKey custody_doves_price_account = 8;
+  PublicKey custody_pythnet_price_account = 9;
+  PublicKey collateral_custody = 10;
+  PublicKey collateral_custody_doves_price_account = 11;
+  PublicKey collateral_custody_pythnet_price_account = 12;
+  PublicKey collateral_custody_token_account = 13;
+  PublicKey token_program = 14;
+  PublicKey event_authority = 15;
+  PublicKey program = 16;
 }
     
 message IncreasePosition4Args {
@@ -1118,17 +1122,17 @@ message IncreasePosition4 {
 }
     
 message IncreasePositionPreSwapAccounts {
-  bytes keeper = 1;
-  bytes keeper_ata = 2;
-  bytes position_request = 3;
-  bytes position_request_ata = 4;
-  bytes position = 5;
-  bytes collateral_custody = 6;
-  bytes collateral_custody_token_account = 7;
-  bytes instruction = 8;
-  bytes token_program = 9;
-  bytes event_authority = 10;
-  bytes program = 11;
+  PublicKey keeper = 1;
+  PublicKey keeper_ata = 2;
+  PublicKey position_request = 3;
+  PublicKey position_request_ata = 4;
+  PublicKey position = 5;
+  PublicKey collateral_custody = 6;
+  PublicKey collateral_custody_token_account = 7;
+  PublicKey instruction = 8;
+  PublicKey token_program = 9;
+  PublicKey event_authority = 10;
+  PublicKey program = 11;
 }
     
 message IncreasePositionPreSwapArgs {
@@ -1140,26 +1144,26 @@ message IncreasePositionPreSwap {
 }
     
 message IncreasePositionWithInternalSwapAccounts {
-  bytes keeper = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes position_request = 4;
-  bytes position_request_ata = 5;
-  bytes position = 6;
-  bytes custody = 7;
-  bytes custody_doves_price_account = 8;
-  bytes custody_pythnet_price_account = 9;
-  bytes collateral_custody = 10;
-  bytes collateral_custody_doves_price_account = 11;
-  bytes collateral_custody_pythnet_price_account = 12;
-  bytes collateral_custody_token_account = 13;
-  bytes receiving_custody = 14;
-  bytes receiving_custody_doves_price_account = 15;
-  bytes receiving_custody_pythnet_price_account = 16;
-  bytes receiving_custody_token_account = 17;
-  bytes token_program = 18;
-  bytes event_authority = 19;
-  bytes program = 20;
+  PublicKey keeper = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey position_request = 4;
+  PublicKey position_request_ata = 5;
+  PublicKey position = 6;
+  PublicKey custody = 7;
+  PublicKey custody_doves_price_account = 8;
+  PublicKey custody_pythnet_price_account = 9;
+  PublicKey collateral_custody = 10;
+  PublicKey collateral_custody_doves_price_account = 11;
+  PublicKey collateral_custody_pythnet_price_account = 12;
+  PublicKey collateral_custody_token_account = 13;
+  PublicKey receiving_custody = 14;
+  PublicKey receiving_custody_doves_price_account = 15;
+  PublicKey receiving_custody_pythnet_price_account = 16;
+  PublicKey receiving_custody_token_account = 17;
+  PublicKey token_program = 18;
+  PublicKey event_authority = 19;
+  PublicKey program = 20;
 }
     
 message IncreasePositionWithInternalSwapArgs {
@@ -1171,24 +1175,24 @@ message IncreasePositionWithInternalSwap {
 }
     
 message DecreasePosition4Accounts {
-  bytes keeper = 1;
-  bytes owner = 2;
-  bytes transfer_authority = 3;
-  bytes perpetuals = 4;
-  bytes pool = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes position = 8;
-  bytes custody = 9;
-  bytes custody_doves_price_account = 10;
-  bytes custody_pythnet_price_account = 11;
-  bytes collateral_custody = 12;
-  bytes collateral_custody_doves_price_account = 13;
-  bytes collateral_custody_pythnet_price_account = 14;
-  bytes collateral_custody_token_account = 15;
-  bytes token_program = 16;
-  bytes event_authority = 17;
-  bytes program = 18;
+  PublicKey keeper = 1;
+  PublicKey owner = 2;
+  PublicKey transfer_authority = 3;
+  PublicKey perpetuals = 4;
+  PublicKey pool = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey position = 8;
+  PublicKey custody = 9;
+  PublicKey custody_doves_price_account = 10;
+  PublicKey custody_pythnet_price_account = 11;
+  PublicKey collateral_custody = 12;
+  PublicKey collateral_custody_doves_price_account = 13;
+  PublicKey collateral_custody_pythnet_price_account = 14;
+  PublicKey collateral_custody_token_account = 15;
+  PublicKey token_program = 16;
+  PublicKey event_authority = 17;
+  PublicKey program = 18;
 }
     
 message DecreasePosition4Args {
@@ -1200,28 +1204,28 @@ message DecreasePosition4 {
 }
     
 message DecreasePositionWithInternalSwapAccounts {
-  bytes keeper = 1;
-  bytes owner = 2;
-  bytes transfer_authority = 3;
-  bytes perpetuals = 4;
-  bytes pool = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes position = 8;
-  bytes custody = 9;
-  bytes custody_doves_price_account = 10;
-  bytes custody_pythnet_price_account = 11;
-  bytes collateral_custody = 12;
-  bytes collateral_custody_doves_price_account = 13;
-  bytes collateral_custody_pythnet_price_account = 14;
-  bytes collateral_custody_token_account = 15;
-  bytes dispensing_custody = 16;
-  bytes dispensing_custody_doves_price_account = 17;
-  bytes dispensing_custody_pythnet_price_account = 18;
-  bytes dispensing_custody_token_account = 19;
-  bytes token_program = 20;
-  bytes event_authority = 21;
-  bytes program = 22;
+  PublicKey keeper = 1;
+  PublicKey owner = 2;
+  PublicKey transfer_authority = 3;
+  PublicKey perpetuals = 4;
+  PublicKey pool = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey position = 8;
+  PublicKey custody = 9;
+  PublicKey custody_doves_price_account = 10;
+  PublicKey custody_pythnet_price_account = 11;
+  PublicKey collateral_custody = 12;
+  PublicKey collateral_custody_doves_price_account = 13;
+  PublicKey collateral_custody_pythnet_price_account = 14;
+  PublicKey collateral_custody_token_account = 15;
+  PublicKey dispensing_custody = 16;
+  PublicKey dispensing_custody_doves_price_account = 17;
+  PublicKey dispensing_custody_pythnet_price_account = 18;
+  PublicKey dispensing_custody_token_account = 19;
+  PublicKey token_program = 20;
+  PublicKey event_authority = 21;
+  PublicKey program = 22;
 }
     
 message DecreasePositionWithInternalSwapArgs {
@@ -1233,22 +1237,22 @@ message DecreasePositionWithInternalSwap {
 }
     
 message DecreasePositionWithTpslAccounts {
-  bytes keeper = 1;
-  bytes owner = 2;
-  bytes transfer_authority = 3;
-  bytes perpetuals = 4;
-  bytes pool = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes position = 8;
-  bytes custody = 9;
-  bytes custody_doves_price_account = 10;
-  bytes collateral_custody = 11;
-  bytes collateral_custody_doves_price_account = 12;
-  bytes collateral_custody_token_account = 13;
-  bytes token_program = 14;
-  bytes event_authority = 15;
-  bytes program = 16;
+  PublicKey keeper = 1;
+  PublicKey owner = 2;
+  PublicKey transfer_authority = 3;
+  PublicKey perpetuals = 4;
+  PublicKey pool = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey position = 8;
+  PublicKey custody = 9;
+  PublicKey custody_doves_price_account = 10;
+  PublicKey collateral_custody = 11;
+  PublicKey collateral_custody_doves_price_account = 12;
+  PublicKey collateral_custody_token_account = 13;
+  PublicKey token_program = 14;
+  PublicKey event_authority = 15;
+  PublicKey program = 16;
 }
     
 message DecreasePositionWithTpslArgs {
@@ -1260,25 +1264,25 @@ message DecreasePositionWithTpsl {
 }
     
 message DecreasePositionWithTpslAndInternalSwapAccounts {
-  bytes keeper = 1;
-  bytes owner = 2;
-  bytes transfer_authority = 3;
-  bytes perpetuals = 4;
-  bytes pool = 5;
-  bytes position_request = 6;
-  bytes position_request_ata = 7;
-  bytes position = 8;
-  bytes custody = 9;
-  bytes custody_doves_price_account = 10;
-  bytes collateral_custody = 11;
-  bytes collateral_custody_doves_price_account = 12;
-  bytes collateral_custody_token_account = 13;
-  bytes dispensing_custody = 14;
-  bytes dispensing_custody_doves_price_account = 15;
-  bytes dispensing_custody_token_account = 16;
-  bytes token_program = 17;
-  bytes event_authority = 18;
-  bytes program = 19;
+  PublicKey keeper = 1;
+  PublicKey owner = 2;
+  PublicKey transfer_authority = 3;
+  PublicKey perpetuals = 4;
+  PublicKey pool = 5;
+  PublicKey position_request = 6;
+  PublicKey position_request_ata = 7;
+  PublicKey position = 8;
+  PublicKey custody = 9;
+  PublicKey custody_doves_price_account = 10;
+  PublicKey collateral_custody = 11;
+  PublicKey collateral_custody_doves_price_account = 12;
+  PublicKey collateral_custody_token_account = 13;
+  PublicKey dispensing_custody = 14;
+  PublicKey dispensing_custody_doves_price_account = 15;
+  PublicKey dispensing_custody_token_account = 16;
+  PublicKey token_program = 17;
+  PublicKey event_authority = 18;
+  PublicKey program = 19;
 }
     
 message DecreasePositionWithTpslAndInternalSwapArgs {
@@ -1290,19 +1294,19 @@ message DecreasePositionWithTpslAndInternalSwap {
 }
     
 message LiquidateFullPosition4Accounts {
-  bytes signer = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes position = 4;
-  bytes custody = 5;
-  bytes custody_doves_price_account = 6;
-  bytes custody_pythnet_price_account = 7;
-  bytes collateral_custody = 8;
-  bytes collateral_custody_doves_price_account = 9;
-  bytes collateral_custody_pythnet_price_account = 10;
-  bytes collateral_custody_token_account = 11;
-  bytes event_authority = 12;
-  bytes program = 13;
+  PublicKey signer = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey position = 4;
+  PublicKey custody = 5;
+  PublicKey custody_doves_price_account = 6;
+  PublicKey custody_pythnet_price_account = 7;
+  PublicKey collateral_custody = 8;
+  PublicKey collateral_custody_doves_price_account = 9;
+  PublicKey collateral_custody_pythnet_price_account = 10;
+  PublicKey collateral_custody_token_account = 11;
+  PublicKey event_authority = 12;
+  PublicKey program = 13;
 }
     
 message LiquidateFullPosition4Args {
@@ -1314,10 +1318,10 @@ message LiquidateFullPosition4 {
 }
     
 message RefreshAssetsUnderManagementAccounts {
-  bytes keeper = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes lp_token_mint = 4;
+  PublicKey keeper = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey lp_token_mint = 4;
 }
     
 message RefreshAssetsUnderManagementArgs {
@@ -1329,9 +1333,9 @@ message RefreshAssetsUnderManagement {
 }
     
 message SetMaxGlobalSizesAccounts {
-  bytes keeper = 1;
-  bytes custody = 2;
-  bytes pool = 3;
+  PublicKey keeper = 1;
+  PublicKey custody = 2;
+  PublicKey pool = 3;
 }
     
 message SetMaxGlobalSizesArgs {
@@ -1349,26 +1353,26 @@ message SetMaxGlobalSizes {
 }
     
 message InstantCreateTpslAccounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes receiving_account = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes position = 7;
-  bytes position_request = 8;
-  bytes position_request_ata = 9;
-  bytes custody = 10;
-  bytes custody_doves_price_account = 11;
-  bytes custody_pythnet_price_account = 12;
-  bytes collateral_custody = 13;
-  bytes desired_mint = 14;
-  bytes referral = 15;
-  bytes token_program = 16;
-  bytes associated_token_program = 17;
-  bytes system_program = 18;
-  bytes event_authority = 19;
-  bytes program = 20;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey receiving_account = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey position = 7;
+  PublicKey position_request = 8;
+  PublicKey position_request_ata = 9;
+  PublicKey custody = 10;
+  PublicKey custody_doves_price_account = 11;
+  PublicKey custody_pythnet_price_account = 12;
+  PublicKey collateral_custody = 13;
+  PublicKey desired_mint = 14;
+  PublicKey referral = 15;
+  PublicKey token_program = 16;
+  PublicKey associated_token_program = 17;
+  PublicKey system_program = 18;
+  PublicKey event_authority = 19;
+  PublicKey program = 20;
 }
     
 message InstantCreateTpslArgs {
@@ -1387,26 +1391,26 @@ message InstantCreateTpsl {
 }
     
 message InstantCreateLimitOrderAccounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes funding_account = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes position = 7;
-  bytes position_request = 8;
-  bytes position_request_ata = 9;
-  bytes custody = 10;
-  bytes custody_doves_price_account = 11;
-  bytes custody_pythnet_price_account = 12;
-  bytes collateral_custody = 13;
-  bytes input_mint = 14;
-  bytes referral = 15;
-  bytes token_program = 16;
-  bytes associated_token_program = 17;
-  bytes system_program = 18;
-  bytes event_authority = 19;
-  bytes program = 20;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey funding_account = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey position = 7;
+  PublicKey position_request = 8;
+  PublicKey position_request_ata = 9;
+  PublicKey custody = 10;
+  PublicKey custody_doves_price_account = 11;
+  PublicKey custody_pythnet_price_account = 12;
+  PublicKey collateral_custody = 13;
+  PublicKey input_mint = 14;
+  PublicKey referral = 15;
+  PublicKey token_program = 16;
+  PublicKey associated_token_program = 17;
+  PublicKey system_program = 18;
+  PublicKey event_authority = 19;
+  PublicKey program = 20;
 }
     
 message InstantCreateLimitOrderArgs {
@@ -1425,26 +1429,26 @@ message InstantCreateLimitOrder {
 }
     
 message InstantIncreasePositionAccounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes funding_account = 4;
-  bytes perpetuals = 5;
-  bytes pool = 6;
-  bytes position = 7;
-  bytes custody = 8;
-  bytes custody_doves_price_account = 9;
-  bytes custody_pythnet_price_account = 10;
-  bytes collateral_custody = 11;
-  bytes collateral_custody_doves_price_account = 12;
-  bytes collateral_custody_pythnet_price_account = 13;
-  bytes collateral_custody_token_account = 14;
-  bytes token_ledger = 15;
-  bytes referral = 16;
-  bytes token_program = 17;
-  bytes system_program = 18;
-  bytes event_authority = 19;
-  bytes program = 20;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey funding_account = 4;
+  PublicKey perpetuals = 5;
+  PublicKey pool = 6;
+  PublicKey position = 7;
+  PublicKey custody = 8;
+  PublicKey custody_doves_price_account = 9;
+  PublicKey custody_pythnet_price_account = 10;
+  PublicKey collateral_custody = 11;
+  PublicKey collateral_custody_doves_price_account = 12;
+  PublicKey collateral_custody_pythnet_price_account = 13;
+  PublicKey collateral_custody_token_account = 14;
+  PublicKey token_ledger = 15;
+  PublicKey referral = 16;
+  PublicKey token_program = 17;
+  PublicKey system_program = 18;
+  PublicKey event_authority = 19;
+  PublicKey program = 20;
 }
     
 message InstantIncreasePositionArgs {
@@ -1461,28 +1465,28 @@ message InstantIncreasePosition {
 }
     
 message InstantDecreasePositionAccounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes receiving_account = 4;
-  bytes transfer_authority = 5;
-  bytes perpetuals = 6;
-  bytes pool = 7;
-  bytes position = 8;
-  bytes custody = 9;
-  bytes custody_doves_price_account = 10;
-  bytes custody_pythnet_price_account = 11;
-  bytes collateral_custody = 12;
-  bytes collateral_custody_doves_price_account = 13;
-  bytes collateral_custody_pythnet_price_account = 14;
-  bytes collateral_custody_token_account = 15;
-  bytes desired_mint = 16;
-  bytes referral = 17;
-  bytes token_program = 18;
-  bytes associated_token_program = 19;
-  bytes system_program = 20;
-  bytes event_authority = 21;
-  bytes program = 22;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey receiving_account = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey perpetuals = 6;
+  PublicKey pool = 7;
+  PublicKey position = 8;
+  PublicKey custody = 9;
+  PublicKey custody_doves_price_account = 10;
+  PublicKey custody_pythnet_price_account = 11;
+  PublicKey collateral_custody = 12;
+  PublicKey collateral_custody_doves_price_account = 13;
+  PublicKey collateral_custody_pythnet_price_account = 14;
+  PublicKey collateral_custody_token_account = 15;
+  PublicKey desired_mint = 16;
+  PublicKey referral = 17;
+  PublicKey token_program = 18;
+  PublicKey associated_token_program = 19;
+  PublicKey system_program = 20;
+  PublicKey event_authority = 21;
+  PublicKey program = 22;
 }
     
 message InstantDecreasePositionArgs {
@@ -1499,28 +1503,28 @@ message InstantDecreasePosition {
 }
     
 message InstantDecreasePosition2Accounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes receiving_account = 4;
-  bytes transfer_authority = 5;
-  bytes perpetuals = 6;
-  bytes pool = 7;
-  bytes position = 8;
-  bytes custody = 9;
-  bytes custody_doves_price_account = 10;
-  bytes collateral_custody = 11;
-  bytes collateral_custody_doves_price_account = 12;
-  bytes collateral_custody_token_account = 13;
-  bytes desired_mint = 14;
-  bytes referral = 15;
-  bytes position_request = 16;
-  bytes position_request_ata = 17;
-  bytes token_program = 18;
-  bytes associated_token_program = 19;
-  bytes system_program = 20;
-  bytes event_authority = 21;
-  bytes program = 22;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey receiving_account = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey perpetuals = 6;
+  PublicKey pool = 7;
+  PublicKey position = 8;
+  PublicKey custody = 9;
+  PublicKey custody_doves_price_account = 10;
+  PublicKey collateral_custody = 11;
+  PublicKey collateral_custody_doves_price_account = 12;
+  PublicKey collateral_custody_token_account = 13;
+  PublicKey desired_mint = 14;
+  PublicKey referral = 15;
+  PublicKey position_request = 16;
+  PublicKey position_request_ata = 17;
+  PublicKey token_program = 18;
+  PublicKey associated_token_program = 19;
+  PublicKey system_program = 20;
+  PublicKey event_authority = 21;
+  PublicKey program = 22;
 }
     
 message InstantDecreasePosition2Args {
@@ -1538,16 +1542,16 @@ message InstantDecreasePosition2 {
 }
     
 message InstantUpdateLimitOrderAccounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes perpetuals = 4;
-  bytes pool = 5;
-  bytes position = 6;
-  bytes position_request = 7;
-  bytes custody = 8;
-  bytes custody_doves_price_account = 9;
-  bytes custody_pythnet_price_account = 10;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey perpetuals = 4;
+  PublicKey pool = 5;
+  PublicKey position = 6;
+  PublicKey position_request = 7;
+  PublicKey custody = 8;
+  PublicKey custody_doves_price_account = 9;
+  PublicKey custody_pythnet_price_account = 10;
 }
     
 message InstantUpdateLimitOrderArgs {
@@ -1562,18 +1566,18 @@ message InstantUpdateLimitOrder {
 }
     
 message InstantUpdateTpslAccounts {
-  bytes keeper = 1;
-  bytes api_keeper = 2;
-  bytes owner = 3;
-  bytes perpetuals = 4;
-  bytes pool = 5;
-  bytes position = 6;
-  bytes position_request = 7;
-  bytes custody = 8;
-  bytes custody_doves_price_account = 9;
-  bytes custody_pythnet_price_account = 10;
-  bytes event_authority = 11;
-  bytes program = 12;
+  PublicKey keeper = 1;
+  PublicKey api_keeper = 2;
+  PublicKey owner = 3;
+  PublicKey perpetuals = 4;
+  PublicKey pool = 5;
+  PublicKey position = 6;
+  PublicKey position_request = 7;
+  PublicKey custody = 8;
+  PublicKey custody_doves_price_account = 9;
+  PublicKey custody_pythnet_price_account = 10;
+  PublicKey event_authority = 11;
+  PublicKey program = 12;
 }
     
 message InstantUpdateTpslArgs {
@@ -1588,12 +1592,12 @@ message InstantUpdateTpsl {
 }
     
 message GetAddLiquidityAmountAndFee2Accounts {
-  bytes perpetuals = 1;
-  bytes pool = 2;
-  bytes custody = 3;
-  bytes custody_doves_price_account = 4;
-  bytes custody_pythnet_price_account = 5;
-  bytes lp_token_mint = 6;
+  PublicKey perpetuals = 1;
+  PublicKey pool = 2;
+  PublicKey custody = 3;
+  PublicKey custody_doves_price_account = 4;
+  PublicKey custody_pythnet_price_account = 5;
+  PublicKey lp_token_mint = 6;
 }
     
 message GetAddLiquidityAmountAndFee2Args {
@@ -1606,12 +1610,12 @@ message GetAddLiquidityAmountAndFee2 {
 }
     
 message GetRemoveLiquidityAmountAndFee2Accounts {
-  bytes perpetuals = 1;
-  bytes pool = 2;
-  bytes custody = 3;
-  bytes custody_doves_price_account = 4;
-  bytes custody_pythnet_price_account = 5;
-  bytes lp_token_mint = 6;
+  PublicKey perpetuals = 1;
+  PublicKey pool = 2;
+  PublicKey custody = 3;
+  PublicKey custody_doves_price_account = 4;
+  PublicKey custody_pythnet_price_account = 5;
+  PublicKey lp_token_mint = 6;
 }
     
 message GetRemoveLiquidityAmountAndFee2Args {
@@ -1624,8 +1628,8 @@ message GetRemoveLiquidityAmountAndFee2 {
 }
     
 message GetAssetsUnderManagement2Accounts {
-  bytes perpetuals = 1;
-  bytes pool = 2;
+  PublicKey perpetuals = 1;
+  PublicKey pool = 2;
 }
     
 message GetAssetsUnderManagement2Args {
@@ -1638,18 +1642,18 @@ message GetAssetsUnderManagement2 {
 }
     
 message BorrowFromCustodyAccounts {
-  bytes owner = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes transfer_authority = 5;
-  bytes borrow_position = 6;
-  bytes custody_token_account = 7;
-  bytes user_token_account = 8;
-  bytes lp_token_mint = 9;
-  bytes token_program = 10;
-  bytes event_authority = 11;
-  bytes program = 12;
+  PublicKey owner = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey borrow_position = 6;
+  PublicKey custody_token_account = 7;
+  PublicKey user_token_account = 8;
+  PublicKey lp_token_mint = 9;
+  PublicKey token_program = 10;
+  PublicKey event_authority = 11;
+  PublicKey program = 12;
 }
     
 message BorrowFromCustodyArgs {
@@ -1662,16 +1666,16 @@ message BorrowFromCustody {
 }
     
 message RepayToCustodyAccounts {
-  bytes owner = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes borrow_position = 5;
-  bytes custody_token_account = 6;
-  bytes user_token_account = 7;
-  bytes token_program = 8;
-  bytes event_authority = 9;
-  bytes program = 10;
+  PublicKey owner = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey borrow_position = 5;
+  PublicKey custody_token_account = 6;
+  PublicKey user_token_account = 7;
+  PublicKey token_program = 8;
+  PublicKey event_authority = 9;
+  PublicKey program = 10;
 }
     
 message RepayToCustodyArgs {
@@ -1684,19 +1688,19 @@ message RepayToCustody {
 }
     
 message DepositCollateralForBorrowsAccounts {
-  bytes owner = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes transfer_authority = 5;
-  bytes borrow_position = 6;
-  bytes collateral_token_account = 7;
-  bytes user_token_account = 8;
-  bytes lp_token_mint = 9;
-  bytes token_program = 10;
-  bytes system_program = 11;
-  bytes event_authority = 12;
-  bytes program = 13;
+  PublicKey owner = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey borrow_position = 6;
+  PublicKey collateral_token_account = 7;
+  PublicKey user_token_account = 8;
+  PublicKey lp_token_mint = 9;
+  PublicKey token_program = 10;
+  PublicKey system_program = 11;
+  PublicKey event_authority = 12;
+  PublicKey program = 13;
 }
     
 message DepositCollateralForBorrowsArgs {
@@ -1709,18 +1713,18 @@ message DepositCollateralForBorrows {
 }
     
 message WithdrawCollateralForBorrowsAccounts {
-  bytes owner = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes transfer_authority = 5;
-  bytes borrow_position = 6;
-  bytes collateral_token_account = 7;
-  bytes user_token_account = 8;
-  bytes lp_token_mint = 9;
-  bytes token_program = 10;
-  bytes event_authority = 11;
-  bytes program = 12;
+  PublicKey owner = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey borrow_position = 6;
+  PublicKey collateral_token_account = 7;
+  PublicKey user_token_account = 8;
+  PublicKey lp_token_mint = 9;
+  PublicKey token_program = 10;
+  PublicKey event_authority = 11;
+  PublicKey program = 12;
 }
     
 message WithdrawCollateralForBorrowsArgs {
@@ -1733,17 +1737,17 @@ message WithdrawCollateralForBorrows {
 }
     
 message LiquidateBorrowPositionAccounts {
-  bytes signer = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes transfer_authority = 5;
-  bytes borrow_position = 6;
-  bytes collateral_token_account = 7;
-  bytes lp_token_mint = 8;
-  bytes token_program = 9;
-  bytes event_authority = 10;
-  bytes program = 11;
+  PublicKey signer = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey borrow_position = 6;
+  PublicKey collateral_token_account = 7;
+  PublicKey lp_token_mint = 8;
+  PublicKey token_program = 9;
+  PublicKey event_authority = 10;
+  PublicKey program = 11;
 }
     
 message LiquidateBorrowPositionArgs {
@@ -1755,17 +1759,17 @@ message LiquidateBorrowPosition {
 }
     
 message PartialLiquidateBorrowPositionAccounts {
-  bytes signer = 1;
-  bytes perpetuals = 2;
-  bytes pool = 3;
-  bytes custody = 4;
-  bytes transfer_authority = 5;
-  bytes borrow_position = 6;
-  bytes collateral_token_account = 7;
-  bytes lp_token_mint = 8;
-  bytes token_program = 9;
-  bytes event_authority = 10;
-  bytes program = 11;
+  PublicKey signer = 1;
+  PublicKey perpetuals = 2;
+  PublicKey pool = 3;
+  PublicKey custody = 4;
+  PublicKey transfer_authority = 5;
+  PublicKey borrow_position = 6;
+  PublicKey collateral_token_account = 7;
+  PublicKey lp_token_mint = 8;
+  PublicKey token_program = 9;
+  PublicKey event_authority = 10;
+  PublicKey program = 11;
 }
     
 message PartialLiquidateBorrowPositionArgs {
@@ -1777,11 +1781,11 @@ message PartialLiquidateBorrowPosition {
 }
     
 message CloseBorrowPositionAccounts {
-  bytes owner = 1;
-  bytes borrow_position = 2;
-  bytes system_program = 3;
-  bytes event_authority = 4;
-  bytes program = 5;
+  PublicKey owner = 1;
+  PublicKey borrow_position = 2;
+  PublicKey system_program = 3;
+  PublicKey event_authority = 4;
+  PublicKey program = 5;
 }
     
 message CloseBorrowPositionArgs {

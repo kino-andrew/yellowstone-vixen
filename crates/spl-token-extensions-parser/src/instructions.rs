@@ -1,75 +1,75 @@
 use spl_token_2022::{extension::ExtensionType, instruction::AuthorityType as SplAuthorityType};
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 use yellowstone_vixen_spl_token_parser::{SetAuthorityAccounts, TokenProgram as BaseTokenProgram};
 
 use super::{
-    CommonExtensionInstructions, ConfidentialTransferFeeIx, ConfidentialTransferIx,
-    TokenGroupIx, TokenMetadataIx, TransferFeeIx,
+    CommonExtensionInstructions, ConfidentialTransferFeeIx, ConfidentialTransferIx, TokenGroupIx,
+    TokenMetadataIx, TransferFeeIx,
 };
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct CreateNativeMintAccounts {
-    pub mint: PubkeyBytes,
-    pub funding_account: PubkeyBytes,
+    pub mint: PublicKey,
+    pub funding_account: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeMintCloseAuthorityAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
-#[vixen_proto]
-#[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
+#[vixen]
+#[derive(Clone, PartialEq)]
 pub struct InitializeMintCloseAuthorityArgs {
-    pub close_authority: Option<PubkeyBytes>,
+    pub close_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializeNonTransferableMintAccounts {
-    pub mint: PubkeyBytes,
+    pub mint: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ReallocateAccounts {
-    pub account: PubkeyBytes,
-    pub payer: PubkeyBytes,
-    pub owner: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub account: PublicKey,
+    pub payer: PublicKey,
+    pub owner: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct ReallocateArgs {
     pub extension_types: Vec<u32>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializePermanentDelegateAccounts {
-    pub account: PubkeyBytes,
+    pub account: PublicKey,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct InitializePermanentDelegateArgs {
-    pub delegate: PubkeyBytes,
+    pub delegate: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct WithdrawExcessLamportsAccounts {
-    pub source_account: PubkeyBytes,
-    pub destination_account: PubkeyBytes,
-    pub authority: PubkeyBytes,
-    pub multisig_signers: Vec<PubkeyBytes>,
+    pub source_account: PublicKey,
+    pub destination_account: PublicKey,
+    pub authority: PublicKey,
+    pub multisig_signers: Vec<PublicKey>,
 }
 
-#[vixen_proto(enumeration)]
+#[vixen(enumeration)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]
 pub enum AuthorityType {
@@ -117,18 +117,18 @@ impl From<spl_token_2022::instruction::AuthorityType> for AuthorityType {
     }
 }
 
-#[vixen_proto]
-#[derive(Clone, PartialEq, ::borsh::BorshDeserialize, ::borsh::BorshSerialize)]
+#[vixen]
+#[derive(Clone, PartialEq)]
 pub struct SetAuthorityArgs {
-    #[vixen_proto_hint(enumeration = "AuthorityType")]
+    #[hint(enumeration = "AuthorityType")]
     pub authority_type: i32,
-    pub new_authority: Option<PubkeyBytes>,
+    pub new_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenExtensionProgram {
-    #[vixen_proto_hint(
+    #[hint(
         oneof = "instruction::Instruction",
         tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21"
     )]
@@ -136,143 +136,142 @@ pub struct TokenExtensionProgram {
 }
 
 pub mod instruction {
-    use super::vixen_proto;
     use super::{
-        BaseTokenProgram, CommonExtensionInstructions, ConfidentialTransferFeeIx,
+        vixen, BaseTokenProgram, CommonExtensionInstructions, ConfidentialTransferFeeIx,
         ConfidentialTransferIx, SetAuthorityAccounts, TokenGroupIx, TokenMetadataIx, TransferFeeIx,
     };
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct TokenProgram {
         pub instruction: Option<BaseTokenProgram>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct SetAuthority {
         pub accounts: Option<SetAuthorityAccounts>,
         pub args: Option<super::SetAuthorityArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct CreateNativeMint {
         pub accounts: Option<super::CreateNativeMintAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InitializeMintCloseAuthority {
         pub accounts: Option<super::InitializeMintCloseAuthorityAccounts>,
         pub args: Option<super::InitializeMintCloseAuthorityArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InitializeNonTransferableMint {
         pub accounts: Option<super::InitializeNonTransferableMintAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct Reallocate {
         pub accounts: Option<super::ReallocateAccounts>,
         pub args: Option<super::ReallocateArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InitializePermanentDelegate {
         pub accounts: Option<super::InitializePermanentDelegateAccounts>,
         pub args: Option<super::InitializePermanentDelegateArgs>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct WithdrawExcessLamports {
         pub accounts: Option<super::WithdrawExcessLamportsAccounts>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct TransferFee {
         pub instruction: Option<TransferFeeIx>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct ConfidentialTransfer {
         pub instruction: Option<ConfidentialTransferIx>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct ConfidentialTransferFee {
         pub instruction: Option<ConfidentialTransferFeeIx>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct CpiGuard {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct DefaultAccountState {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct GroupMemberPointer {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct GroupPointer {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct InterestBearingMint {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct MemoTransfer {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct MetadataPointer {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct TransferHook {
         pub instruction: Option<CommonExtensionInstructions>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct TokenMetadata {
         pub instruction: Option<TokenMetadataIx>,
     }
 
-    #[vixen_proto]
+    #[vixen]
     #[derive(Clone, PartialEq)]
     pub struct TokenGroup {
         pub instruction: Option<TokenGroupIx>,
     }
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Instruction {
         TokenProgram(TokenProgram),
@@ -309,10 +308,10 @@ pub fn reallocate_args_from_spl(extension_types: Vec<ExtensionType>) -> Realloca
 #[inline]
 pub fn set_authority_args_from_spl(
     authority_type: SplAuthorityType,
-    new_authority: Option<yellowstone_vixen_core::Pubkey>,
+    new_authority: Option<yellowstone_vixen_core::KeyBytes<32>>,
 ) -> SetAuthorityArgs {
     SetAuthorityArgs {
         authority_type: authority_type as i32,
-        new_authority: new_authority.map(|p| p.to_vec()),
+        new_authority: new_authority.map(|p| crate::PublicKey::new(p.0)),
     }
 }

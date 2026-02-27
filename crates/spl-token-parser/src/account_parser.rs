@@ -7,59 +7,59 @@ use spl_token::{
 use yellowstone_vixen_core::{
     AccountUpdate, ParseError, ParseResult, Parser, Prefilter, ProgramParser,
 };
-use yellowstone_vixen_proc_macro::vixen_proto;
+use yellowstone_vixen_proc_macro::vixen;
 
-use crate::PubkeyBytes;
+use crate::PublicKey;
 
 /// SPL Token account state, proto-compatible
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Mint {
-    pub mint_authority: ::core::option::Option<PubkeyBytes>,
+    pub mint_authority: Option<PublicKey>,
     pub supply: u64,
     pub decimals: u32,
     pub is_initialized: bool,
-    pub freeze_authority: ::core::option::Option<PubkeyBytes>,
+    pub freeze_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenAccount {
-    pub mint: PubkeyBytes,
-    pub owner: PubkeyBytes,
+    pub mint: PublicKey,
+    pub owner: PublicKey,
     pub amount: u64,
 
-    pub delegate: ::core::option::Option<PubkeyBytes>,
+    pub delegate: Option<PublicKey>,
     pub state: u32,
     pub delegated_amount: u64,
 
     /// If present, native rent-exempt reserve (lamports).
     pub is_native: ::core::option::Option<u64>,
 
-    pub close_authority: ::core::option::Option<PubkeyBytes>,
+    pub close_authority: Option<PublicKey>,
 }
 
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct Multisig {
     pub m: u32,
     pub n: u32,
     pub is_initialized: bool,
-    pub signers: Vec<PubkeyBytes>,
+    pub signers: Vec<PublicKey>,
 }
 
 /// One-of wrapper for SPL Token program account state.
-#[vixen_proto]
+#[vixen]
 #[derive(Clone, PartialEq)]
 pub struct TokenProgramState {
-    #[vixen_proto_hint(oneof = "account::Account", tags = "1, 2, 3")]
+    #[hint(oneof = "account::Account", tags = "1, 2, 3")]
     pub account: ::core::option::Option<account::Account>,
 }
 
 pub mod account {
-    use super::vixen_proto;
+    use super::vixen;
 
-    #[vixen_proto(oneof)]
+    #[vixen(oneof)]
     #[derive(Clone, PartialEq)]
     pub enum Account {
         TokenAccount(super::TokenAccount),
@@ -72,14 +72,14 @@ impl From<SplMint> for Mint {
     fn from(m: SplMint) -> Self {
         Self {
             mint_authority: match m.mint_authority {
-                COption::Some(pk) => Some(pk.to_bytes().to_vec()),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
             supply: m.supply,
             decimals: m.decimals as u32,
             is_initialized: m.is_initialized,
             freeze_authority: match m.freeze_authority {
-                COption::Some(pk) => Some(pk.to_bytes().to_vec()),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
         }
@@ -89,12 +89,12 @@ impl From<SplMint> for Mint {
 impl From<SplAccount> for TokenAccount {
     fn from(a: SplAccount) -> Self {
         Self {
-            mint: a.mint.to_bytes().to_vec(),
-            owner: a.owner.to_bytes().to_vec(),
+            mint: PublicKey::new(a.mint.to_bytes()),
+            owner: PublicKey::new(a.owner.to_bytes()),
             amount: a.amount,
 
             delegate: match a.delegate {
-                COption::Some(pk) => Some(pk.to_bytes().to_vec()),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
             state: a.state as u32,
@@ -106,7 +106,7 @@ impl From<SplAccount> for TokenAccount {
             },
 
             close_authority: match a.close_authority {
-                COption::Some(pk) => Some(pk.to_bytes().to_vec()),
+                COption::Some(pk) => Some(PublicKey::new(pk.to_bytes())),
                 COption::None => None,
             },
         }
@@ -119,7 +119,11 @@ impl From<SplMultisig> for Multisig {
             m: m.m as u32,
             n: m.n as u32,
             is_initialized: m.is_initialized,
-            signers: m.signers.iter().map(|pk| pk.to_bytes().to_vec()).collect(),
+            signers: m
+                .signers
+                .iter()
+                .map(|pk| PublicKey::new(pk.to_bytes()))
+                .collect(),
         }
     }
 }
@@ -160,13 +164,15 @@ impl Parser for AccountParser {
             _ => return Err(ParseError::Filtered),
         };
 
-        Ok(TokenProgramState { account: Some(state) })
+        Ok(TokenProgramState {
+            account: Some(state),
+        })
     }
 }
 
 impl ProgramParser for AccountParser {
     #[inline]
-    fn program_id(&self) -> yellowstone_vixen_core::Pubkey { spl_token::ID.to_bytes().into() }
+    fn program_id(&self) -> yellowstone_vixen_core::KeyBytes<32> { spl_token::ID.to_bytes().into() }
 }
 
 #[cfg(test)]
