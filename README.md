@@ -12,7 +12,10 @@ Solana change events, following the Yellowstone gRPC specification, are received
   - [Features](#features)
   - [Quick Start](#quick-start)
   - [Parsers](#parsers)
+    - [Built-in](#built-in)
+    - [Codegen Macro](#codegen-macro)
   - [Official Sources](#official-sources)
+  - [Running Tests](#running-tests)
   - [Developer Resources](#developer-resources)
   - [Maintainers](#maintainers)
 
@@ -178,6 +181,27 @@ Yellowstone Vixen supports several official data sources for ingesting Solana ac
 | [`solana-snapshot-source`](./crates/solana-snapshot-source)           | **Solana Snapshot Source**: Loads and processes Solana ledger snapshots for offline or historical analysis.                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 Refer to the crate documentation for setup instructions and configuration options.
+
+## Running Tests
+
+Parser tests use the `RPC_ENDPOINT` environment variable to fetch fixture data from a Solana RPC node. If not set, it defaults to `https://api.devnet.solana.com`.
+
+**Inline (one-off):**
+
+```bash
+RPC_ENDPOINT=https://my-rpc.example.com cargo test
+```
+
+**Persistent per-project via `.cargo/config.toml`:**
+
+Create `.cargo/config.toml` in the repo root:
+
+```toml
+[env]
+RPC_ENDPOINT = "https://my-rpc.example.com"
+```
+
+This applies to every `cargo` invocation inside this workspace. The file is gitignored so each developer can use their own RPC provider.
 
 ## Developer Resources
 
