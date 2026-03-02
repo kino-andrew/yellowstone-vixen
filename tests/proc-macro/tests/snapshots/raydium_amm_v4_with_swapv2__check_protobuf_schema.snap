@@ -453,6 +453,36 @@ message SwapBaseIn {
   optional SwapBaseInArgs args = 2;
 }
     
+message SwapBaseInCompactAccounts {
+  PublicKey token_program = 1;
+  PublicKey amm = 2;
+  PublicKey amm_authority = 3;
+  PublicKey amm_open_orders = 4;
+  PublicKey pool_coin_token_account = 5;
+  PublicKey pool_pc_token_account = 6;
+  PublicKey serum_program = 7;
+  PublicKey serum_market = 8;
+  PublicKey serum_bids = 9;
+  PublicKey serum_asks = 10;
+  PublicKey serum_event_queue = 11;
+  PublicKey serum_coin_vault_account = 12;
+  PublicKey serum_pc_vault_account = 13;
+  PublicKey serum_vault_signer = 14;
+  PublicKey user_source_token_account = 15;
+  PublicKey user_destination_token_account = 16;
+  PublicKey user_source_owner = 17;
+}
+    
+message SwapBaseInCompactArgs {
+  uint64 amount_in = 1;
+  uint64 minimum_amount_out = 2;
+}
+    
+message SwapBaseInCompact {
+  optional SwapBaseInCompactAccounts accounts = 1;
+  optional SwapBaseInCompactArgs args = 2;
+}
+    
 message PreInitializeAccounts {
   PublicKey token_program = 1;
   PublicKey system_program = 2;
@@ -653,13 +683,14 @@ message Instructions {
     WithdrawPnl withdraw_pnl = 8;
     WithdrawSrm withdraw_srm = 9;
     SwapBaseIn swap_base_in = 10;
-    PreInitialize pre_initialize = 11;
-    SwapBaseOut swap_base_out = 12;
-    SimulateInfo simulate_info = 13;
-    AdminCancelOrders admin_cancel_orders = 14;
-    CreateConfigAccount create_config_account = 15;
-    UpdateConfigAccount update_config_account = 16;
-    SwapBaseInV2 swap_base_in_v2 = 17;
-    SwapBaseOutV2 swap_base_out_v2 = 18;
+    SwapBaseInCompact swap_base_in_compact = 11;
+    PreInitialize pre_initialize = 12;
+    SwapBaseOut swap_base_out = 13;
+    SimulateInfo simulate_info = 14;
+    AdminCancelOrders admin_cancel_orders = 15;
+    CreateConfigAccount create_config_account = 16;
+    UpdateConfigAccount update_config_account = 17;
+    SwapBaseInV2 swap_base_in_v2 = 18;
+    SwapBaseOutV2 swap_base_out_v2 = 19;
   }
 }
